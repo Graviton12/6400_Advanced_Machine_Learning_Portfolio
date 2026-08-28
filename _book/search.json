@@ -1,0 +1,72 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "ds6400_portfolio",
+    "section": "",
+    "text": "DS-6400: Advanced Machine Learning I Portfolio\nThis Quarto book will serve as my portfolio for DS-6400: Advanced Machine Learning. Highlighting, my notes, propjects and presentaions.\nTo learn more about Quarto books visit https://quarto.org/docs/books.",
+    "crumbs": [
+      "DS-6400: Advanced Machine Learning I Portfolio"
+    ]
+  },
+  {
+    "objectID": "intro.html",
+    "href": "intro.html",
+    "title": "1  Introduction",
+    "section": "",
+    "text": "This is a book created from markdown and executable code.\nSee Knuth (1984) for additional discussion of literate programming.\n\n\n\n\nKnuth, Donald E. 1984. “Literate Programming.” Comput. J. (USA) 27 (2): 97–111. https://doi.org/10.1093/comjnl/27.2.97.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Introduction</span>"
+    ]
+  },
+  {
+    "objectID": "summary.html",
+    "href": "summary.html",
+    "title": "3  Summary",
+    "section": "",
+    "text": "In summary, this book has no content whatsoever.",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Summary</span>"
+    ]
+  },
+  {
+    "objectID": "references.html",
+    "href": "references.html",
+    "title": "References",
+    "section": "",
+    "text": "Efron, B., and R. Tibshirani. 1997. “Improvements on\nCross-Validation: The .632+ Bootstrap Method.” Journal of the\nAmerican Statistical Association 92 (438): 548–60. https://doi.org/10.2307/2965703.\n\n\nKnuth, Donald E. 1984. “Literate Programming.” Comput.\nJ. (USA) 27 (2): 97–111. https://doi.org/10.1093/comjnl/27.2.97.",
+    "crumbs": [
+      "References"
+    ]
+  },
+  {
+    "objectID": "simulation-study.html",
+    "href": "simulation-study.html",
+    "title": "2  Simulation Study",
+    "section": "",
+    "text": "2.1 Paper Overview of Simulation Study (Efron 1983)\nThis section summarizes the simulation study discussed in Estimating the Error Rate of a Prediction Rule: Improvement on Cross-Validation, (Efron 1983).\nThis study….",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Simulation Study</span>"
+    ]
+  },
+  {
+    "objectID": "simulation-study.html#paper-overview",
+    "href": "simulation-study.html#paper-overview",
+    "title": "2  Simulation Study",
+    "section": "",
+    "text": "Efron, B., and R. Tibshirani. 1997. “Improvements on Cross-Validation: The .632+ Bootstrap Method.” Journal of the American Statistical Association 92 (438): 548–60. https://doi.org/10.2307/2965703.",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Simulation Study</span>"
+    ]
+  },
+  {
+    "objectID": "simulation-study.html#key-concepts-and-definitions",
+    "href": "simulation-study.html#key-concepts-and-definitions",
+    "title": "2  Simulation Study",
+    "section": "2.2 Key Concepts and Definitions",
+    "text": "2.2 Key Concepts and Definitions\n\n2.2.1 Bootstrapping\n\n\n2.2.2 ANOVA decompostion\n\n\n2.2.3 Prediction problem\n\n\n2.2.4 Logistic regression\n\n\n\n\nEfron, B. 1983. “Estimating the Error Rate of a Prediction Rule: Improvement on Cross-Validation.” Journal of the American Statistical Associati 78 (382): 316–31. https://doi.org/10.2307/2288636.",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Simulation Study</span>"
+    ]
+  }
+]

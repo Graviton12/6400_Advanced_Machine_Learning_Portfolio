@@ -1,0 +1,12 @@
+# Simulation Study
+
+## Paper Overview of Simulation Study (Efron 1983)
+This section summarizes the simulation study discussed in Estimating the Error Rate of a Prediction Rule: Improvement on Cross-Validation, [@Efron1983].
+
+This study....
+
+## Key Concepts and Definitions
+### Bootstrapping
+### ANOVA decompostion
+### Prediction problem
+### Logistic regression
