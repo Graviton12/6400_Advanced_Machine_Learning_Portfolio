@@ -1,0 +1,26 @@
+project:
+  type: book
+
+book:
+  title: "ds6400_portfolio"
+  author: "Samia Mahmood"
+  date: "8/27/2026"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - simulation-study.qmd
+    - summary.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+  pdf:
+    documentclass: scrreprt
+
+
+

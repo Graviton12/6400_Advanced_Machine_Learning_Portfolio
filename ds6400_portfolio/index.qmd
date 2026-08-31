@@ -1,0 +1,5 @@
+# DS-6400: Advanced Machine Learning I Portfolio {.unnumbered}
+
+This Quarto book will serve as my portfolio for DS-6400: Advanced Machine Learning. Highlighting, my notes, propjects and presentaions.
+
+To learn more about Quarto books visit <https://quarto.org/docs/books>.

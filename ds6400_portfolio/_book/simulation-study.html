@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>2&nbsp; Simulation Study – ds6400_portfolio</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./summary.html" rel="next">
+<link href="./intro.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-631496449bf32ff9b0bb69a6bfd9195d.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./simulation-study.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Simulation Study</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">ds6400_portfolio</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">DS-6400: Advanced Machine Learning I Portfolio</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./simulation-study.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Simulation Study</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./summary.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#paper-overview-of-simulation-study-efron-1983" id="toc-paper-overview-of-simulation-study-efron-1983" class="nav-link active" data-scroll-target="#paper-overview-of-simulation-study-efron-1983"><span class="header-section-number">2.1</span> Paper Overview of Simulation Study (Efron 1983)</a></li>
+  <li><a href="#key-concepts" id="toc-key-concepts" class="nav-link" data-scroll-target="#key-concepts"><span class="header-section-number">2.2</span> Key Concepts</a>
+  <ul class="collapse">
+  <li><a href="#cross-validation" id="toc-cross-validation" class="nav-link" data-scroll-target="#cross-validation"><span class="header-section-number">2.2.1</span> Cross Validation:</a></li>
+  <li><a href="#bootstrapping" id="toc-bootstrapping" class="nav-link" data-scroll-target="#bootstrapping"><span class="header-section-number">2.2.2</span> Bootstrapping:</a></li>
+  <li><a href="#prediction-problem" id="toc-prediction-problem" class="nav-link" data-scroll-target="#prediction-problem"><span class="header-section-number">2.2.3</span> Prediction Problem:</a></li>
+  <li><a href="#error-rate" id="toc-error-rate" class="nav-link" data-scroll-target="#error-rate"><span class="header-section-number">2.2.4</span> Error Rate:</a></li>
+  <li><a href="#bias-vs.-variance" id="toc-bias-vs.-variance" class="nav-link" data-scroll-target="#bias-vs.-variance"><span class="header-section-number">2.2.5</span> Bias Vs. Variance:</a></li>
+  <li><a href="#anova-decompostion" id="toc-anova-decompostion" class="nav-link" data-scroll-target="#anova-decompostion"><span class="header-section-number">2.2.6</span> ANOVA Decompostion:</a></li>
+  <li><a href="#fishers-linear-discriminant" id="toc-fishers-linear-discriminant" class="nav-link" data-scroll-target="#fishers-linear-discriminant"><span class="header-section-number">2.2.7</span> Fisher’s Linear Discriminant:</a></li>
+  <li><a href="#logistic-regression" id="toc-logistic-regression" class="nav-link" data-scroll-target="#logistic-regression"><span class="header-section-number">2.2.8</span> Logistic Regression:</a></li>
+  </ul></li>
+  <li><a href="#simulation-study-procedure-defined-in-efron-1983" id="toc-simulation-study-procedure-defined-in-efron-1983" class="nav-link" data-scroll-target="#simulation-study-procedure-defined-in-efron-1983"><span class="header-section-number">2.3</span> Simulation Study Procedure Defined in Efron 1983</a>
+  <ul class="collapse">
+  <li><a href="#central-question-of-study" id="toc-central-question-of-study" class="nav-link" data-scroll-target="#central-question-of-study"><span class="header-section-number">2.3.1</span> Central Question of Study:</a></li>
+  <li><a href="#modelstechniques-used" id="toc-modelstechniques-used" class="nav-link" data-scroll-target="#modelstechniques-used"><span class="header-section-number">2.3.2</span> Models/Techniques Used:</a></li>
+  <li><a href="#sampling-experiements-used" id="toc-sampling-experiements-used" class="nav-link" data-scroll-target="#sampling-experiements-used"><span class="header-section-number">2.3.3</span> Sampling Experiements Used:</a></li>
+  <li><a href="#simulation-study-step-by-step" id="toc-simulation-study-step-by-step" class="nav-link" data-scroll-target="#simulation-study-step-by-step"><span class="header-section-number">2.3.4</span> Simulation Study Step-by-Step:</a></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results"><span class="header-section-number">2.3.5</span> Results:</a></li>
+  </ul></li>
+  <li><a href="#efrons-simulation-study-design" id="toc-efrons-simulation-study-design" class="nav-link" data-scroll-target="#efrons-simulation-study-design"><span class="header-section-number">2.4</span> Efron’s Simulation Study Design</a></li>
+  <li><a href="#student-presentation-simulation-study-sketch" id="toc-student-presentation-simulation-study-sketch" class="nav-link" data-scroll-target="#student-presentation-simulation-study-sketch"><span class="header-section-number">2.5</span> Student Presentation &amp; Simulation Study Sketch</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Simulation Study</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="paper-overview-of-simulation-study-efron-1983" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="paper-overview-of-simulation-study-efron-1983"><span class="header-section-number">2.1</span> Paper Overview of Simulation Study (Efron 1983)</h2>
+<p>This section summarizes the simulation study discussed in Estimating the Error Rate of a Prediction Rule: Improvement on Cross-Validation, <span class="citation" data-cites="Efron1983">(<a href="references.html#ref-Efron1983" role="doc-biblioref">Efron 1983</a>)</span>.</p>
+<p>This study aims to build a prediction rule based on data provided to create a prediction model and estimate the liklihood of the model making an incorrect prediction, which is the error rate, when tested on data it has never seen before. The study leverages statisical techniques such as cross validation, various bootstrapping methods, etc. and compare their results to determine which method gives the best estimate of the true error rate.</p>
+</section>
+<section id="key-concepts" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="key-concepts"><span class="header-section-number">2.2</span> Key Concepts</h2>
+<section id="cross-validation" class="level3" data-number="2.2.1">
+<h3 data-number="2.2.1" class="anchored" data-anchor-id="cross-validation"><span class="header-section-number">2.2.1</span> Cross Validation:</h3>
+<ul>
+<li>Cross-validation is a technique used to estimate how well a prediction model will perform on new, unseen data. It does this by dividing the available data into training and testing portions multiple times, fitting the model using the training portion, and evaluating its performance on the testing portion.</li>
+<li>Therefore Cross Validation:
+<ul>
+<li>The specific machine learning model is trained using the training data.</li>
+<li>The trained machine learning model is then tested/evaluated using testing data which is the data it did not train on.</li>
+<li><strong>IMPORTANT NOTE:</strong> Seeing how the model works on data it was not been trained on allows us to evaluate how well the model performed. So, within each iteration, the same data used to train the model should not be used to test that version of the model.
+<ul>
+<li>Therefore, the data needs to be split into a training dataset and a testing dataset.</li>
+<li>A fold of data refers to a chunk/subset of data.</li>
+<li>The data is divided into k number equally-sized folds. During each iteration, k-1 number of folds of data are used for for training and the remaining 1 fold of data is used for testing. This is referred to a k-fold cross validation.</li>
+<li>For example, in a 4-fold cross valdiaiton, we divide a dataset up into 4 equally sized folds. We may choose to use the first 75% of the data (first 3 folds of data) to train a particular machine learning model then use the last 25% of the data (last fold of the data) to test the machine learning model. However, how do we know if this selection of data is the best option? what if using the first 25% of the data for testing the model and the last 75% for training the model is better?</li>
+</ul>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Iteration</th>
+<th style="text-align: center;">Fold 1</th>
+<th style="text-align: center;">Fold 2</th>
+<th style="text-align: center;">Fold 3</th>
+<th style="text-align: center;">Fold 4</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">Train</td>
+<td style="text-align: center;">Train</td>
+<td style="text-align: center;">Train</td>
+<td style="text-align: center;"><strong>Test</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">Train</td>
+<td style="text-align: center;">Train</td>
+<td style="text-align: center;"><strong>Test</strong></td>
+<td style="text-align: center;">Train</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">Train</td>
+<td style="text-align: center;"><strong>Test</strong></td>
+<td style="text-align: center;">Train</td>
+<td style="text-align: center;">Train</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">4</td>
+<td style="text-align: center;"><strong>Test</strong></td>
+<td style="text-align: center;">Train</td>
+<td style="text-align: center;">Train</td>
+<td style="text-align: center;">Train</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Cross validation helps identify and evaluate overfitting by using various combinations of data folds for training the model and keeps track of how well the model performed using the corresponding testing data folds. So, instead of splitting a dataset just once into a training set and a testing set, cross validation repeats the process multiple times.</li>
+<li>Looks at the average the performance scores from all iterations to get a final accuracy metric.</li>
+<li>Compares the results across various models where each model sees the exact same folds to detmerine which model works best using the specific fold combination.</li>
+</ul></li>
+<li><strong>IMPORTANT NOTE:</strong> Model overfitting is a modeling error that occurs when a machine learning model matches its training data too closely, which leads it to simply memorizing the data, random noise, and minor quirks instead of actually learning from the data to idenfity meaningful, true, general patterns.
+<ul>
+<li>Helps address overfitting concerns by providing a reliable estimate of how well a model performs on unseen data rather than just memorizing the training set.</li>
+</ul></li>
+</ul></li>
+</ul>
+</section>
+<section id="bootstrapping" class="level3" data-number="2.2.2">
+<h3 data-number="2.2.2" class="anchored" data-anchor-id="bootstrapping"><span class="header-section-number">2.2.2</span> Bootstrapping:</h3>
+<ul>
+<li>Bootstrapping is a technique that can be used to provide insight into whether a performance eestimator or model statistic may be biased for a given machine learning model.</li>
+<li>Bootstrapping works by resampling a single dataset repeatedly with replacement (known as sampling with replacement) to estimate the variability, bias, or uncertainty of a statistic or estimator. In Efron’s paper, bootstrap methods are used to estimate the error rate of a prediction rule.</li>
+<li>Therefore bootstrapping:
+<ul>
+<li>Takes a fixed original dataset of n number of observations.</li>
+<li>Randomly draws a data points from the original dataset with replacement where a single data point from the original dataset may be picked more than once while some data points from the original dataset may not be picked at all.</li>
+<li>This process is done until a new dataset is created known as the bootstrapped dataset with the same n number of data points as the original dataset.</li>
+<li>This process is then repeated multiple times, producing multiple bootstrapped datasets.</li>
+<li>The statisics for each of the bootstrapped datasets are taken. This could include the mean, median, standard deviation, etc. for each bootstrapped dataset.</li>
+<li>For simplicity, lets assume we are only considering the mean of each of the boootstrapped datasets. After collecting all the means for all bootstrapped datastes. These means can be plotted onto a histogram which is used to visualize the frequency of a particular measurment or statistic.</li>
+<li>This histogram which is a distribtuion of bootstrap statisics, in our case, distribution of bootstrap means, gives us an idea of how much our statistic might vary if we could repeatedly obtain new samples from the same population.</li>
+<li>This histrogram can also provide insight into the liklihood of getting something close to the original statisic, in our case the mean, of the original dataset when the experiment is rerun multiple times by looking at the distribution of the histrogram.</li>
+<li>The standard deviation of the bootstrap distribution of the statistic from the histogram provides an estimate of the standard error of that statistic of the original dataset.</li>
+<li>We can also determine a bootstrap confidence interval which can be constructed from the distribution of bootstrap estimates. For example, a 95% bootstrap confidence interval provides a range of plausible values for the population parameter based on the bootstrap distribution where The interval contains 95% of the bootstrap estimates.</li>
+<li>This can allow us to conduct a hypothesis test to determine whether we reject or fail to reject the nu,ll hypothesis. Although this is not the primary use of bootstrapping in Efron’s paper.</li>
+</ul></li>
+</ul>
+</section>
+<section id="prediction-problem" class="level3" data-number="2.2.3">
+<h3 data-number="2.2.3" class="anchored" data-anchor-id="prediction-problem"><span class="header-section-number">2.2.3</span> Prediction Problem:</h3>
+<ul>
+<li>A Prediction problem - is the specific question or task you want to solve.</li>
+<li>A Prediction model - is the mathematical tool or formula used to solve it.</li>
+<li>A Prediction rule - is a specific decision threshold, score cutoff, or constraint derived from a model to classify subjects or take action.</li>
+</ul>
+</section>
+<section id="error-rate" class="level3" data-number="2.2.4">
+<h3 data-number="2.2.4" class="anchored" data-anchor-id="error-rate"><span class="header-section-number">2.2.4</span> Error Rate:</h3>
+<ul>
+<li>Error rate (True error rate) refers to the likelihood/poercentage of a model to make the incorrect predicition when tested on data it was not trained on.</li>
+<li>Apparent error rate refers to the likelihood/poercentage of a model to make the incorrect predicition when tested on the same data it already trained on. The apparemnt error often gives misleading results that are too optimistic since the model has already “seen the answer before” so it did not actually “learan the material.”</li>
+</ul>
+</section>
+<section id="bias-vs.-variance" class="level3" data-number="2.2.5">
+<h3 data-number="2.2.5" class="anchored" data-anchor-id="bias-vs.-variance"><span class="header-section-number">2.2.5</span> Bias Vs. Variance:</h3>
+<ul>
+<li>Bias measures how far off a model’s average predictions are from the correct values. Bias is the error from making oversimplified assumptions, leading to underfitting.
+<ul>
+<li>Underfitting refers to when the model is too simple to capture the underlying or key patterns in the data, resulting in poor performance on both training and testing datasets.</li>
+</ul></li>
+<li>Variance measures how much a model’s predictions change if you train it on a different data subset. Variance is the error from the model being too sensitive to small changes in training data, leading to overfitting.
+<ul>
+<li>Overfitting refers to when the model learns the training data too well, is overly complex, sensitive, and flexible, rsulting in the memorization of random noise and minor quirks instead of the true underlying or key patterns.</li>
+</ul></li>
+<li>For a good and reliable model, an optimal balance between simplicity and complexity, and thus, a low bias and low variance is required.
+<ul>
+<li>As model complexity increases, bias goes down and variance goes up.</li>
+<li>As model simplicity increaes, bias goes up and variance goes down.</li>
+</ul></li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/bias-variance-relation.jpeg" class="img-fluid figure-img"></p>
+<figcaption>Figure 1: Diagram depicting relationship between bias and variance.</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/bias-variance-simplicity-complexity-graph.png" class="img-fluid figure-img"></p>
+<figcaption>Figure 2: Graph displahying the relation between bias and variance as model complexity changes.</figcaption>
+</figure>
+</div>
+</section>
+<section id="anova-decompostion" class="level3" data-number="2.2.6">
+<h3 data-number="2.2.6" class="anchored" data-anchor-id="anova-decompostion"><span class="header-section-number">2.2.6</span> ANOVA Decompostion:</h3>
+<ul>
+<li>ANOVA decomposition is sued to determine the origin of variation in data by separating the total variation into between-group and within-group components. Efron’s study examines different sources of variation and error that affect estimates of prediction error.</li>
+</ul>
+</section>
+<section id="fishers-linear-discriminant" class="level3" data-number="2.2.7">
+<h3 data-number="2.2.7" class="anchored" data-anchor-id="fishers-linear-discriminant"><span class="header-section-number">2.2.7</span> Fisher’s Linear Discriminant:</h3>
+<ul>
+<li>Fisher’s linear discriminant is a classification method used as a prediction rule where given an observation or data point, decide which group/class it belongs to.</li>
+<li>Fisher’s linear discriminat tries to find a linear boundary that separates the two classes as well as possible.</li>
+</ul>
+</section>
+<section id="logistic-regression" class="level3" data-number="2.2.8">
+<h3 data-number="2.2.8" class="anchored" data-anchor-id="logistic-regression"><span class="header-section-number">2.2.8</span> Logistic Regression:</h3>
+<ul>
+<li>Logistic regression is used to predict the probability of a categorical outcome, such as a binary outcome. Enfron’s study looks into how can we estimate how well a prediction rule will perform on new, unseen observations.</li>
+</ul>
+</section>
+</section>
+<section id="simulation-study-procedure-defined-in-efron-1983" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="simulation-study-procedure-defined-in-efron-1983"><span class="header-section-number">2.3</span> Simulation Study Procedure Defined in Efron 1983</h2>
+<section id="central-question-of-study" class="level3" data-number="2.3.1">
+<h3 data-number="2.3.1" class="anchored" data-anchor-id="central-question-of-study"><span class="header-section-number">2.3.1</span> Central Question of Study:</h3>
+<ul>
+<li>Efron aims to estimate the likelihood of a model making the inccorect prediction when tested on data it has not been trained on, refered to as the true error rate by comparing methods to identify which method is the best estimate of the true error rate.</li>
+<li>In this simulaiton study, Efron already knows the true error rate since he knows how the data is generated and is trying to determine how accurate the models are by seeing which model is the best at estimating the true error rate.</li>
+</ul>
+</section>
+<section id="modelstechniques-used" class="level3" data-number="2.3.2">
+<h3 data-number="2.3.2" class="anchored" data-anchor-id="modelstechniques-used"><span class="header-section-number">2.3.2</span> Models/Techniques Used:</h3>
+<ul>
+<li><p><strong>Cross Validation:</strong></p>
+<ul>
+<li><p>Efron used Leave-One-Out Cross-Validation (LOOCV), in which each observation is removed from the dataset one at a time. A prediction rule is then fitted using the remaining observations and used to predict the observation that was left out. The prediction is recorded as either correct or incorrect, and this process is repeated for every observation. The proportion of incorrect predictions provides an estimate of the model’s prediction error on observations that were not used to fit the prediction rule.</p></li>
+<li><p><strong>Example to visualize the LOOCV technique:</strong> Suppose we have four observations belonging to one of two classes, 0 or 1. In each round of LOOCV, one observation is held out as the test observation, while the remaining three observations are used to fit the prediction rule. The fitted rule then predicts the class of the held-out observation.</p></li>
+</ul>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 22%">
+<col style="width: 21%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 8%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Iteration</th>
+<th>Training Data</th>
+<th>Testing Data</th>
+<th>Predicted</th>
+<th>Correct?</th>
+<th style="text-align: right;">Error</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>2, 3, 4</td>
+<td><strong>1</strong></td>
+<td>0</td>
+<td>No</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>1, 3, 4</td>
+<td><strong>2</strong></td>
+<td>1</td>
+<td>Yes</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>1, 2, 4</td>
+<td><strong>3</strong></td>
+<td>1</td>
+<td>No</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>1, 2, 3</td>
+<td><strong>4</strong></td>
+<td>0</td>
+<td>Yes</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p>The LOOCV error rate is calculated as the proportion of incorrect predictions across all four iterationss: <span class="math display">\[
+  \text{LOOCV Error Rate} = \frac{1 + 0 + 1 + 0}{4} = 0.50
+  \]</span> Therefore, the estimated error rate using LOOCV is <strong>50%</strong>.</p></li>
+<li><p><strong>Ordinary Bootstrap:</strong></p>
+<ul>
+<li>Efron used ordinary boostrapping to create new aritifical datasets by randomly sampling from the original dataset with replacement where the original dataset is used to represent the population.</li>
+</ul></li>
+<li><p><strong>Randomized Bootstrap:</strong></p>
+<ul>
+<li>Efron used a modified version of the ordinary bootstrap which uses the same process of an orindary bootstrap but the only idfference is that the observations are not treated as having completely certain classifications.</li>
+</ul></li>
+<li><p><strong>Double Bootstrap:</strong></p>
+<ul>
+<li>Efron used double bootstrap to help correct the downward bias found in the ordinary bootstrap. He did this by taking the bootstrap of the original ordrinary bootstrap.</li>
+</ul></li>
+<li><p><strong>.632 Estimator:</strong></p>
+<ul>
+<li>Efron used the .632 estimator which is a bootsrapping method that performs the same rpocedures as an ordinary bootstrap where 63.2% of the original obersevations appear in the bootstrap sample and 36.8% of the original oberservations are left out of the bootstrap sample. The .632 estimator commbine the apparent error and the bootstrap error, giving more weight to the bootstrap error which Efron originally found to have a downward bias.</li>
+<li><strong>Example to visualize the .632 Estimator technique:</strong> Think of the .632 estimator as balancing two imperfect estimates: the apparent error may be too optimistic because the model has already seen the data, while the bootstrap error is based on observations the model did not see. The .632 estimator therefore gives more weight to the bootstrap error while still incorporating the apparent error. Consider an exmaple where the apparent error rate is found to be 10% and the ordinary bootstrap error rate is foudn to be 25%. The rror rate of the .632 estimator is calculated using the following formula:</li>
+</ul></li>
+</ul>
+<p><span class="math display">\[
+\widehat{Err}_{.632}
+=
+0.368(\text{apparent error})
++
+0.632(\text{bootstrap error})
+\]</span></p>
+<p>So the .632 estimator gives:</p>
+<ul>
+<li><strong>36.8% weight</strong> to apparent error</li>
+<li><strong>63.2% weight</strong> to bootstrap error</li>
+</ul>
+<p>For example, suppose:</p>
+<p><span class="math display">\[
+\text{Apparent error} = 10\%
+\]</span></p>
+<p>and</p>
+<p><span class="math display">\[
+\text{Bootstrap error} = 25\%
+\]</span></p>
+<p>Then:</p>
+<p><span class="math display">\[
+\widehat{Err}_{.632}
+=
+(0.368)(10\%) + (0.632)(25\%)
+\]</span></p>
+<p><span class="math display">\[
+= 3.68\% + 15.8\%
+\]</span></p>
+<p><span class="math display">\[
+= 19.48\%
+\]</span> Therefore, the .632 estimator gives an estimated prediction error of <strong>19.48%</strong>.</p>
+</section>
+<section id="sampling-experiements-used" class="level3" data-number="2.3.3">
+<h3 data-number="2.3.3" class="anchored" data-anchor-id="sampling-experiements-used"><span class="header-section-number">2.3.3</span> Sampling Experiements Used:</h3>
+<ul>
+<li><strong>Sampleing Experiment #1 - (2, 14):</strong>
+<ul>
+<li>2 predictors - 2 independent variables</li>
+<li>14 observations - sample size of 14</li>
+<li>100 trials - the experiement was repreated 100 times</li>
+<li>For example: visualize the data as a matrix</li>
+</ul>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Observation</th>
+<th style="text-align: right;">Variable 1 <span class="math inline">\((X_1)\)</span></th>
+<th style="text-align: right;">Variable 2 <span class="math inline">\((X_2)\)</span></th>
+<th>Class <span class="math inline">\((Y)\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">35</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">52</td>
+<td>B</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">41</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td>…</td>
+</tr>
+<tr class="odd">
+<td>14</td>
+<td style="text-align: right;">45</td>
+<td style="text-align: right;">75</td>
+<td>B</td>
+</tr>
+</tbody>
+</table></li>
+<li><strong>Sampleing Experiment #2 - (2, 20):</strong>
+<ul>
+<li>2 predictors - 2 independent variables</li>
+<li>20 observations - sample size of 20 (allows Efron to see what happens when sample size increases)</li>
+<li>100 trials - the experiement was repreated 100 times</li>
+<li>For example: visualize the data as a matrix</li>
+</ul>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Observation</th>
+<th style="text-align: right;">Variable 1 <span class="math inline">\((X_1)\)</span></th>
+<th style="text-align: right;">Variable 2 <span class="math inline">\((X_2)\)</span></th>
+<th>Class <span class="math inline">\((Y)\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">35</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td style="text-align: right;">31</td>
+<td style="text-align: right;">52</td>
+<td>B</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">41</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td>…</td>
+</tr>
+<tr class="odd">
+<td>20</td>
+<td style="text-align: right;">56</td>
+<td style="text-align: right;">67</td>
+<td>A</td>
+</tr>
+</tbody>
+</table></li>
+<li><strong>Sampleing Experiment #3 -(5, 14):</strong>
+<ul>
+<li>5 predictors - 5 independent variables (allows Efron to see what happens when the number of predictors increase)</li>
+<li>14 observations - sample size of 14</li>
+<li>100 trials - the experiement was repreated 100 times</li>
+<li>For example: visualize the data as a matrix</li>
+</ul>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 21%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 9%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Observation</th>
+<th style="text-align: right;"><span class="math inline">\((X_1)\)</span></th>
+<th style="text-align: right;"><span class="math inline">\((X_2)\)</span></th>
+<th style="text-align: right;"><span class="math inline">\((X_3)\)</span></th>
+<th style="text-align: right;"><span class="math inline">\((X_4)\)</span></th>
+<th style="text-align: right;"><span class="math inline">\((X_5)\)</span></th>
+<th>Class</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td>B</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td>…</td>
+</tr>
+<tr class="odd">
+<td>14</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td>A</td>
+</tr>
+</tbody>
+</table></li>
+<li><strong>Sampleing Experiment #4 - (5, 20):</strong>
+<ul>
+<li>5 predictors - 5 independent variables (allows Efron to see what happens when the number of predictors increase)</li>
+<li>20 observations - sample size of 20 (allows Efron to see what happens when sample size increases)</li>
+<li>100 trials - the experiement was repreated 100 times</li>
+<li>For example: visualize the data as a matrix</li>
+</ul>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 21%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 9%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Observation</th>
+<th style="text-align: right;"><span class="math inline">\((X_1)\)</span></th>
+<th style="text-align: right;"><span class="math inline">\((X_2)\)</span></th>
+<th style="text-align: right;"><span class="math inline">\((X_3)\)</span></th>
+<th style="text-align: right;"><span class="math inline">\((X_4)\)</span></th>
+<th style="text-align: right;"><span class="math inline">\((X_5)\)</span></th>
+<th>Class</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td>B</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td>A</td>
+</tr>
+<tr class="even">
+<td>…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td>…</td>
+</tr>
+<tr class="odd">
+<td>20</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td style="text-align: right;">…</td>
+<td>B</td>
+</tr>
+</tbody>
+</table></li>
+<li><strong>Sampleing Experiment #5 - Gong:</strong>
+<ul>
+<li>4 predictors</li>
+<li>20 observations</li>
+<li>171 trials</li>
+<li>logistic regression</li>
+<li>forward stepwise variable selection</li>
+</ul></li>
+</ul>
+</section>
+<section id="simulation-study-step-by-step" class="level3" data-number="2.3.4">
+<h3 data-number="2.3.4" class="anchored" data-anchor-id="simulation-study-step-by-step"><span class="header-section-number">2.3.4</span> Simulation Study Step-by-Step:</h3>
+<ol type="1">
+<li>Efrons uses a sampling experiemtn to generate a sample of data to use for the simulation study.</li>
+<li>Efron generates data according to a specified probability model and uses the training data to construct a classification rule which is the Fisher’s linear discriminant, and this represents the prediction rule which works by seperating observations or data points into their respective classes. It cis then used to predict the class of a new observation.</li>
+<li>The specific method such as cross validation, bootstrapping, etc., is then used to test how well that classifier predicts unseen observations.</li>
+<li>Efron then studies how well each method is at estimating the classifier’s true error rate.</li>
+<li>Efron then compares the error rates from the different methods like cross validation, bootstrapping, etc. and determines which method is the best estimator of the true error rate.</li>
+<li>He then repeats the experiment 100 times.</li>
+</ol>
+</section>
+<section id="results" class="level3" data-number="2.3.5">
+<h3 data-number="2.3.5" class="anchored" data-anchor-id="results"><span class="header-section-number">2.3.5</span> Results:</h3>
+<ul>
+<li><strong>Cross Validation Findings:</strong>
+<ul>
+<li>Efron finds that cross-validation is fairly unbiased, meaning that its estimated error tends to be close to the true prediction error on average or that its results tend to be around the correct answer. However, cross validation is highly variable for small sample sizes of data. With fewer observations, individual data points can have a larger influence on the fitted prediction rule, causing the estimated error rate to vary more from one sample to another. Therefore, while cross-validation can provide a relatively accurate estimate on average, a single cross-validation estimate may not be very stable.</li>
+</ul></li>
+<li><strong>Ordinary Bootstrapping Findings:</strong>
+<ul>
+<li>Efron finds that ordinary bootstrapping has relatively low variability but has a significant downward bias, meaning, the model consistently underestimates the true error rate.</li>
+</ul></li>
+<li><strong>Randomized bootstrap Findings:</strong>
+<ul>
+<li>The error rate was reduced compared to the ordinary bootstrap and was foudn to be the second-best method overall in the sampling experiments.</li>
+</ul></li>
+<li><strong>Double bootstrap Findings:</strong>
+<ul>
+<li>The double bootstrap successfully corrected the ordinary bootstrap’s bias, although its MSE was about the same as the ordinary bootstrap.</li>
+</ul></li>
+<li><strong>.632 Estimator Findings:</strong>
+<ul>
+<li>The .632 estimator performed best in the sampling experiments. However, this method had the weakest theoretical justification and therefore recommended it with caution pending additional research.</li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="efrons-simulation-study-design" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="efrons-simulation-study-design"><span class="header-section-number">2.4</span> Efron’s Simulation Study Design</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/efron-1983-simulation-study-design.png" class="img-fluid figure-img"></p>
+<figcaption>Figure 3: Diagram showing the design for Efron’s simulation study.</figcaption>
+</figure>
+</div>
+</section>
+<section id="student-presentation-simulation-study-sketch" class="level2" data-number="2.5">
+<h2 data-number="2.5" class="anchored" data-anchor-id="student-presentation-simulation-study-sketch"><span class="header-section-number">2.5</span> Student Presentation &amp; Simulation Study Sketch</h2>
+<p>I will replicate one of the simulation experiments from Efron’s paper, focusing on the (2,14) experiment. In this experiment, Efron considers a prediction problem with two predictor variables and a training sample of 14 observations. I will generate data according to the simulation setup described in the paper, construct the prediction rule, and estimate its error rate using the methods discussed by Efron. I will then compare the estimated error rates with the true error rate across repeated simulations to investigate how accurately each method estimates prediction error.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/simulation-study-replication-plan.png" class="img-fluid figure-img"></p>
+<figcaption>Figure 4: Diagram showing the design for the simulation study I am choosing to replicate.</figcaption>
+</figure>
+</div>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-Efron1983" class="csl-entry" role="listitem">
+Efron, B. 1983. <span>“Estimating the Error Rate of a Prediction Rule: Improvement on Cross-Validation.”</span> <em>Journal of the American Statistical Associati</em> 78 (382): 316–31. <a href="https://doi.org/10.2307/2288636">https://doi.org/10.2307/2288636</a>.
+</div>
+</div>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./intro.html" class="pagination-link" aria-label="Introduction">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./summary.html" class="pagination-link" aria-label="Summary">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Summary</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
