@@ -223,12 +223,12 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
     - forward stepwise variable selection
 
 ### Simulation Study Step-by-Step:
-1. Efrons uses a sampling experiemtn to generate a sample of data to use for the simulation study.
-2. Efron generates data according to a specified probability model and uses the training data to construct a classification rule which is the Fisher's linear discriminant, and this represents the prediction rule which works by seperating observations or data points into their respective classes. It cis then used to predict the class of a new observation. 
+1. Efron uses a sampling experiment based on a specified probability model to generate artificial data for the simulation study.
+    - For the sampling expeiremtns such as the (2,14) sampling experiment, Efron generates data from a bivariate normal probability model with two predictor variables and two classes.
+2.  He uses the resulting training data to construct a classification rule using Fisher's linear discriminant. This prediction rule attempts to separate observations into their respective classes and is then used to predict the class of new observations.
 3. The specific method such as cross validation, bootstrapping, etc., is then used to test how well that classifier predicts unseen observations.
-4. Efron then studies how well each method is at estimating the classifier's true error rate.
-5. Efron then compares the error rates from the different methods like cross validation, bootstrapping, etc. and determines which method is the best estimator of the true error rate.
-6. He then repeats the experiment 100 times.
+4. Efron then compares the error rates from the different methods like cross validation, bootstrapping, etc. and determines which method is the best estimator of the true error rate.
+6. He then repeats the experiment x number of times.
 
 ### Results:
 * **Cross Validation Findings:**
@@ -251,5 +251,7 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
 
 ## Student Presentation & Simulation Study Sketch
 I will replicate one of the simulation experiments from Efron's paper, focusing on the (2,14) experiment. In this experiment, Efron considers a prediction problem with two predictor variables and a training sample of 14 observations. I will generate data according to the simulation setup described in the paper, construct the prediction rule, and estimate its error rate using the methods discussed by Efron. I will then compare the estimated error rates with the true error rate across repeated simulations to investigate how accurately each method estimates prediction error.
+
+I will utilize Python as my primary programming lanagauge to complete this simulation.
 
 ![Figure 4: Diagram showing the design for the simulation study I am choosing to replicate.](images/simulation-study-replication-plan.png)

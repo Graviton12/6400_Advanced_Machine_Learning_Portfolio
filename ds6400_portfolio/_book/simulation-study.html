@@ -800,12 +800,14 @@ window.Quarto = {
 <section id="simulation-study-step-by-step" class="level3" data-number="2.3.4">
 <h3 data-number="2.3.4" class="anchored" data-anchor-id="simulation-study-step-by-step"><span class="header-section-number">2.3.4</span> Simulation Study Step-by-Step:</h3>
 <ol type="1">
-<li>Efrons uses a sampling experiemtn to generate a sample of data to use for the simulation study.</li>
-<li>Efron generates data according to a specified probability model and uses the training data to construct a classification rule which is the Fisher’s linear discriminant, and this represents the prediction rule which works by seperating observations or data points into their respective classes. It cis then used to predict the class of a new observation.</li>
+<li>Efron uses a sampling experiment based on a specified probability model to generate artificial data for the simulation study.
+<ul>
+<li>For the sampling expeiremtns such as the (2,14) sampling experiment, Efron generates data from a bivariate normal probability model with two predictor variables and two classes.</li>
+</ul></li>
+<li>He uses the resulting training data to construct a classification rule using Fisher’s linear discriminant. This prediction rule attempts to separate observations into their respective classes and is then used to predict the class of new observations.</li>
 <li>The specific method such as cross validation, bootstrapping, etc., is then used to test how well that classifier predicts unseen observations.</li>
-<li>Efron then studies how well each method is at estimating the classifier’s true error rate.</li>
 <li>Efron then compares the error rates from the different methods like cross validation, bootstrapping, etc. and determines which method is the best estimator of the true error rate.</li>
-<li>He then repeats the experiment 100 times.</li>
+<li>He then repeats the experiment x number of times.</li>
 </ol>
 </section>
 <section id="results" class="level3" data-number="2.3.5">
@@ -846,6 +848,7 @@ window.Quarto = {
 <section id="student-presentation-simulation-study-sketch" class="level2" data-number="2.5">
 <h2 data-number="2.5" class="anchored" data-anchor-id="student-presentation-simulation-study-sketch"><span class="header-section-number">2.5</span> Student Presentation &amp; Simulation Study Sketch</h2>
 <p>I will replicate one of the simulation experiments from Efron’s paper, focusing on the (2,14) experiment. In this experiment, Efron considers a prediction problem with two predictor variables and a training sample of 14 observations. I will generate data according to the simulation setup described in the paper, construct the prediction rule, and estimate its error rate using the methods discussed by Efron. I will then compare the estimated error rates with the true error rate across repeated simulations to investigate how accurately each method estimates prediction error.</p>
+<p>I will utilize Python as my primary programming lanagauge to complete this simulation.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="images/simulation-study-replication-plan.png" class="img-fluid figure-img"></p>
