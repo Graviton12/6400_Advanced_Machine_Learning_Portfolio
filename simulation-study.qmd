@@ -58,7 +58,7 @@ This study aims to build a prediction rule based on data generated to create a p
 ### Mean Squared Error (MSE):
 * The MSE is the average of the squared differences between actual values and predicted values. In context to Efron's paper, it is the squared difference between the true error rate and the estimated error rate. The formula used for the MSE for comparing both error rates is given by:
 $$
-MSE = (\widehat{Err} - Err)^2
+MSE = E(\widehat{Err} - Err)^2
 $$
 Where: 
 $$
