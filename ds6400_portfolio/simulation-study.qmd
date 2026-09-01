@@ -55,6 +55,19 @@ This study aims to build a prediction rule based on data provided to create a pr
 * Error rate (True error rate) refers to the likelihood/poercentage of a model to make the incorrect predicition when tested on data it was not trained on.
 * Apparent error rate refers to the likelihood/poercentage of a model to make the incorrect predicition when tested on the same data it already trained on. The apparemnt error often gives misleading results that are too optimistic since the model has already "seen the answer before" so it did not actually "learan the material."
 
+### Mean Squared Error (MSE):
+* The MSE is the average of the squared differences between actual values and predicted values. In context to Efron's paper, it is the squared difference between the true error rate and the estimated error rate. The formula used for the MSE for comparing both error rates is given by:
+$$
+MSE = (\widehat{Err} - Err)^2
+$$
+Where: 
+$$
+\widehat{Err} = the\ estimated\ error\ rate
+$$
+$$
+Err = the\ true\ error\ rate
+$$
+
 ### Bias Vs. Variance:
 * Bias measures how far off a model's average predictions are from the correct values. Bias is the error from making oversimplified assumptions, leading to underfitting. 
     - Underfitting refers to when the model is too simple to capture the underlying or key patterns in the data, resulting in poor performance on both training and testing datasets.
@@ -105,9 +118,10 @@ This study aims to build a prediction rule based on data provided to create a pr
 
 * **Ordinary Bootstrap:**
     - Efron used ordinary boostrapping to create new aritifical datasets by randomly sampling from the original dataset with replacement where the original dataset is used to represent the population. 
+    - Efron ran 200 bootstrap replications per trial.
 
 * **Randomized Bootstrap:**
-    - Efron used a modified version of the ordinary bootstrap which uses the same process of an orindary bootstrap but the only idfference is that the observations are not treated as having completely certain classifications.
+    - Efron used a modified version of the ordinary bootstrap which uses the same process of an orindary bootstrap but the only idfference is that the observations are not treated as having completely certain classifications (randomized).
 
 * **Double Bootstrap:**
     - Efron used double bootstrap to help correct the downward bias found in the ordinary bootstrap. He did this by taking the bootstrap of the original ordrinary bootstrap. 
@@ -115,6 +129,12 @@ This study aims to build a prediction rule based on data provided to create a pr
 * **.632 Estimator:**
     - Efron used the .632 estimator which is a bootsrapping method that performs the same rpocedures as an ordinary bootstrap where 63.2% of the original obersevations appear in the bootstrap sample and 36.8% of the original oberservations are left out of the bootstrap sample. The .632 estimator commbine the apparent error and the bootstrap error, giving more weight to the bootstrap error which Efron originally found to have a downward bias.
     - **Example to visualize the .632 Estimator technique:** Think of the .632 estimator as balancing two imperfect estimates: the apparent error may be too optimistic because the model has already seen the data, while the bootstrap error is based on observations the model did not see. The .632 estimator therefore gives more weight to the bootstrap error while still incorporating the apparent error. Consider an exmaple where the apparent error rate is found to be 10% and the ordinary bootstrap error rate is foudn to be 25%. The rror rate of the .632 estimator is calculated using the following formula:
+
+* **Single Randomized Bootstrapping**
+    - Is a randomized bootstrapping but is only replciated once.
+
+* **Randomized Double Bootstrapping**
+    - Is a double boostrapping but its observations are not treated as having completely certain classifications (randomized).
 
 $$
 \widehat{Err}_{.632}
@@ -159,7 +179,7 @@ $$
 Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
 
 ### Sampling Experiements Used:
-* **Sampleing Experiment #1 - (2, 14):**
+* **Sampling Experiment #1 - (2, 14):**
     - 2 predictors - 2 independent variables
     - 14 observations - sample size of 14
     - 100 trials - the experiement was repreated 100 times
@@ -173,7 +193,7 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
     | ...         |                ... |                ... | ...         |
     | 14          |                 45 |                 75 | B           |
 
-* **Sampleing Experiment #2 - (2, 20):**
+* **Sampling Experiment #2 - (2, 20):**
     - 2 predictors - 2 independent variables
     - 20 observations - sample size of 20 (allows Efron to see what happens when sample size increases)
     - 100 trials - the experiement was repreated 100 times
@@ -187,7 +207,7 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
     | ...         |                ... |                ... | ...         |
     | 20          |                 56 |                 67 | A           |
 
-* **Sampleing Experiment #3 -(5, 14):**
+* **Sampling Experiment #3 -(5, 14):**
     - 5 predictors - 5 independent variables (allows Efron to see what happens when the number of predictors increase)
     - 14 observations - sample size of 14 
     - 100 trials - the experiement was repreated 100 times
@@ -201,7 +221,7 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
     | ...         |     ... |     ... |     ... |     ... |     ... | ...   |
     | 14          |     ... |     ... |     ... |     ... |     ... | A     |
 
-* **Sampleing Experiment #4 - (5, 20):**
+* **Sampling Experiment #4 - (5, 20):**
     - 5 predictors - 5 independent variables (allows Efron to see what happens when the number of predictors increase)
     - 20 observations - sample size of 20 (allows Efron to see what happens when sample size increases)
     - 100 trials - the experiement was repreated 100 times
@@ -215,7 +235,7 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
     | ...         |     ... |     ... |     ... |     ... |     ... | ...   |
     | 20          |     ... |     ... |     ... |     ... |     ... | B     |
 
-* **Sampleing Experiment #5 - Gong:**
+* **Sampling Experiment #5 - Gong:**
     - 4 predictors
     - 20 observations
     - 171 trials
@@ -225,9 +245,10 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
 ### Simulation Study Step-by-Step:
 1. Efron uses a sampling experiment based on a specified probability model to generate artificial data for the simulation study.
     - For the sampling expeiremtns such as the (2,14) sampling experiment, Efron generates data from a bivariate normal probability model with two predictor variables and two classes.
-2.  He uses the resulting training data to construct a classification rule using Fisher's linear discriminant. This prediction rule attempts to separate observations into their respective classes and is then used to predict the class of new observations.
-3. The specific method such as cross validation, bootstrapping, etc., is then used to test how well that classifier predicts unseen observations.
-4. Efron then compares the error rates from the different methods like cross validation, bootstrapping, etc. and determines which method is the best estimator of the true error rate.
+2. Efron uses the resulting training data to construct a classification rule using Fisher's linear discriminant. This prediction rule attempts to separate observations into their respective classes and is then used to predict the class of new observations.
+3. Efron has the apparant error rate which is used as a baseline for comparison.
+4. The specific method such as cross validation, bootstrapping, etc., is then used to test how well that classifier predicts unseen observations.
+5. Efron then compares the error rates from the different methods like cross validation, bootstrapping, etc. and determines which method is the best estimator of the true error rate by calculating the MSE for each.
 6. He then repeats the experiment x number of times.
 
 ### Results:
@@ -246,12 +267,27 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
 * **.632 Estimator Findings:**
     - The .632 estimator performed best in the sampling experiments. However, this method had the weakest theoretical justification and therefore recommended it with caution pending additional research.
 
+* **Single Randomized Bootstrapping**
+    - Found to perform well.
+
+* **Randomized Double Bootstrapping**
+    - FOund to perform very well.
+
 ## Efron's Simulation Study Design
 ![Figure 3: Diagram showing the design for Efron's simulation study.](images/efron-1983-simulation-study-design.png)
 
 ## Student Presentation & Simulation Study Sketch
-I will replicate one of the simulation experiments from Efron's paper, focusing on the (2,14) experiment. In this experiment, Efron considers a prediction problem with two predictor variables and a training sample of 14 observations. I will generate data according to the simulation setup described in the paper, construct the prediction rule, and estimate its error rate using the methods discussed by Efron. I will then compare the estimated error rates with the true error rate across repeated simulations to investigate how accurately each method estimates prediction error.
+1. I will replicate one of the simulation experiments from Efron's paper, focusing on the (2,14) experiment. In this experiment, Efron considers a prediction problem with two predictor variables and a training sample of 14 observations. 
+2. I will generate data according to the simulation setup described in the paper for the (2,14) sampling experiments which used a bivariate normal probability model with two predictor variables and two classes.
+3. Similar to Efron, I will conduct 100 trials of sampling experiment (2,14) which will geenerate 100 artificial datasets. 
+4. I will construct the prediction rule using the FIsher's Linear Discriminant.
+5. I will evaluate the apparent error rate to use as a baseline for my comparisons.
+6. I will then estimate its error rate using the leave-one-out cross validation, ordinary bootstrap, double boostrap, and .632 estimator methods. 
+7. Similar to Efron, I will conduct 200 bootstrap replications per trial for ordinary bootstrapping.
 
-I will utilize Python as my primary programming lanagauge to complete this simulation.
+![Figure 4: Diagram showing the ordrinary bootstrapping process for the simulation study.](images/ordinary-bootstrap-replicaiton-per-trial.png)
 
-![Figure 4: Diagram showing the design for the simulation study I am choosing to replicate.](images/simulation-study-replication-plan.png)
+8. I will then compare the estimated error rates with the true error rate across repeated simulations to investigate how accurately each method estimates prediction error. This will be done by calcuating the MSE.
+9. I will utilize Python or R as my primary programming lanagauge to complete this simulation.
+
+![Figure 5: Diagram showing the design for the simulation study I am choosing to replicate.](images/simulation-study-replication-plan.png)

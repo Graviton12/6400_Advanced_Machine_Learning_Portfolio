@@ -208,10 +208,11 @@ window.Quarto = {
   <li><a href="#bootstrapping" id="toc-bootstrapping" class="nav-link" data-scroll-target="#bootstrapping"><span class="header-section-number">2.2.2</span> Bootstrapping:</a></li>
   <li><a href="#prediction-problem" id="toc-prediction-problem" class="nav-link" data-scroll-target="#prediction-problem"><span class="header-section-number">2.2.3</span> Prediction Problem:</a></li>
   <li><a href="#error-rate" id="toc-error-rate" class="nav-link" data-scroll-target="#error-rate"><span class="header-section-number">2.2.4</span> Error Rate:</a></li>
-  <li><a href="#bias-vs.-variance" id="toc-bias-vs.-variance" class="nav-link" data-scroll-target="#bias-vs.-variance"><span class="header-section-number">2.2.5</span> Bias Vs. Variance:</a></li>
-  <li><a href="#anova-decompostion" id="toc-anova-decompostion" class="nav-link" data-scroll-target="#anova-decompostion"><span class="header-section-number">2.2.6</span> ANOVA Decompostion:</a></li>
-  <li><a href="#fishers-linear-discriminant" id="toc-fishers-linear-discriminant" class="nav-link" data-scroll-target="#fishers-linear-discriminant"><span class="header-section-number">2.2.7</span> Fisher’s Linear Discriminant:</a></li>
-  <li><a href="#logistic-regression" id="toc-logistic-regression" class="nav-link" data-scroll-target="#logistic-regression"><span class="header-section-number">2.2.8</span> Logistic Regression:</a></li>
+  <li><a href="#mean-squared-error-mse" id="toc-mean-squared-error-mse" class="nav-link" data-scroll-target="#mean-squared-error-mse"><span class="header-section-number">2.2.5</span> Mean Squared Error (MSE):</a></li>
+  <li><a href="#bias-vs.-variance" id="toc-bias-vs.-variance" class="nav-link" data-scroll-target="#bias-vs.-variance"><span class="header-section-number">2.2.6</span> Bias Vs. Variance:</a></li>
+  <li><a href="#anova-decompostion" id="toc-anova-decompostion" class="nav-link" data-scroll-target="#anova-decompostion"><span class="header-section-number">2.2.7</span> ANOVA Decompostion:</a></li>
+  <li><a href="#fishers-linear-discriminant" id="toc-fishers-linear-discriminant" class="nav-link" data-scroll-target="#fishers-linear-discriminant"><span class="header-section-number">2.2.8</span> Fisher’s Linear Discriminant:</a></li>
+  <li><a href="#logistic-regression" id="toc-logistic-regression" class="nav-link" data-scroll-target="#logistic-regression"><span class="header-section-number">2.2.9</span> Logistic Regression:</a></li>
   </ul></li>
   <li><a href="#simulation-study-procedure-defined-in-efron-1983" id="toc-simulation-study-procedure-defined-in-efron-1983" class="nav-link" data-scroll-target="#simulation-study-procedure-defined-in-efron-1983"><span class="header-section-number">2.3</span> Simulation Study Procedure Defined in Efron 1983</a>
   <ul class="collapse">
@@ -359,8 +360,20 @@ window.Quarto = {
 <li>Apparent error rate refers to the likelihood/poercentage of a model to make the incorrect predicition when tested on the same data it already trained on. The apparemnt error often gives misleading results that are too optimistic since the model has already “seen the answer before” so it did not actually “learan the material.”</li>
 </ul>
 </section>
-<section id="bias-vs.-variance" class="level3" data-number="2.2.5">
-<h3 data-number="2.2.5" class="anchored" data-anchor-id="bias-vs.-variance"><span class="header-section-number">2.2.5</span> Bias Vs. Variance:</h3>
+<section id="mean-squared-error-mse" class="level3" data-number="2.2.5">
+<h3 data-number="2.2.5" class="anchored" data-anchor-id="mean-squared-error-mse"><span class="header-section-number">2.2.5</span> Mean Squared Error (MSE):</h3>
+<ul>
+<li>The MSE is the average of the squared differences between actual values and predicted values. In context to Efron’s paper, it is the squared difference between the true error rate and the estimated error rate. The formula used for the MSE for comparing both error rates is given by: <span class="math display">\[
+MSE = (\widehat{Err} - Err)^2
+\]</span> Where: <span class="math display">\[
+\widehat{Err} = the\ estimated\ error\ rate
+\]</span> <span class="math display">\[
+Err = the\ true\ error\ rate
+\]</span></li>
+</ul>
+</section>
+<section id="bias-vs.-variance" class="level3" data-number="2.2.6">
+<h3 data-number="2.2.6" class="anchored" data-anchor-id="bias-vs.-variance"><span class="header-section-number">2.2.6</span> Bias Vs. Variance:</h3>
 <ul>
 <li>Bias measures how far off a model’s average predictions are from the correct values. Bias is the error from making oversimplified assumptions, leading to underfitting.
 <ul>
@@ -389,21 +402,21 @@ window.Quarto = {
 </figure>
 </div>
 </section>
-<section id="anova-decompostion" class="level3" data-number="2.2.6">
-<h3 data-number="2.2.6" class="anchored" data-anchor-id="anova-decompostion"><span class="header-section-number">2.2.6</span> ANOVA Decompostion:</h3>
+<section id="anova-decompostion" class="level3" data-number="2.2.7">
+<h3 data-number="2.2.7" class="anchored" data-anchor-id="anova-decompostion"><span class="header-section-number">2.2.7</span> ANOVA Decompostion:</h3>
 <ul>
 <li>ANOVA decomposition is sued to determine the origin of variation in data by separating the total variation into between-group and within-group components. Efron’s study examines different sources of variation and error that affect estimates of prediction error.</li>
 </ul>
 </section>
-<section id="fishers-linear-discriminant" class="level3" data-number="2.2.7">
-<h3 data-number="2.2.7" class="anchored" data-anchor-id="fishers-linear-discriminant"><span class="header-section-number">2.2.7</span> Fisher’s Linear Discriminant:</h3>
+<section id="fishers-linear-discriminant" class="level3" data-number="2.2.8">
+<h3 data-number="2.2.8" class="anchored" data-anchor-id="fishers-linear-discriminant"><span class="header-section-number">2.2.8</span> Fisher’s Linear Discriminant:</h3>
 <ul>
 <li>Fisher’s linear discriminant is a classification method used as a prediction rule where given an observation or data point, decide which group/class it belongs to.</li>
 <li>Fisher’s linear discriminat tries to find a linear boundary that separates the two classes as well as possible.</li>
 </ul>
 </section>
-<section id="logistic-regression" class="level3" data-number="2.2.8">
-<h3 data-number="2.2.8" class="anchored" data-anchor-id="logistic-regression"><span class="header-section-number">2.2.8</span> Logistic Regression:</h3>
+<section id="logistic-regression" class="level3" data-number="2.2.9">
+<h3 data-number="2.2.9" class="anchored" data-anchor-id="logistic-regression"><span class="header-section-number">2.2.9</span> Logistic Regression:</h3>
 <ul>
 <li>Logistic regression is used to predict the probability of a categorical outcome, such as a binary outcome. Enfron’s study looks into how can we estimate how well a prediction rule will perform on new, unseen observations.</li>
 </ul>
@@ -486,10 +499,11 @@ window.Quarto = {
 <li><p><strong>Ordinary Bootstrap:</strong></p>
 <ul>
 <li>Efron used ordinary boostrapping to create new aritifical datasets by randomly sampling from the original dataset with replacement where the original dataset is used to represent the population.</li>
+<li>Efron ran 200 bootstrap replications per trial.</li>
 </ul></li>
 <li><p><strong>Randomized Bootstrap:</strong></p>
 <ul>
-<li>Efron used a modified version of the ordinary bootstrap which uses the same process of an orindary bootstrap but the only idfference is that the observations are not treated as having completely certain classifications.</li>
+<li>Efron used a modified version of the ordinary bootstrap which uses the same process of an orindary bootstrap but the only idfference is that the observations are not treated as having completely certain classifications (randomized).</li>
 </ul></li>
 <li><p><strong>Double Bootstrap:</strong></p>
 <ul>
@@ -499,6 +513,14 @@ window.Quarto = {
 <ul>
 <li>Efron used the .632 estimator which is a bootsrapping method that performs the same rpocedures as an ordinary bootstrap where 63.2% of the original obersevations appear in the bootstrap sample and 36.8% of the original oberservations are left out of the bootstrap sample. The .632 estimator commbine the apparent error and the bootstrap error, giving more weight to the bootstrap error which Efron originally found to have a downward bias.</li>
 <li><strong>Example to visualize the .632 Estimator technique:</strong> Think of the .632 estimator as balancing two imperfect estimates: the apparent error may be too optimistic because the model has already seen the data, while the bootstrap error is based on observations the model did not see. The .632 estimator therefore gives more weight to the bootstrap error while still incorporating the apparent error. Consider an exmaple where the apparent error rate is found to be 10% and the ordinary bootstrap error rate is foudn to be 25%. The rror rate of the .632 estimator is calculated using the following formula:</li>
+</ul></li>
+<li><p><strong>Single Randomized Bootstrapping</strong></p>
+<ul>
+<li>Is a randomized bootstrapping but is only replciated once.</li>
+</ul></li>
+<li><p><strong>Randomized Double Bootstrapping</strong></p>
+<ul>
+<li>Is a double boostrapping but its observations are not treated as having completely certain classifications (randomized).</li>
 </ul></li>
 </ul>
 <p><span class="math display">\[
@@ -537,7 +559,7 @@ window.Quarto = {
 <section id="sampling-experiements-used" class="level3" data-number="2.3.3">
 <h3 data-number="2.3.3" class="anchored" data-anchor-id="sampling-experiements-used"><span class="header-section-number">2.3.3</span> Sampling Experiements Used:</h3>
 <ul>
-<li><strong>Sampleing Experiment #1 - (2, 14):</strong>
+<li><strong>Sampling Experiment #1 - (2, 14):</strong>
 <ul>
 <li>2 predictors - 2 independent variables</li>
 <li>14 observations - sample size of 14</li>
@@ -586,7 +608,7 @@ window.Quarto = {
 </tr>
 </tbody>
 </table></li>
-<li><strong>Sampleing Experiment #2 - (2, 20):</strong>
+<li><strong>Sampling Experiment #2 - (2, 20):</strong>
 <ul>
 <li>2 predictors - 2 independent variables</li>
 <li>20 observations - sample size of 20 (allows Efron to see what happens when sample size increases)</li>
@@ -635,7 +657,7 @@ window.Quarto = {
 </tr>
 </tbody>
 </table></li>
-<li><strong>Sampleing Experiment #3 -(5, 14):</strong>
+<li><strong>Sampling Experiment #3 -(5, 14):</strong>
 <ul>
 <li>5 predictors - 5 independent variables (allows Efron to see what happens when the number of predictors increase)</li>
 <li>14 observations - sample size of 14</li>
@@ -711,7 +733,7 @@ window.Quarto = {
 </tr>
 </tbody>
 </table></li>
-<li><strong>Sampleing Experiment #4 - (5, 20):</strong>
+<li><strong>Sampling Experiment #4 - (5, 20):</strong>
 <ul>
 <li>5 predictors - 5 independent variables (allows Efron to see what happens when the number of predictors increase)</li>
 <li>20 observations - sample size of 20 (allows Efron to see what happens when sample size increases)</li>
@@ -787,7 +809,7 @@ window.Quarto = {
 </tr>
 </tbody>
 </table></li>
-<li><strong>Sampleing Experiment #5 - Gong:</strong>
+<li><strong>Sampling Experiment #5 - Gong:</strong>
 <ul>
 <li>4 predictors</li>
 <li>20 observations</li>
@@ -804,9 +826,10 @@ window.Quarto = {
 <ul>
 <li>For the sampling expeiremtns such as the (2,14) sampling experiment, Efron generates data from a bivariate normal probability model with two predictor variables and two classes.</li>
 </ul></li>
-<li>He uses the resulting training data to construct a classification rule using Fisher’s linear discriminant. This prediction rule attempts to separate observations into their respective classes and is then used to predict the class of new observations.</li>
+<li>Efron uses the resulting training data to construct a classification rule using Fisher’s linear discriminant. This prediction rule attempts to separate observations into their respective classes and is then used to predict the class of new observations.</li>
+<li>Efron has the apparant error rate which is used as a baseline for comparison.</li>
 <li>The specific method such as cross validation, bootstrapping, etc., is then used to test how well that classifier predicts unseen observations.</li>
-<li>Efron then compares the error rates from the different methods like cross validation, bootstrapping, etc. and determines which method is the best estimator of the true error rate.</li>
+<li>Efron then compares the error rates from the different methods like cross validation, bootstrapping, etc. and determines which method is the best estimator of the true error rate by calculating the MSE for each.</li>
 <li>He then repeats the experiment x number of times.</li>
 </ol>
 </section>
@@ -833,6 +856,14 @@ window.Quarto = {
 <ul>
 <li>The .632 estimator performed best in the sampling experiments. However, this method had the weakest theoretical justification and therefore recommended it with caution pending additional research.</li>
 </ul></li>
+<li><strong>Single Randomized Bootstrapping</strong>
+<ul>
+<li>Found to perform well.</li>
+</ul></li>
+<li><strong>Randomized Double Bootstrapping</strong>
+<ul>
+<li>FOund to perform very well.</li>
+</ul></li>
 </ul>
 </section>
 </section>
@@ -847,12 +878,29 @@ window.Quarto = {
 </section>
 <section id="student-presentation-simulation-study-sketch" class="level2" data-number="2.5">
 <h2 data-number="2.5" class="anchored" data-anchor-id="student-presentation-simulation-study-sketch"><span class="header-section-number">2.5</span> Student Presentation &amp; Simulation Study Sketch</h2>
-<p>I will replicate one of the simulation experiments from Efron’s paper, focusing on the (2,14) experiment. In this experiment, Efron considers a prediction problem with two predictor variables and a training sample of 14 observations. I will generate data according to the simulation setup described in the paper, construct the prediction rule, and estimate its error rate using the methods discussed by Efron. I will then compare the estimated error rates with the true error rate across repeated simulations to investigate how accurately each method estimates prediction error.</p>
-<p>I will utilize Python as my primary programming lanagauge to complete this simulation.</p>
+<ol type="1">
+<li>I will replicate one of the simulation experiments from Efron’s paper, focusing on the (2,14) experiment. In this experiment, Efron considers a prediction problem with two predictor variables and a training sample of 14 observations.</li>
+<li>I will generate data according to the simulation setup described in the paper for the (2,14) sampling experiments which used a bivariate normal probability model with two predictor variables and two classes.</li>
+<li>Similar to Efron, I will conduct 100 trials of sampling experiment (2,14) which will geenerate 100 artificial datasets.</li>
+<li>I will construct the prediction rule using the FIsher’s Linear Discriminant.</li>
+<li>I will evaluate the apparent error rate to use as a baseline for my comparisons.</li>
+<li>I will then estimate its error rate using the leave-one-out cross validation, ordinary bootstrap, double boostrap, and .632 estimator methods.</li>
+<li>Similar to Efron, I will conduct 200 bootstrap replications per trial for ordinary bootstrapping.</li>
+</ol>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/ordinary-bootstrap-replicaiton-per-trial.png" class="img-fluid figure-img"></p>
+<figcaption>Figure 4: Diagram showing the ordrinary bootstrapping process for the simulation study.</figcaption>
+</figure>
+</div>
+<ol start="8" type="1">
+<li>I will then compare the estimated error rates with the true error rate across repeated simulations to investigate how accurately each method estimates prediction error. This will be done by calcuating the MSE.</li>
+<li>I will utilize Python or R as my primary programming lanagauge to complete this simulation.</li>
+</ol>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="images/simulation-study-replication-plan.png" class="img-fluid figure-img"></p>
-<figcaption>Figure 4: Diagram showing the design for the simulation study I am choosing to replicate.</figcaption>
+<figcaption>Figure 5: Diagram showing the design for the simulation study I am choosing to replicate.</figcaption>
 </figure>
 </div>
 
