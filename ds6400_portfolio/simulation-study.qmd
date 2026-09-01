@@ -3,7 +3,7 @@
 ## Paper Overview of Simulation Study (Efron 1983)
 This section summarizes the simulation study discussed in Estimating the Error Rate of a Prediction Rule: Improvement on Cross-Validation, [@Efron1983].
 
-This study aims to build a prediction rule based on data provided to create a prediction model and estimate the liklihood of the model making an incorrect prediction, which is the error rate, when tested on data it has never seen before. The study leverages statisical techniques such as cross validation, various bootstrapping methods, etc. and compare their results to determine which method gives the best estimate of the true error rate.
+This study aims to build a prediction rule based on data generated to create a prediction model and estimate the liklihood of the model making an incorrect prediction, which is the error rate, when tested on data it has never seen before. The study leverages statisical techniques such as cross validation, various bootstrapping methods, etc. and compare their results to determine which method gives the best estimate of the true error rate.
 
 ## Key Concepts
 ### Cross Validation:
