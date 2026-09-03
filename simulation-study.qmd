@@ -88,6 +88,8 @@ $$
 * Fisher's linear discriminant is a classification method used as a prediction rule where given an observation or data point, decide which group/class it belongs to. 
 * Fisher's linear discriminat tries to find a linear boundary that separates the two classes as well as possible.
 
+![Figure 3: Visual for the Linear Discriminant.](images/linear-discriminant.png)
+
 ### Logistic Regression:
 * Logistic regression is used to predict the probability of a categorical outcome, such as a binary outcome. Enfron's study looks into how can we estimate how well a prediction rule will perform on new, unseen observations.
 
@@ -274,7 +276,7 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
     - FOund to perform very well.
 
 ## Efron's Simulation Study Design
-![Figure 3: Diagram showing the design for Efron's simulation study.](images/efron-1983-simulation-study-design.png)
+![Figure 4: Diagram showing the design for Efron's simulation study.](images/efron-1983-simulation-study-design.png)
 
 ## Student Presentation & Simulation Study Sketch
 1. I will replicate one of the simulation experiments from Efron's paper, focusing on the (2,14) experiment. In this experiment, Efron considers a prediction problem with two predictor variables and a training sample of 14 observations. 
@@ -285,7 +287,7 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
 6. I will then estimate its error rate using the leave-one-out cross validation, ordinary bootstrap, double boostrap, and .632 estimator methods. 
 7. Similar to Efron, I will conduct 200 bootstrap replications per trial for ordinary bootstrapping.
 
-![Figure 4: Diagram showing the ordrinary bootstrapping process for the simulation study.](images/ordinary-bootstrap-replicaiton-per-trial.png)
+![Figure 5: Diagram showing the ordrinary bootstrapping process for the simulation study.](images/ordinary-bootstrap-replicaiton-per-trial.png)
 
 8. I will then compare the estimated error rates with the true error rate across repeated simulations to investigate how accurately each method estimates prediction error. This will be done by calcuating the MSE.
 9. I will utilize Python as my primary programming lanagauge to complete this simulation.
@@ -293,7 +295,7 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
     - I will be using the scikit-learn package to run my various models (croos validiaiton, bootstrapping, etc.), create my linea rdiscriminant analysis for my prediction rule, and to create my MSE for comparing the estimated error rates of each method with the true errro rate.
     - I will use scipy to construct statistical equations.
 
-![Figure 5: Diagram showing the design for the simulation study I am choosing to replicate. The following diagram is using the (2.14) sampling experiment.](images/simulation-study-replication-plan.png)
+![Figure 6: Diagram showing the design for the simulation study I am choosing to replicate. The following diagram is using the (2.14) sampling experiment.](images/simulation-study-replication-plan.png)
 
 ## Simulation Study of Efron's Paper
 ### Coding presented below:
