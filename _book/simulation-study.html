@@ -224,6 +224,10 @@ window.Quarto = {
   </ul></li>
   <li><a href="#efrons-simulation-study-design" id="toc-efrons-simulation-study-design" class="nav-link" data-scroll-target="#efrons-simulation-study-design"><span class="header-section-number">2.4</span> Efron’s Simulation Study Design</a></li>
   <li><a href="#student-presentation-simulation-study-sketch" id="toc-student-presentation-simulation-study-sketch" class="nav-link" data-scroll-target="#student-presentation-simulation-study-sketch"><span class="header-section-number">2.5</span> Student Presentation &amp; Simulation Study Sketch</a></li>
+  <li><a href="#simulation-study-of-efrons-paper" id="toc-simulation-study-of-efrons-paper" class="nav-link" data-scroll-target="#simulation-study-of-efrons-paper"><span class="header-section-number">2.6</span> Simulation Study of Efron’s Paper</a>
+  <ul class="collapse">
+  <li><a href="#coding-presented-below" id="toc-coding-presented-below" class="nav-link" data-scroll-target="#coding-presented-below"><span class="header-section-number">2.6.1</span> Coding presented below:</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -252,7 +256,7 @@ window.Quarto = {
 <section id="paper-overview-of-simulation-study-efron-1983" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="paper-overview-of-simulation-study-efron-1983"><span class="header-section-number">2.1</span> Paper Overview of Simulation Study (Efron 1983)</h2>
 <p>This section summarizes the simulation study discussed in Estimating the Error Rate of a Prediction Rule: Improvement on Cross-Validation, <span class="citation" data-cites="Efron1983">(<a href="references.html#ref-Efron1983" role="doc-biblioref">Efron 1983</a>)</span>.</p>
-<p>This study aims to build a prediction rule based on data provided to create a prediction model and estimate the liklihood of the model making an incorrect prediction, which is the error rate, when tested on data it has never seen before. The study leverages statisical techniques such as cross validation, various bootstrapping methods, etc. and compare their results to determine which method gives the best estimate of the true error rate.</p>
+<p>This study aims to build a prediction rule based on data generated to create a prediction model and estimate the liklihood of the model making an incorrect prediction, which is the error rate, when tested on data it has never seen before. The study leverages statisical techniques such as cross validation, various bootstrapping methods, etc. and compare their results to determine which method gives the best estimate of the true error rate.</p>
 </section>
 <section id="key-concepts" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="key-concepts"><span class="header-section-number">2.2</span> Key Concepts</h2>
@@ -364,7 +368,7 @@ window.Quarto = {
 <h3 data-number="2.2.5" class="anchored" data-anchor-id="mean-squared-error-mse"><span class="header-section-number">2.2.5</span> Mean Squared Error (MSE):</h3>
 <ul>
 <li>The MSE is the average of the squared differences between actual values and predicted values. In context to Efron’s paper, it is the squared difference between the true error rate and the estimated error rate. The formula used for the MSE for comparing both error rates is given by: <span class="math display">\[
-MSE = (\widehat{Err} - Err)^2
+MSE = E(\widehat{Err} - Err)^2
 \]</span> Where: <span class="math display">\[
 \widehat{Err} = the\ estimated\ error\ rate
 \]</span> <span class="math display">\[
@@ -895,14 +899,24 @@ Err = the\ true\ error\ rate
 </div>
 <ol start="8" type="1">
 <li>I will then compare the estimated error rates with the true error rate across repeated simulations to investigate how accurately each method estimates prediction error. This will be done by calcuating the MSE.</li>
-<li>I will utilize Python or R as my primary programming lanagauge to complete this simulation.</li>
+<li>I will utilize Python as my primary programming lanagauge to complete this simulation.
+<ul>
+<li>I will be using the numpy package to generate my data and then utilizing the sampling experiemnts referenced in the paper to define the paremeters for each dataset.</li>
+<li>I will be using the scikit-learn package to run my various models (croos validiaiton, bootstrapping, etc.), create my linea rdiscriminant analysis for my prediction rule, and to create my MSE for comparing the estimated error rates of each method with the true errro rate.</li>
+<li>I will use scipy to construct statistical equations.</li>
+</ul></li>
 </ol>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="images/simulation-study-replication-plan.png" class="img-fluid figure-img"></p>
-<figcaption>Figure 5: Diagram showing the design for the simulation study I am choosing to replicate.</figcaption>
+<figcaption>Figure 5: Diagram showing the design for the simulation study I am choosing to replicate. The following diagram is using the (2.14) sampling experiment.</figcaption>
 </figure>
 </div>
+</section>
+<section id="simulation-study-of-efrons-paper" class="level2" data-number="2.6">
+<h2 data-number="2.6" class="anchored" data-anchor-id="simulation-study-of-efrons-paper"><span class="header-section-number">2.6</span> Simulation Study of Efron’s Paper</h2>
+<section id="coding-presented-below" class="level3" data-number="2.6.1">
+<h3 data-number="2.6.1" class="anchored" data-anchor-id="coding-presented-below"><span class="header-section-number">2.6.1</span> Coding presented below:</h3>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
@@ -910,6 +924,7 @@ Err = the\ true\ error\ rate
 Efron, B. 1983. <span>“Estimating the Error Rate of a Prediction Rule: Improvement on Cross-Validation.”</span> <em>Journal of the American Statistical Associati</em> 78 (382): 316–31. <a href="https://doi.org/10.2307/2288636">https://doi.org/10.2307/2288636</a>.
 </div>
 </div>
+</section>
 </section>
 
 </main> <!-- /main -->

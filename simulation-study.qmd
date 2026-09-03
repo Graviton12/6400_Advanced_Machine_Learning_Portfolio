@@ -288,6 +288,12 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
 ![Figure 4: Diagram showing the ordrinary bootstrapping process for the simulation study.](images/ordinary-bootstrap-replicaiton-per-trial.png)
 
 8. I will then compare the estimated error rates with the true error rate across repeated simulations to investigate how accurately each method estimates prediction error. This will be done by calcuating the MSE.
-9. I will utilize Python or R as my primary programming lanagauge to complete this simulation.
+9. I will utilize Python as my primary programming lanagauge to complete this simulation.
+    - I will be using the numpy package to generate my data and then utilizing the sampling experiemnts referenced in the paper to define the paremeters for each dataset.
+    - I will be using the scikit-learn package to run my various models (croos validiaiton, bootstrapping, etc.), create my linea rdiscriminant analysis for my prediction rule, and to create my MSE for comparing the estimated error rates of each method with the true errro rate.
+    - I will use scipy to construct statistical equations.
 
-![Figure 5: Diagram showing the design for the simulation study I am choosing to replicate.](images/simulation-study-replication-plan.png)
+![Figure 5: Diagram showing the design for the simulation study I am choosing to replicate. The following diagram is using the (2.14) sampling experiment.](images/simulation-study-replication-plan.png)
+
+## Simulation Study of Efron's Paper
+### Coding presented below:
