@@ -13,5 +13,14 @@
   },
   "simulation-study.qmd": {
     "simulation-study.html": "b1704bc0"
+  },
+  "cross_validation.qmd": {
+    "cross_validation.html": "6dfad51f"
+  },
+  "boostrapping.qmd": {
+    "boostrapping.html": "6a157d79"
+  },
+  "bivariate_norm_dist.qmd": {
+    "bivariate_norm_dist.html": "13fb0201"
   }
 }

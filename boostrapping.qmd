@@ -1,0 +1,9 @@
+# Bootstrapping
+
+* The statisics for each of the bootstrapped datasets are taken. This could include the mean, median, standard deviation, etc.
+* For simplicity, lets assume we are only considering the mean of each of the boootstrapped datasets. After collecting all the means for all bootstrapped datastes. These means can be plotted onto a histogram which is used to visualize the frequency of a particular measurment or statistic. 
+* This histogram which is a distribtuion of bootstrap statisics, in our case, distribution of bootstrap means, gives us an idea of how much our statistic might vary if we could repeatedly obtain new samples from the same population. 
+* This histrogram can also provide insight into the liklihood of getting something close to the original statisic, in our case the mean, of the original dataset when the experiment is rerun multiple times by looking at the distribution of the histrogram.
+* The standard deviation of the bootstrap distribution of the statistic from the histogram provides an estimate of the standard error of that statistic of the original dataset.
+* We can also determine a bootstrap confidence interval which can be constructed from the distribution of bootstrap estimates. For example, a 95% bootstrap confidence interval provides a range of plausible values for the population parameter based on the bootstrap distribution where The interval contains 95% of the bootstrap estimates.
+* This can allow us to conduct a hypothesis test to determine whether we reject or fail to reject the nu,ll hypothesis.

@@ -9,6 +9,9 @@ book:
     - index.qmd
     - intro.qmd
     - simulation-study.qmd
+    - bivariate_norm_dist.qmd
+    - cross_validation.qmd
+    - boostrapping.qmd
     - summary.qmd
     - references.qmd
 

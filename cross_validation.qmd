@@ -1,0 +1,21 @@
+# Cross Validation
+
+* In a Cross Validation:
+    - The specific machine learning model is trained using the training data.
+    - The trained machine learning model is then tested/evaluated using testing data which is the data it did not train on.
+    - **IMPORTANT NOTE:** 
+        - Seeing how the model works on data it was not been trained on allows us to evaluate how well the model performed. So, within each iteration, the same data used to train the model should not be used to test that version of the model. 
+        - Therefore, the data needs to be split into a training dataset and a testing dataset. 
+* For example, in a 4-fold cross valdiaiton, we divide a dataset up into 4 equally sized folds. We may choose to use the first 75% of the data (first 3 folds of data) to train a particular machine learning model then use the last 25% of the data (last fold of the data) to test the machine learning model. However, how do we know if this selection of data is the best option? what if using the first 25% of the data for testing the model and the last 75% for training the model is better?
+
+    | Iteration | Fold 1 | Fold 2 | Fold 3 | Fold 4 |
+    |:-----:|:------:|:------:|:------:|:------:|
+    | 1 | Train | Train | Train | **Test** |
+    | 2 | Train | Train | **Test** | Train |
+    | 3 | Train | **Test** | Train | Train |
+    | 4 | **Test** | Train | Train | Train |
+
+* Cross validation helps identify and evaluate overfitting by using various combinations of data folds for training the model and keeps track of how well the model performed using the corresponding testing data folds. So, instead of splitting a dataset just once into a training set and a testing set, cross validation repeats the process multiple times. 
+    - **IMPORTANT NOTE:** 
+        - Model overfitting is a modeling error that occurs when a machine learning model matches its training data too closely, which leads it to simply memorizing the data, random noise, and minor quirks instead of actually learning from the data to idenfity meaningful, true, general patterns.
+        - Cross validation can help address overfitting concerns by providing a reliable estimate of how well a model performs on unseen data rather than just memorizing the training set.

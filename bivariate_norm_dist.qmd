@@ -1,0 +1,31 @@
+# Class-conditional bivariate normal distribution
+
+* The simulated dataset generates binary classes with equal probability of 50% each: 
+    * $P(Y = 0) = P(Y = 1) = 0.5$
+Where predictor vectors follow class-conditional bivariate normal distributions: 
+    * $X \mid Y=0 \sim \mathcal{N}_2((-1,0)^T, \mathbf{I})$ 
+    * $X \mid Y=1 \sim \mathcal{N}_2((1,0)^T, \mathbf{I})$
+
+* Equal Priors: $P(Y = 0) = P(Y = 1) = 0.5$
+    * What it means: There are two groups/classes in your dataset: Class 0 and Class 1.
+    * Plain English: You have an equal 50/50 chance of picking a point from Class 0 or Class 1 (like flipping a fair coin). 
+
+* Predictor Vectors: $X = (X_1, X_2)$
+    * What it means: Every single observation (data point) has two measurable features/variables, which you can plot as an $(x, y)$ point on a standard 2D graph.
+    * Plain English: Instead of predicting something based on a single number, the model looks at a coordinate pair on a 2D plane to decide if it belongs to Class 0 or Class 1.
+
+* Class-Conditional Normal Distributions: $\mathcal{N}_2(\boldsymbol{\mu}, \mathbf{I})$
+    * What it means: The data points for each class form a rounded, bell-curve-shaped "cloud" or cluster around a central center point (mean vector $\boldsymbol{\mu}$).
+    * Mean centers ($\boldsymbol{\mu}$):
+        * Data points for Class 0 cluster around the point $(-1, 0)$ on the graph.
+        * Data points for Class 1 cluster around the point $(1, 0)$ on the graph.
+    * Identity Covariance Matrix ($\mathbf{I}$):
+        * The two features $X_1$ and $X_2$ are independent of each other (non-correlated).
+        * The variance (spread) is 1 in all directions.
+        * Plain English: The data points spread out equally in every direction, creating two neat, circle-shaped clouds of dots centered at $(-1, 0)$ and $(1, 0
+    
+* Visualizing the Setup - Imagine a 2D scatter plot:
+    * You place a target at $(-1, 0)$ for Class 0 (e.g., blue dots) and throw darts around it.
+    * You place another target at $(1, 0)$ for Class 1 (e.g., red dots) and throw darts around it.
+    * Because the distance between $-1$ and $1$ is only $2$ units, the two clouds of dots overlap in the middle near $x = 0$.
+    * Fisher's Linear Discriminant Analysis (LDA) tries to draw a straight line right down the middle (around $x = 0$) to separate the blue dots from the red dots as accurately as possible.

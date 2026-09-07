@@ -6,10 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Samia Mahmood">
-<meta name="dcterms.date" content="2026-08-27">
 
-<title>ds6400_portfolio</title>
+<title>2&nbsp; Class-conditional bivariate normal distribution – ds6400_portfolio</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -38,7 +36,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./intro.html" rel="next">
+<link href="./simulation-study.html" rel="next">
+<link href="./intro.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -77,6 +76,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -89,7 +117,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">DS-6400: Advanced Machine Learning I Portfolio</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./bivariate_norm_dist.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Class-conditional bivariate normal distribution</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -116,7 +144,7 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">DS-6400: Advanced Machine Learning I Portfolio</span></a>
   </div>
 </li>
@@ -128,14 +156,14 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./simulation-study.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Simulation Study</span></span></a>
+  <a href="./bivariate_norm_dist.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Class-conditional bivariate normal distribution</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./bivariate_norm_dist.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Class-conditional bivariate normal distribution</span></span></a>
+  <a href="./simulation-study.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Simulation Study</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -167,40 +195,22 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">Table of contents</h2>
-   
-  <ul>
-  <li><a href="#ds-6400-advanced-machine-learning-i-portfolio" id="toc-ds-6400-advanced-machine-learning-i-portfolio" class="nav-link active" data-scroll-target="#ds-6400-advanced-machine-learning-i-portfolio">DS-6400: Advanced Machine Learning I Portfolio</a></li>
-  </ul>
-</nav>
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+        
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">ds6400_portfolio</h1>
+<h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Class-conditional bivariate normal distribution</span></h1>
 </div>
 
 
 
 <div class="quarto-title-meta">
 
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Samia Mahmood </p>
-          </div>
-  </div>
     
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">August 27, 2026</p>
-    </div>
-  </div>
   
     
   </div>
@@ -210,13 +220,48 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="ds-6400-advanced-machine-learning-i-portfolio" class="level1 unnumbered">
-<h1 class="unnumbered">DS-6400: Advanced Machine Learning I Portfolio</h1>
-<p>This Quarto book will serve as my portfolio for DS-6400: Advanced Machine Learning. Highlighting, my notes, propjects and presentaions.</p>
-<p>To learn more about Quarto books visit <a href="https://quarto.org/docs/books" class="uri">https://quarto.org/docs/books</a>.</p>
+<ul>
+<li>The simulated dataset generates binary classes with equal probability of 50% each:
+<ul>
+<li><span class="math inline">\(P(Y = 0) = P(Y = 1) = 0.5\)</span> Where predictor vectors follow class-conditional bivariate normal distributions:</li>
+<li><span class="math inline">\(X \mid Y=0 \sim \mathcal{N}_2((-1,0)^T, \mathbf{I})\)</span></li>
+<li><span class="math inline">\(X \mid Y=1 \sim \mathcal{N}_2((1,0)^T, \mathbf{I})\)</span></li>
+</ul></li>
+<li>Equal Priors: <span class="math inline">\(P(Y = 0) = P(Y = 1) = 0.5\)</span>
+<ul>
+<li>What it means: There are two groups/classes in your dataset: Class 0 and Class 1.</li>
+<li>Plain English: You have an equal 50/50 chance of picking a point from Class 0 or Class 1 (like flipping a fair coin).</li>
+</ul></li>
+<li>Predictor Vectors: <span class="math inline">\(X = (X_1, X_2)\)</span>
+<ul>
+<li>What it means: Every single observation (data point) has two measurable features/variables, which you can plot as an <span class="math inline">\((x, y)\)</span> point on a standard 2D graph.</li>
+<li>Plain English: Instead of predicting something based on a single number, the model looks at a coordinate pair on a 2D plane to decide if it belongs to Class 0 or Class 1.</li>
+</ul></li>
+<li>Class-Conditional Normal Distributions: <span class="math inline">\(\mathcal{N}_2(\boldsymbol{\mu}, \mathbf{I})\)</span>
+<ul>
+<li>What it means: The data points for each class form a rounded, bell-curve-shaped “cloud” or cluster around a central center point (mean vector <span class="math inline">\(\boldsymbol{\mu}\)</span>).</li>
+<li>Mean centers (<span class="math inline">\(\boldsymbol{\mu}\)</span>):
+<ul>
+<li>Data points for Class 0 cluster around the point <span class="math inline">\((-1, 0)\)</span> on the graph.</li>
+<li>Data points for Class 1 cluster around the point <span class="math inline">\((1, 0)\)</span> on the graph.</li>
+</ul></li>
+<li>Identity Covariance Matrix (<span class="math inline">\(\mathbf{I}\)</span>):
+<ul>
+<li>The two features <span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_2\)</span> are independent of each other (non-correlated).</li>
+<li>The variance (spread) is 1 in all directions.</li>
+<li>Plain English: The data points spread out equally in every direction, creating two neat, circle-shaped clouds of dots centered at <span class="math inline">\((-1, 0)\)</span> and $(1, 0</li>
+</ul></li>
+</ul></li>
+<li>Visualizing the Setup - Imagine a 2D scatter plot:
+<ul>
+<li>You place a target at <span class="math inline">\((-1, 0)\)</span> for Class 0 (e.g., blue dots) and throw darts around it.</li>
+<li>You place another target at <span class="math inline">\((1, 0)\)</span> for Class 1 (e.g., red dots) and throw darts around it.</li>
+<li>Because the distance between <span class="math inline">\(-1\)</span> and <span class="math inline">\(1\)</span> is only <span class="math inline">\(2\)</span> units, the two clouds of dots overlap in the middle near <span class="math inline">\(x = 0\)</span>.</li>
+<li>Fisher’s Linear Discriminant Analysis (LDA) tries to draw a straight line right down the middle (around <span class="math inline">\(x = 0\)</span>) to separate the blue dots from the red dots as accurately as possible.</li>
+</ul></li>
+</ul>
 
 
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -621,10 +666,13 @@ ul.task-list li input[type="checkbox"] {
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
+      <a href="./intro.html" class="pagination-link" aria-label="Introduction">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span>
+      </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./intro.html" class="pagination-link" aria-label="Introduction">
-        <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./simulation-study.html" class="pagination-link" aria-label="Simulation Study">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Simulation Study</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
