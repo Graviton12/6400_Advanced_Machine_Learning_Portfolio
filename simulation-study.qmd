@@ -19,10 +19,12 @@ This section summarizes the simulation study discussed in Estimating the Error R
         * $X \mid Y=0 \sim \mathcal{N}_2((-1,0)^T, \mathbf{I})$ 
         * $X \mid Y=1 \sim \mathcal{N}_2((1,0)^T, \mathbf{I})$
 2. Efron uses the resulting training data to construct a classification rule using Fisher's linear discriminant. This prediction rule attempts to separate observations into their respective classes and is then used to predict the class of new observations.
-3. In this simulation study, Efron has the apparant error rate which is used as a in-sample baseline to quantify optimism.
-4. The specific method such as cross validation, bootstrapping, etc., is then used to test how well that classifier predicts unseen observations.
-5. Efron then compares the error rates from the different methods like cross validation, bootstrapping, etc. and determines which method is the best estimator of the true error rate by calculating the MSE for each.
+3. The apparant error rate is calculated which is used as a in-sample baseline to quantify optimism.
+4. Since Efron generated the data, he calculated true rror rate which is used for comparison. (In pratice, we typically would not know the true error rate).
+5. The specific method such as cross validation, bootstrapping, etc., is then used to test how well that classifier predicts unseen observations.
+6. Efron then compares the error rates from the different methods like cross validation, bootstrapping, etc. and determines which method is the best estimator of the true error rate.
     - For a Single Trial (Trial $i$ of 100) the estomated error rates for each method are:
+        * $\bar{e}rr_i$ (Apparent Error Rate)
         * $\text{Err}_i$ (True Error Rate)
         * $\widehat{\text{Err}}_{i, \text{LOOCV}}$
         * $\widehat{\text{Err}}_{i, \text{Boot}}$
@@ -31,7 +33,7 @@ This section summarizes the simulation study discussed in Estimating the Error R
         * $\widehat{\text{Err}}_{i, \text{DBoot}}$
         * $\widehat{\text{Err}}_{i, \text{RDBoot}}$
         * $\widehat{\text{Err}}_{i, .632}$
-6. He repeats this process 100 times, conducting 100 independent trials (generating 100 separate training datasets). For each trial, the true error rate ($\text{Err}$) and all estimated error rates ($\widehat{\text{Err}}$) are computed. The Mean Squared Error ($\text{MSE}$) is then calculated across these 100 trials to see which estimation method stays closest to the true error.
+7. He repeats this process 100 times, conducting 100 independent trials (generating 100 separate training datasets). For each trial, the true error rate ($\text{Err}$) and all estimated error rates ($\widehat{\text{Err}}$) are computed. The Mean Squared Error ($\text{MSE}$) is then calculated across these 100 trials to see which estimation method stays closest to the true error.
 $$\text{MSE}(\widehat{\text{Err}}) = \frac{1}{100} \sum_{i=1}^{100} \Big( \widehat{\text{Err}}_i - \text{Err}_i \Big)^2$$
 
 ## Key Concepts
@@ -298,44 +300,50 @@ $$
     | 3         | 1, 2, 4       | **3**        | 1         | No        |     1 |
     | 4         | 1, 2, 3       | **4**        | 0         | Yes       |     0 |
 
-    The LOOCV error rate is calculated as the proportion of incorrect predictions across all four iterations:
+    - The LOOCV error rate estimate is calculated as the proportion of incorrect predictions across all four iterations:
     $$
     \text{LOOCV Error Rate} = \frac{1 + 0 + 1 + 0}{4} = 0.50
     $$
-    Therefore, the estimated error rate using LOOCV is **50%**.
+    - Therefore, the estimated error rate using LOOCV is **50%**.
 
 * **Ordinary Bootstrap:**
     - Efron used ordinary boostrapping to create new aritifical datasets by randomly sampling from the original dataset with replacement where the original dataset is used to represent the population. 
     - Efron ran 200 bootstrap replications per trial.
+    - The ordinary bootstrap error rate estimate is calcuated by estimateing the optimism of the apparent error:
+    $$
+    \widehat{Err}^\text{BOOT} = \bar{e}rr + \bar{op}^\text{BOOT}
+    $$
+
 
 * **Randomized Bootstrap:**
-    - Efron used a modified version of the ordinary bootstrap which uses the same process of an orindary bootstrap but the only idfference is that the observations are not treated as having completely certain classifications (randomized).
+    - Efron used a modified version of the ordinary bootstrap which uses the same process of an ordinary bootstrap but the only idfference is that the observations are not treated as having completely certain classifications (randomized).
 
 * **Double Bootstrap:**
-    - Efron used double bootstrap to help correct the downward bias found in the ordinary bootstrap. He did this by taking the bootstrap of the original ordrinary bootstrap. 
+    - Efron's double bootstrap applies a second bootstrap correction to the ordinary bootstrap estimator in order to correct the downward bias of the ordinary bootstrap estimate.
 
-* **Single Randomized Bootstrapping**
-    - Is a randomized bootstrapping but is only replciated once.
+* **Simple Randomized Bootstrapping**
+    - A simplified version of Efron's randomized bootstrap that modifies the empirical distribution by assigning probability to both possible class labels associated with each predictor vector. It is still evaluated using repeated bootstrap replications.
 
 * **Randomized Double Bootstrapping**
     - Is a double boostrapping but its observations are not treated as having completely certain classifications (randomized).
 
 * **.632 Estimator:**
     - Efron used the .632 estimator which is a bootsrapping method that performs the same procedures as an ordinary bootstrap where 63.2% of the original obersevations appear in the bootstrap sample and 36.8% of the original oberservations are left out of the bootstrap sample. The .632 estimator commbine the apparent error and the bootstrap error, giving more weight to the bootstrap error which Efron originally found to have a downward bias.
+    - The .632 estimator combines the apparent error rate with the out-of-bag error rate which refers to the bootstrap error calculated on observations that were not included in a particular bootstrap training sample. These out-of-bag observations receive the larger 0.632 weight.
     - **Example to visualize the .632 Estimator technique:** Think of the .632 estimator as balancing two imperfect estimates: the apparent error may be too optimistic because the model has already seen the data, while the bootstrap error is based on observations the model did not see. The .632 estimator therefore gives more weight to the bootstrap error while still incorporating the apparent error. Consider an exmaple where the apparent error rate is found to be 10% and the ordinary bootstrap error rate is foudn to be 25%. The rror rate of the .632 estimator is calculated using the following formula:
 
 $$
 \widehat{Err}_{.632}
 =
-0.368(\text{apparent error})
+0.368(\bar{e}rr)
 +
-0.632(\text{bootstrap error})
+0.632(e^{(0)})
 $$
 
 So the .632 estimator gives:
 
-- **36.8% weight** to apparent error
-- **63.2% weight** to bootstrap error
+- **36.8% weight** to apparent error ($\bar{e}rr$)
+- **63.2% weight** to out-of-bag error rate ($e^{(0)}$)
 
 For example, suppose:
 
@@ -346,7 +354,7 @@ $$
 and
 
 $$
-\text{Bootstrap error} = 25\%
+\text{Out-of-bag error rate} = 25\%
 $$
 
 Then:
@@ -383,7 +391,7 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
 * **.632 Estimator Findings:**
     - The .632 estimator performed best in the sampling experiments. However, this method had the weakest theoretical justification and therefore recommended it with caution pending additional research.
 
-* **Single Randomized Bootstrapping**
+* **Simple Randomized Bootstrapping**
     - Found to perform well.
 
 * **Randomized Double Bootstrapping**
@@ -399,15 +407,15 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
 3. Similar to Efron, I will conduct 100 trials of sampling experiment (2,14) which will geenerate 100 artificial datasets. 
 4. I will construct the prediction rule using the FIsher's Linear Discriminant.
 5. I will evaluate the apparent error rate to use as a baseline for my comparisons.
-6. I will then estimate its error rate using the leave-one-out cross validation, ordinary bootstrap, double boostrap, and .632 estimator methods. 
-7. Similar to Efron, I will conduct 200 bootstrap replications per trial for ordinary bootstrapping.
+6. I will then estimate its error rate using the leave-one-out cross validation, ordinary bootstrap, and .632 estimator methods. 
+7. I will conduct 200 bootstrap replications per trial for ordinary bootstrapping.
 
 ![Figure 7: Diagram showing the ordrinary bootstrapping process for the simulation study.](images/ordinary-bootstrap-replicaiton-per-trial.png)
 
 8. I will then compare the estimated error rates with the true error rate across repeated simulations to investigate how accurately each method estimates prediction error. This will be done by calcuating the MSE.
 9. I will utilize Python as my primary programming lanagauge to complete this simulation.
     - I will use the numpy package to generate my data and then utilizing the sampling experiemnts referenced in the paper to define the paremeters for each dataset.
-    - I will be using the scikit-learn package to run my various models (cross validiaiton, bootstrapping, etc.), create my linea rdiscriminant analysis for my prediction rule, and to create my MSE for comparing the estimated error rates of each method with the true errro rate.
+    - I will be using the scikit-learn package to run my various models (cross validiaiton, bootstrapping, etc.), create my linear discriminant analysis for my prediction rule, and to create my MSE for comparing the estimated error rates of each method with the true errro rate.
     - I will use scipy to construct statistical equations.
 
 ![Figure 8: Diagram showing the design for the simulation study I am choosing to replicate. The following diagram is using the (2.14) sampling experiment.](images/simulation-study-replication-plan.png)
@@ -415,20 +423,23 @@ Therefore, the .632 estimator gives an estimated prediction error of **19.48%**.
 ### Simulation Study Code:
 
 ```{python}
-# imports
-import numpy as np # import numpy
-import pandas as pd # import pandas
-import matplotlib.pyplot as plt # import matplotlib 
 
-from scipy.stats import norm # import normal continuous random variable 
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis # import linear discriminant
-from sklearn.metrics import zero_one_loss # import zero one classifcation loss (num of misclassifcation) 
-from sklearn.model_selection import LeaveOneOut # import the LOOCV
+# importing necessary libraries
+import numpy as np 
+import pandas as pd
+import matplotlib.pyplot as plt
 
-# initialize seed for random number generation
-rng = np.random.default_rng(seed=123)
+from scipy.stats import norm # importing the normal distribution from scipy.stats
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis # importing the Linear Discriminant Analysis model from sklearn
+from sklearn.model_selection import LeaveOneOut # importing the Leave-One-Out cross-validation method from sklearn
+```
 
-# create the (2,14) data-generating function
+```{python}
+
+# creating a random number generator with a fixed seed for reproducibility
+rng = np.random.default_rng(seed=100)
+
+# creating a function to generate the dataset for Efron's (2,14) sampling experiment
 def generate_214_data(n=14, rng=None):
     """
     Generate one dataset for Efron's (2,14) sampling experiment.
@@ -451,12 +462,13 @@ def generate_214_data(n=14, rng=None):
         Binary class labels with shape (n,).
     """
 
-    # create a random number generator if one was not provided
+    # Create a random number generator if one was not provided
     if rng is None:
         rng = np.random.default_rng()
 
     # Step 1: Generate class labels.
-    # Each observation independently has a 50% probability of belonging to either class.
+    # Each observation independently has a 50% probability
+    # of belonging to either class.
     y = rng.binomial(
         n=1,
         p=0.5,
@@ -491,9 +503,961 @@ def generate_214_data(n=14, rng=None):
             )
 
     return X, y
+```
 
-# generate dataset
+```{python}
+# Generate the dataset for Efron's (2,14) sampling experiment
 X, y = generate_214_data(
     n=14,
     rng=rng
 )
+```
+
+```{python}
+# Display the shapes of the generated predictor matrix and class labels
+print("Shape of X:", X.shape)
+print("Shape of y:", y.shape)
+```
+
+```{python}
+# Create a DataFrame to see the simulated data
+simulated_data = pd.DataFrame(
+    {
+        "Predictor_1 (X_1)": X[:, 0],
+        "Predictor_2 (X_2)": X[:, 1],
+        "Class labels": y
+    }
+)
+
+simulated_data
+```
+
+```{python}
+# Visualize the simulated dataset using a scatter plot
+plt.figure(figsize=(7, 5))
+
+for class_value in [0, 1]:
+
+    plt.scatter(
+        X[y == class_value, 0],
+        X[y == class_value, 1],
+        label=f"Class {class_value}"
+    )
+
+plt.xlabel("Predictor 1")
+plt.ylabel("Predictor 2")
+plt.title(
+    "One Simulated Dataset from Efron's (2,14) Experiment"
+)
+
+plt.legend()
+
+plt.show()
+```
+
+```{python}
+# Create the Linear Discriminant Analysis model
+lda_model = LinearDiscriminantAnalysis(
+    priors=[0.5, 0.5]
+)
+
+# Fit the model using the simulated training data
+lda_model.fit(X, y)
+```
+
+```{python}
+# Predict the class of each training observation
+predictions = lda_model.predict(X)
+
+# Display the true classes and predicted classes
+print("True classes:", y)
+
+print("\nPredicted classes:", predictions)
+
+# True if an observation was misclassified
+misclassified = predictions != y
+
+# Display the misclassified observations
+print("\nMisclassified observations:", misclassified)
+```
+
+```{python}
+# Calculate the apparent error rate
+def apparent_error(X, y):
+    """
+    Calculate the apparent error rate.
+
+    The LDA model is trained and evaluated on
+    the same dataset.
+    """
+
+    # Create the LDA model
+    model = LinearDiscriminantAnalysis(
+        priors=[0.5, 0.5]
+    )
+
+    # Fit the model to the training data
+    model.fit(X, y)
+
+    # Predict the training observations
+    predictions = model.predict(X)
+
+    # Calculate proportion incorrectly classified
+    error_rate = np.mean(
+        predictions != y
+    )
+
+    return error_rate
+
+# Calculate and print the apparent error rate for the simulated dataset
+app_error = apparent_error(X, y)
+print("Apparent Error Rate:", app_error)
+```
+
+```{python}
+# Calculate the conditional true error of a fitted LDA model
+def true_error_214(model):
+    """
+    Calculate the conditional true error of a fitted LDA model
+    under Efron's (2,14) population model.
+    """
+
+    # Population means
+    mu_0 = np.array([-1.0, 0.0])
+    mu_1 = np.array([1.0, 0.0])
+
+    # Identity covariance matrix
+    covariance = np.eye(2)
+
+    # Extract the fitted linear decision rule
+    w = model.coef_[0]
+    b = model.intercept_[0]
+
+    # Standard deviation of the discriminant score
+    score_sd = np.sqrt(
+        w @ covariance @ w
+    )
+
+    # Mean discriminant score for each true class
+    mean_score_0 = w @ mu_0 + b
+    mean_score_1 = w @ mu_1 + b
+
+    # Probability of misclassifying Class 0
+    error_class_0 = norm.cdf(
+        0,
+        loc=mean_score_0,
+        scale=score_sd
+    )
+
+    error_class_0 = 1 - error_class_0
+
+    # Probability of misclassifying Class 1
+    error_class_1 = norm.cdf(
+        0,
+        loc=mean_score_1,
+        scale=score_sd
+    )
+
+    # Equal class priors
+    true_error = (
+        0.5 * error_class_0
+        + 0.5 * error_class_1
+    )
+
+    return true_error
+
+# Calculate the conditional true error of the fitted LDA model
+lda_model = LinearDiscriminantAnalysis(
+    priors=[0.5, 0.5]
+)
+
+# Fit the model using the simulated training data
+lda_model.fit(X, y)
+
+# Calculate the conditional true error of the fitted LDA model
+true_error = true_error_214(lda_model)
+
+# Print the conditional true error rate
+print("Conditional True Error Rate:", true_error)
+```
+
+```{python}
+# Create a DataFrame to compare the apparent error rate and true error rate
+comparison = pd.DataFrame({
+    "Method": [
+        "Apparent Error",
+        "True Error"
+    ],
+    "Estimated Error": [
+        app_error,
+        true_error
+    ]
+})
+
+comparison
+```
+
+```{python}
+# Leave-One-Out Cross-Validation (LOOCV)
+"""
+With 14 observations:
+    1. Leave out observation 1.
+    2. Train LDA on the other 13 observations.
+    3. Predict observation 1.
+    4. Record whether it was correct.
+    5. Repeat until every observation has been left out once.
+    6. Calculate the proportion of the 14 predictions that were incorrect.
+"""
+
+# Create the Leave-One-Out cross-validation object
+loo = LeaveOneOut()
+
+# Loop through each observation, leaving one out at a time
+for train_index, test_index in loo.split(X):
+    print("Training indices:", train_index) # Indices of the training set
+    print("Test index:", test_index) # Index of the test set
+```
+
+```{python}
+# Calculate the Leave-One-Out Cross-Validation error rate
+def loocv_error(X, y):
+    """
+    Calculate the Leave-One-Out Cross-Validation
+    error rate for Fisher's Linear Discriminant Analysis.
+    """
+
+    # Create the LOOCV splitter
+    loo = LeaveOneOut()
+
+    # Store whether each left-out observation
+    # was classified incorrectly
+    errors = []
+
+    # Repeat once for every observation
+    for train_index, test_index in loo.split(X):
+
+        # Create training data containing 13 observations
+        X_train = X[train_index]
+        y_train = y[train_index]
+
+        # Create the one-observation test dataset
+        X_test = X[test_index]
+        y_test = y[test_index]
+
+        # Create the LDA prediction rule
+        model = LinearDiscriminantAnalysis(
+            priors=[0.5, 0.5]
+        )
+
+        # Train on the 13 observations
+        model.fit(X_train, y_train)
+
+        # Predict the observation that was left out
+        prediction = model.predict(X_test)
+
+        # Record whether the prediction was incorrect
+        errors.append(
+            prediction[0] != y_test[0]
+        )
+
+    # Calculate the proportion incorrectly classified
+    return np.mean(errors)
+
+# Calculate and print the LOOCV error rate for the simulated dataset
+cv_error = loocv_error(X, y)
+print("LOOCV Error Rate:", cv_error)
+
+# Create a function to return the LOOCV predictions for each observation
+def loocv_predictions(X, y):
+
+    loo = LeaveOneOut()
+
+    results = []
+
+    for train_index, test_index in loo.split(X):
+
+        X_train = X[train_index]
+        y_train = y[train_index]
+
+        X_test = X[test_index]
+        y_test = y[test_index]
+
+        model = LinearDiscriminantAnalysis(
+            priors=[0.5, 0.5]
+        )
+
+        model.fit(X_train, y_train)
+
+        prediction = model.predict(X_test)
+
+        results.append({
+            "Observation": test_index[0],
+            "True Class": y_test[0],
+            "Predicted Class": prediction[0],
+            "Correct": prediction[0] == y_test[0]
+        })
+
+    # Convert the results to a DataFrame for better visualization
+    return pd.DataFrame(results)
+
+# Generate the LOOCV predictions for the simulated dataset
+loocv_results = loocv_predictions(X, y)
+loocv_results
+```
+
+```{python}
+# Create a DataFrame to compare the true error, apparent error rate, and LOOCV error rate
+comparison = pd.DataFrame({
+    "Method": [
+        "True Error",
+        "Apparent Error",
+        "LOOCV"
+    ],
+    "Error Rate": [
+        true_error,
+        app_error,
+        cv_error
+    ]
+})
+
+comparison
+```
+
+```{python}
+# Ordinary Boostrapping
+"""
+Start with the original 14 observations:
+    1. Sample 14 observations with replacement.
+    2. Fit Fisher's discriminant to the bootstrap sample.
+    3. Evaluate the rule against the original observations.
+    4. Repeat this 200 times (B=200 bootstrap replications per trial).
+    5. Average the bootstrap results.
+"""
+
+# generate one bootstrap sample of the training data
+
+# Number of observations
+n = len(y)
+
+# Sample 14 indices with replacement
+bootstrap_indices = rng.choice(
+    n,
+    size=n,
+    replace=True
+)
+
+print("Bootstrap indices:")
+print(bootstrap_indices)
+```
+
+```{python}
+# Create the bootstrap sample of the training data
+X_boot = X[bootstrap_indices]
+y_boot = y[bootstrap_indices]
+
+# Display the shapes of the bootstrap predictor matrix and class labels
+print("Shape of X_boot:", X_boot.shape)
+print("Shape of y_boot:", y_boot.shape)
+
+# Fit the LDA model to the bootstrap sample
+bootstrap_model = LinearDiscriminantAnalysis(
+    priors=[0.5, 0.5]
+)
+
+bootstrap_model.fit(
+    X_boot,
+    y_boot
+)
+
+# Predict class labels for the bootstrap sample
+bootstrap_predictions = bootstrap_model.predict(
+    X_boot
+)
+
+# Calculate the error rate on the bootstrap sample
+error_on_bootstrap = np.mean(
+    bootstrap_predictions != y_boot
+)
+
+# Print the error rate on the bootstrap sample
+print(
+    "Error on bootstrap sample:",
+    error_on_bootstrap
+)
+
+# Calculate the error rate on the original dataset using the bootstrap model
+original_predictions = bootstrap_model.predict(X)
+
+# Calculate the error rate on the original dataset
+error_on_original = np.mean(
+    original_predictions != y
+)
+
+# Print the error rate on the original dataset
+print(
+    "Error on original data:",
+    error_on_original
+)
+
+# Calculate the bootstrap optimism
+bootstrap_optimism = (
+    error_on_original
+    -
+    error_on_bootstrap
+)
+
+# Print the bootstrap optimism
+print(
+    "Bootstrap optimism:",
+    bootstrap_optimism
+)
+```
+
+```{python}
+# Create function to estimate prediction error using Efron's ordinary bootstrap optimism correction
+def ordinary_bootstrap_error(X, y, B=200, rng=None):
+    """
+    Estimate prediction error using Efron's ordinary
+    bootstrap optimism correction.
+
+    Only bootstrap samples containing both classes are used
+    because LDA requires at least two classes.
+
+    Parameters
+    ----------
+    X : numpy.ndarray
+        Predictor matrix.
+
+    y : numpy.ndarray
+        Class labels.
+
+    B : int
+        Number of bootstrap replications.
+        Efron's (2,14) experiment uses B = 200.
+
+    rng : numpy.random.Generator
+        Random number generator.
+    """
+
+    # Create random number generator if needed
+    if rng is None:
+        rng = np.random.default_rng()
+
+    n = len(y)
+
+    # --------------------------------------------------
+    # Fit LDA to the original dataset
+    # --------------------------------------------------
+
+    original_model = LinearDiscriminantAnalysis(
+        priors=[0.5, 0.5]
+    )
+
+    original_model.fit(X, y)
+
+    original_predictions = original_model.predict(X)
+
+    apparent_err = np.mean(
+        original_predictions != y
+    )
+
+    # --------------------------------------------------
+    # Store bootstrap optimism values
+    # --------------------------------------------------
+
+    optimism_values = []
+
+    valid_replications = 0
+
+    # --------------------------------------------------
+    # Continue until we have B valid bootstrap samples
+    # --------------------------------------------------
+
+    while valid_replications < B:
+
+        # Sample n observations with replacement
+        indices = rng.choice(
+            n,
+            size=n,
+            replace=True
+        )
+
+        # Create bootstrap dataset
+        X_boot = X[indices]
+        y_boot = y[indices]
+
+        # --------------------------------------------------
+        # Check whether both classes are present
+        # --------------------------------------------------
+
+        if len(np.unique(y_boot)) < 2:
+
+            # Skip this bootstrap sample
+            continue
+
+        # --------------------------------------------------
+        # Fit LDA to bootstrap sample
+        # --------------------------------------------------
+
+        bootstrap_model = LinearDiscriminantAnalysis(
+            priors=[0.5, 0.5]
+        )
+
+        bootstrap_model.fit(
+            X_boot,
+            y_boot
+        )
+
+        # --------------------------------------------------
+        # Error on bootstrap sample
+        # --------------------------------------------------
+
+        predictions_boot = bootstrap_model.predict(
+            X_boot
+        )
+
+        error_boot = np.mean(
+            predictions_boot != y_boot
+        )
+
+        # --------------------------------------------------
+        # Error on original dataset
+        # --------------------------------------------------
+
+        predictions_original = bootstrap_model.predict(
+            X
+        )
+
+        error_original = np.mean(
+            predictions_original != y
+        )
+
+        # --------------------------------------------------
+        # Bootstrap optimism
+        # --------------------------------------------------
+
+        optimism = (
+            error_original
+            -
+            error_boot
+        )
+
+        optimism_values.append(
+            optimism
+        )
+
+        # Count valid bootstrap replication
+        valid_replications += 1
+
+    # --------------------------------------------------
+    # Average optimism
+    # --------------------------------------------------
+
+    average_optimism = np.mean(
+        optimism_values
+    )
+
+    # --------------------------------------------------
+    # Correct apparent error
+    # --------------------------------------------------
+
+    bootstrap_error = (
+        apparent_err
+        +
+        average_optimism
+    )
+
+    return bootstrap_error
+
+# Calculate the bootstrap estimate of prediction error using Efron's ordinary bootstrap optimism correction
+bootstrap_error = ordinary_bootstrap_error(
+    X,
+    y,
+    B=200,
+    rng=rng
+)
+
+# Print the bootstrap estimate of prediction error
+print(
+    "Ordinary Bootstrap Error:",
+    bootstrap_error
+)
+```
+
+```{python}
+results = pd.DataFrame({
+    "Method": [
+        "True Error",
+        "Apparent Error",
+        "LOOCV",
+        "Ordinary Bootstrap"
+    ],
+    "Estimated Error": [
+        true_error,
+        app_error,
+        cv_error,
+        bootstrap_error
+    ]
+})
+
+results
+```
+
+```{python}
+# .632 estimator
+
+# Count how many times each observation was selected
+counts = np.bincount(
+    bootstrap_indices,
+    minlength=n
+)
+
+# True means the observation was not included
+oob_mask = counts == 0
+
+print("Out-of-bag observations:")
+print(np.where(oob_mask)[0])
+
+# Fit LDA and test only on the out-of-bag observations
+
+# Create the bootstrap sample of the training data
+X_boot = X[bootstrap_indices]
+y_boot = y[bootstrap_indices]
+
+# Check whether both classes are present in the bootstrap sample
+if len(np.unique(y_boot)) >= 2:
+
+    bootstrap_model = LinearDiscriminantAnalysis(
+        priors=[0.5, 0.5]
+    )
+
+    bootstrap_model.fit(
+        X_boot,
+        y_boot
+    )
+
+    # Predict only observations that were left out
+    oob_predictions = bootstrap_model.predict(
+        X[oob_mask]
+    )
+
+    # Calculate error on the OOB observations
+    oob_error = np.mean(
+        oob_predictions != y[oob_mask]
+    )
+
+    print("Out-of-bag error:", oob_error)
+```
+
+```{python}
+# Estimate prediction error using bootstrap out-of-bag observations
+def bootstrap_oob_error(X, y, B=200, rng=None):
+    """
+    Estimate prediction error using bootstrap
+    out-of-bag observations.
+
+    Parameters
+    ----------
+    X : numpy.ndarray
+        Predictor matrix.
+
+    y : numpy.ndarray
+        Class labels.
+
+    B : int
+        Number of valid bootstrap replications.
+
+    rng : numpy.random.Generator
+        Random number generator.
+
+    Returns
+    -------
+    float
+        Average out-of-bag classification error.
+    """
+
+    if rng is None:
+        rng = np.random.default_rng()
+
+    n = len(y)
+
+    # Store all OOB errors
+    oob_errors = []
+
+    valid_replications = 0
+
+    while valid_replications < B:
+
+        # Generate bootstrap sample
+        indices = rng.choice(
+            n,
+            size=n,
+            replace=True
+        )
+
+        X_boot = X[indices]
+        y_boot = y[indices]
+
+        # Skip bootstrap samples containing one class
+        if len(np.unique(y_boot)) < 2:
+            continue
+
+        # Identify out-of-bag observations
+        counts = np.bincount(
+            indices,
+            minlength=n
+        )
+
+        oob_mask = counts == 0
+
+        # Skip if no observations are OOB
+        if not np.any(oob_mask):
+            continue
+
+        # Fit LDA to bootstrap sample
+        model = LinearDiscriminantAnalysis(
+            priors=[0.5, 0.5]
+        )
+
+        model.fit(
+            X_boot,
+            y_boot
+        )
+
+        # Predict OOB observations
+        predictions = model.predict(
+            X[oob_mask]
+        )
+
+        # Calculate OOB error
+        error = np.mean(
+            predictions != y[oob_mask]
+        )
+
+        oob_errors.append(error)
+
+        valid_replications += 1
+
+    # Average OOB error
+    return np.mean(oob_errors)
+
+# Estimate prediction error using bootstrap out-of-bag observations
+oob_error = bootstrap_oob_error(
+    X,
+    y,
+    B=200,
+    rng=rng
+)
+
+print(
+    "Bootstrap Out-of-Bag Error:",
+    oob_error
+)
+```
+
+```{python}
+# Calculate the .632 bootstrap estimate of prediction error
+def estimator_632(X, y, B=200, rng=None):
+    """
+    Calculate the .632 bootstrap estimate of prediction error.
+    """
+
+    # Calculate apparent error
+    app_error = apparent_error(X, y)
+
+    # Calculate out-of-bag error
+    oob_error = bootstrap_oob_error(
+        X,
+        y,
+        B=B,
+        rng=rng
+    )
+
+    # Calculate .632 estimate
+    error_632 = (
+        0.368 * app_error
+        + 0.632 * oob_error
+    )
+
+    return error_632
+
+# Calculate the .632 bootstrap estimate of prediction error
+error_632 = estimator_632(
+    X,
+    y,
+    B=200,
+    rng=rng
+)
+
+print(
+    ".632 Bootstrap Error:",
+    error_632
+)
+```
+
+```{python}
+# Create a DataFrame to compare the true error, apparent error rate, LOOCV error rate, ordinary bootstrap error, and .632 bootstrap error   
+results = pd.DataFrame({
+    "Method": [
+        "True Error",
+        "Apparent Error",
+        "LOOCV",
+        "Ordinary Bootstrap",
+        ".632 Bootstrap"
+    ],
+    "Estimated Error": [
+        true_error,
+        app_error,
+        cv_error,
+        bootstrap_error,
+        error_632
+    ]
+})
+
+results
+
+# Visualize the comparison of error rate estimates using a bar plot
+plt.figure(figsize=(8, 5))
+
+plt.bar(results["Method"], results["Estimated Error"])
+
+plt.ylabel("Error Rate")
+plt.xlabel("Method")
+plt.title("Comparison of Error Rate Estimates")
+plt.xticks(rotation=45)
+
+plt.tight_layout()
+plt.show()
+```
+
+```{python}
+# conduct 100 trials for each method
+all_results = []
+
+for i in range(100):
+
+    # Generate a new dataset
+    X, y = generate_214_data(
+        n=14,
+        rng=rng
+    )
+
+    # Create the Linear Discriminant Analysis model
+    lda_model = LinearDiscriminantAnalysis(
+        priors=[0.5, 0.5]
+    )
+    
+    # Fit the model using the simulated training data
+    lda_model.fit(X, y)
+
+    # Calculate true_error
+    true_error = true_error_214(lda_model)
+    # Calculate app_error
+    app_error = apparent_error(X, y)
+    # Calculate cv_error
+    cv_error = loocv_error(X, y)
+    # Calculate bootstrap_error
+    bootstrap_error = ordinary_bootstrap_error(
+        X,
+        y,
+        B=200,
+        rng=rng
+    )
+    # Calculate error_632
+    error_632 = estimator_632(
+        X,
+        y,
+        B=200,
+        rng=rng
+    )
+
+    all_results.append({
+        "True Error": true_error,
+        "Apparent Error": app_error,
+        "LOOCV": cv_error,
+        "Ordinary Bootstrap": bootstrap_error,
+        ".632 Bootstrap": error_632
+    })
+```
+
+```{python}
+# Create a DataFrame to compare the true error, apparent error rate, LOOCV error rate, ordinary bootstrap error, and .632 bootstrap error after 100 trials
+all_results = pd.DataFrame(all_results)
+
+all_results
+```
+
+```{python}
+# Calculate the bias of each method across all trials
+bias = {
+    "Apparent Error": (
+        all_results["Apparent Error"] - all_results["True Error"]
+    ).mean(),
+
+    "LOOCV": (
+        all_results["LOOCV"] - all_results["True Error"]
+    ).mean(),
+
+    "Ordinary Bootstrap": (
+        all_results["Ordinary Bootstrap"] - all_results["True Error"]
+    ).mean(),
+
+    ".632 Bootstrap": (
+        all_results[".632 Bootstrap"] - all_results["True Error"]
+    ).mean()
+}
+
+# calculate the mean squared error of each method across all trials
+mse = {
+    "Apparent Error": np.mean(
+        (all_results["Apparent Error"] - all_results["True Error"]) ** 2
+    ),
+
+    "LOOCV": np.mean(
+        (all_results["LOOCV"] - all_results["True Error"]) ** 2
+    ),
+
+    "Ordinary Bootstrap": np.mean(
+        (all_results["Ordinary Bootstrap"] - all_results["True Error"]) ** 2
+    ),
+
+    ".632 Bootstrap": np.mean(
+        (all_results[".632 Bootstrap"] - all_results["True Error"]) ** 2
+    )
+}
+
+# Create a summary DataFrame to compare the mean estimate, bias, and mean squared error of each method across all trials
+summary = pd.DataFrame({
+    "Mean Estimate": [
+        all_results["Apparent Error"].mean(),
+        all_results["LOOCV"].mean(),
+        all_results["Ordinary Bootstrap"].mean(),
+        all_results[".632 Bootstrap"].mean()
+    ],
+    "Bias": [
+        bias["Apparent Error"],
+        bias["LOOCV"],
+        bias["Ordinary Bootstrap"],
+        bias[".632 Bootstrap"]
+    ],
+    "MSE": [
+        mse["Apparent Error"],
+        mse["LOOCV"],
+        mse["Ordinary Bootstrap"],
+        mse[".632 Bootstrap"]
+    ]
+}, index=[
+    "Apparent Error",
+    "LOOCV",
+    "Ordinary Bootstrap",
+    ".632 Bootstrap"
+])
+
+summary
+```
+
+### Findings:
+* LOOCV is very close to the true error on average, but it varies more from simulation to simulation. MSE captures both systematic bias and variability.
+* Ordinary Bootstrap is slightly more biased than LOOCV, meaning it tends to underestimate the true error a little more on average. However, it has a lower MSE than LOOCV, suggesting that its estimates are somewhat more stable across simulations and have less overall squared error.
+* .632 Bootstrap has a little more bias than LOOCV, but its estimates appear to have less overall squared error, giving it the lowest MSE.
+* Apparent Error has substantially more negative bias than the other methods, meaning it tends to underestimate the true prediction error by a larger amount. Although its MSE is lower than LOOCV's, its relatively large bias shows that the training error is systematically too optimistic about performance on new data.
