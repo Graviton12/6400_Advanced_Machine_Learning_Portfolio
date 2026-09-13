@@ -1,4 +1,4 @@
-# Simulation Study
+# Simulation Study Efron 1983
 
 ## Paper Overview of Simulation Study (Efron 1983)
 This section summarizes the simulation study discussed in Estimating the Error Rate of a Prediction Rule: Improvement on Cross-Validation, [@Efron1983].

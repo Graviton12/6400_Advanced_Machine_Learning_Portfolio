@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>References – ds6400_portfolio</title>
+<title>3&nbsp; Simulation Study Bates 2023 – ds6400_portfolio</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -55,7 +55,8 @@ div.csl-indent {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./summary.html" rel="prev">
+<link href="./bivariate_norm_dist.html" rel="next">
+<link href="./simulation-study.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -94,6 +95,35 @@ div.csl-indent {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -106,7 +136,7 @@ div.csl-indent {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./references.html">References</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./simulation-study-bates-2023.html"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Simulation Study Bates 2023</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -151,7 +181,7 @@ div.csl-indent {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./simulation-study-bates-2023.html" class="sidebar-item-text sidebar-link">
+  <a href="./simulation-study-bates-2023.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Simulation Study Bates 2023</span></span></a>
   </div>
 </li>
@@ -181,7 +211,7 @@ div.csl-indent {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./references.html" class="sidebar-item-text sidebar-link active">
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">References</span></a>
   </div>
 </li>
@@ -190,15 +220,25 @@ div.csl-indent {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#paper-overview-of-simulation-study-bates-2023" id="toc-paper-overview-of-simulation-study-bates-2023" class="nav-link active" data-scroll-target="#paper-overview-of-simulation-study-bates-2023"><span class="header-section-number">3.1</span> Paper Overview of Simulation Study (Bates 2023)</a></li>
+  <li><a href="#central-goal-of-study" id="toc-central-goal-of-study" class="nav-link" data-scroll-target="#central-goal-of-study"><span class="header-section-number">3.2</span> Central Goal of Study:</a></li>
+  <li><a href="#problem-and-proposed-solution" id="toc-problem-and-proposed-solution" class="nav-link" data-scroll-target="#problem-and-proposed-solution"><span class="header-section-number">3.3</span> Problem and Proposed Solution:</a></li>
+  <li><a href="#hyperparameter-tuning" id="toc-hyperparameter-tuning" class="nav-link" data-scroll-target="#hyperparameter-tuning"><span class="header-section-number">3.4</span> Hyperparameter Tuning:</a></li>
+  <li><a href="#nested-cross-validation" id="toc-nested-cross-validation" class="nav-link" data-scroll-target="#nested-cross-validation"><span class="header-section-number">3.5</span> Nested Cross Validation:</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">References</h1>
+<h1 class="title"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Simulation Study Bates 2023</span></h1>
 </div>
 
 
@@ -215,24 +255,120 @@ div.csl-indent {
 </header>
 
 
-<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<section id="paper-overview-of-simulation-study-bates-2023" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="paper-overview-of-simulation-study-bates-2023"><span class="header-section-number">3.1</span> Paper Overview of Simulation Study (Bates 2023)</h2>
+<p>This section summarizes the simulation study discussed in Cross-validation: what does it estimate and how well does it do it?, <span class="citation" data-cites="Bates2023">(<a href="references.html#ref-Bates2023" role="doc-biblioref">Bates and Tibshiran 2023</a>)</span>.</p>
+<ul>
+<li><strong>Title:</strong> Cross-validation: what does it estimate and how well does it do it?</li>
+<li><strong>Author:</strong> Stephen Bates, Trevor Hastie, and Robert Tibshiran</li>
+<li><strong>Journal:</strong> Journal of the American Statistical Association</li>
+</ul>
+</section>
+<section id="central-goal-of-study" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="central-goal-of-study"><span class="header-section-number">3.2</span> Central Goal of Study:</h2>
+<p>Insert here</p>
+</section>
+<section id="problem-and-proposed-solution" class="level2" data-number="3.3">
+<h2 data-number="3.3" class="anchored" data-anchor-id="problem-and-proposed-solution"><span class="header-section-number">3.3</span> Problem and Proposed Solution:</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Topic</th>
+<th style="text-align: left;">Common Assumption</th>
+<th style="text-align: left;">Mathematical Reality / Discovery</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Target of Estimation</strong></td>
+<td style="text-align: left;">Estimates the prediction error of <em>your specific fitted model</em>.</td>
+<td style="text-align: left;">Estimates the <em>average error</em> of models fit on other unseen datasets from the same population.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Uncertainty / Confidence Intervals</strong></td>
+<td style="text-align: left;">Standard formulas give reliable error ranges.</td>
+<td style="text-align: left;">Standard ranges are <strong>too narrow</strong> due to recycled data inducing hidden correlations.</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Solution</strong></td>
+<td style="text-align: left;">Traditional Cross-Validation</td>
+<td style="text-align: left;"><strong>Nested Cross-Validation</strong> corrects the variance estimate and provides accurate coverage.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Data Splitting Warning</strong></td>
+<td style="text-align: left;">Re-fitting the final model on combined data is harmless.</td>
+<td style="text-align: left;">Re-fitting <strong>invalidates</strong> the calculated confidence intervals.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="hyperparameter-tuning" class="level2" data-number="3.4">
+<h2 data-number="3.4" class="anchored" data-anchor-id="hyperparameter-tuning"><span class="header-section-number">3.4</span> Hyperparameter Tuning:</h2>
+<ul>
+<li>Hyperparameter tuning refers to the action of choosing and fine-tuning parameter values for a given model that result in the minimal error / highest accuracy.</li>
+</ul>
+</section>
+<section id="nested-cross-validation" class="level2" data-number="3.5">
+<h2 data-number="3.5" class="anchored" data-anchor-id="nested-cross-validation"><span class="header-section-number">3.5</span> Nested Cross Validation:</h2>
+<ul>
+<li>Outer Loop (Error Estimation):
+<ul>
+<li>The total original dataset is split into <span class="math inline">\(N\)</span> number of outer folds where each fold is comprised of the training set and testing set.</li>
+<li>The test set is held out exclusively for final model performance evaluation</li>
+</ul></li>
+<li>Inner Loop (Hyperparameter Tuning):
+<ul>
+<li>Take the training set from the outer loop and split it further into an inner training subset and a validation set.</li>
+<li>The training subset in run on the model and then evaluated on the validation set.</li>
+<li>The model trains on the inner training subset across candidate hyperparameter values (these are the parameters we choose) and evaluate them on the inner validation set.</li>
+</ul></li>
+<li>Hyperparameter Tuning (Select Optimal Hyperparameters):
+<ul>
+<li>Compute the inner validation accuracy for each hyperparameter configuration and choose the parameter setting that minimizes error / maximizes accuracy for a given iteration.</li>
+<li>We take the chosen parameters plus the entire training set as a whole then we run on the test set and evaluate its performance.</li>
+</ul></li>
+<li>Error estimation:
+<ul>
+<li>We take the average error on the training data</li>
+<li>We take the average error on the testing data</li>
+<li>This gives us the overall generalization error</li>
+</ul></li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/nested-cross-validation.png" class="img-fluid figure-img"></p>
+<figcaption>Figure 1: Diagram of Nested Cross Validation using 5-Fold Outer Loop and 2-Fold Inner Loop.</figcaption>
+</figure>
+</div>
+<ul>
+<li>Example:
+<ul>
+<li>Assume we have 3-Fold CV with some hyperparamter C for some values 1 and 2 for some model.</li>
+<li>Further assume we have 3 observations (P1, P2, P3) in a dataset.</li>
+<li>We want to optimize the hyperparamter C.</li>
+<li>In this consider we only consider one inner loop for the 1st outer fold.</li>
+<li>We determine which combination yielded the highest accuracy / minimized error.</li>
+</ul></li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/nested-cross-validation-example.png" class="img-fluid figure-img"></p>
+<figcaption>Figure 2: Diagram of Nested Cross Validation Example.</figcaption>
+</figure>
+</div>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
 <div id="ref-Bates2023" class="csl-entry" role="listitem">
-Bates, T., S. Hastie, and R. Tibshiran. 2023. <span>“Cross-Validation:
-What Does It Estimate and How Well Does It Do It?”</span> <em>Journal of
-the American Statistical Association</em> 119 (546): 1434–45. <a href="https://doi.org/10.1080/01621459.2023.2197686">https://doi.org/10.1080/01621459.2023.2197686</a>.
-</div>
-<div id="ref-Efron1983" class="csl-entry" role="listitem">
-Efron, B. 1983. <span>“Estimating the Error Rate of a Prediction Rule:
-Improvement on Cross-Validation.”</span> <em>Journal of the American
-Statistical Association</em> 78 (382): 316–31. <a href="https://doi.org/10.2307/2288636">https://doi.org/10.2307/2288636</a>.
-</div>
-<div id="ref-knuth84" class="csl-entry" role="listitem">
-Knuth, Donald E. 1984. <span>“Literate Programming.”</span> <em>Comput.
-J.</em> (USA) 27 (2): 97–111. <a href="https://doi.org/10.1093/comjnl/27.2.97">https://doi.org/10.1093/comjnl/27.2.97</a>.
+Bates, T., S. Hastie, and R. Tibshiran. 2023. <span>“Cross-Validation: What Does It Estimate and How Well Does It Do It?”</span> <em>Journal of the American Statistical Association</em> 119 (546): 1434–45. <a href="https://doi.org/10.1080/01621459.2023.2197686">https://doi.org/10.1080/01621459.2023.2197686</a>.
 </div>
 </div>
-
-
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -637,11 +773,14 @@ J.</em> (USA) 27 (2): 97–111. <a href="https://doi.org/10.1093/comjnl/27.2.97"
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./summary.html" class="pagination-link" aria-label="Summary">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Summary</span></span>
+      <a href="./simulation-study.html" class="pagination-link" aria-label="Simulation Study Efron 1983">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Simulation Study Efron 1983</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
+      <a href="./bivariate_norm_dist.html" class="pagination-link" aria-label="Class-conditional bivariate normal distribution">
+        <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Class-conditional bivariate normal distribution</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
   </div>
 </nav>
 </div> <!-- /content -->
