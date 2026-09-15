@@ -225,11 +225,21 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#paper-overview-of-simulation-study-bates-2023" id="toc-paper-overview-of-simulation-study-bates-2023" class="nav-link active" data-scroll-target="#paper-overview-of-simulation-study-bates-2023"><span class="header-section-number">3.1</span> Paper Overview of Simulation Study (Bates 2023)</a></li>
-  <li><a href="#central-goal-of-study" id="toc-central-goal-of-study" class="nav-link" data-scroll-target="#central-goal-of-study"><span class="header-section-number">3.2</span> Central Goal of Study:</a></li>
-  <li><a href="#problem-and-proposed-solution" id="toc-problem-and-proposed-solution" class="nav-link" data-scroll-target="#problem-and-proposed-solution"><span class="header-section-number">3.3</span> Problem and Proposed Solution:</a></li>
-  <li><a href="#hyperparameter-tuning" id="toc-hyperparameter-tuning" class="nav-link" data-scroll-target="#hyperparameter-tuning"><span class="header-section-number">3.4</span> Hyperparameter Tuning:</a></li>
-  <li><a href="#nested-cross-validation" id="toc-nested-cross-validation" class="nav-link" data-scroll-target="#nested-cross-validation"><span class="header-section-number">3.5</span> Nested Cross Validation:</a></li>
+  <li><a href="#paper-overview-of-simulation-study-bates-2023" id="toc-paper-overview-of-simulation-study-bates-2023" class="nav-link active" data-scroll-target="#paper-overview-of-simulation-study-bates-2023"><span class="header-section-number">3.1</span> Paper Overview of Simulation Study (Bates 2023)</a>
+  <ul class="collapse">
+  <li><a href="#the-big-picture-what-is-this-paper-about" id="toc-the-big-picture-what-is-this-paper-about" class="nav-link" data-scroll-target="#the-big-picture-what-is-this-paper-about"><span class="header-section-number">3.1.1</span> The Big Picture: What is This Paper About?</a></li>
+  <li><a href="#the-core-misconception-what-is-cross-validation-actually-measuring" id="toc-the-core-misconception-what-is-cross-validation-actually-measuring" class="nav-link" data-scroll-target="#the-core-misconception-what-is-cross-validation-actually-measuring"><span class="header-section-number">3.1.2</span> The Core Misconception: What is Cross-Validation Actually Measuring?</a></li>
+  <li><a href="#the-problem-with-confidence-intervals-unreliable-safety-margins" id="toc-the-problem-with-confidence-intervals-unreliable-safety-margins" class="nav-link" data-scroll-target="#the-problem-with-confidence-intervals-unreliable-safety-margins"><span class="header-section-number">3.1.3</span> The Problem with Confidence Intervals: Unreliable Safety Margins</a></li>
+  <li><a href="#a-key-warning-for-simple-data-splitting" id="toc-a-key-warning-for-simple-data-splitting" class="nav-link" data-scroll-target="#a-key-warning-for-simple-data-splitting"><span class="header-section-number">3.1.4</span> A Key Warning for Simple Data Splitting</a></li>
+  <li><a href="#authors-proposed-solution" id="toc-authors-proposed-solution" class="nav-link" data-scroll-target="#authors-proposed-solution"><span class="header-section-number">3.1.5</span> Author’s Proposed Solution:</a></li>
+  </ul></li>
+  <li><a href="#key-concepts-equations-explained" id="toc-key-concepts-equations-explained" class="nav-link" data-scroll-target="#key-concepts-equations-explained"><span class="header-section-number">3.2</span> Key Concepts &amp; Equations Explained:</a>
+  <ul class="collapse">
+  <li><a href="#hyperparameter-tuning" id="toc-hyperparameter-tuning" class="nav-link" data-scroll-target="#hyperparameter-tuning"><span class="header-section-number">3.2.1</span> Hyperparameter Tuning:</a></li>
+  <li><a href="#nested-cross-validation" id="toc-nested-cross-validation" class="nav-link" data-scroll-target="#nested-cross-validation"><span class="header-section-number">3.2.2</span> Nested Cross Validation:</a></li>
+  <li><a href="#out-of-sample-error-targets" id="toc-out-of-sample-error-targets" class="nav-link" data-scroll-target="#out-of-sample-error-targets"><span class="header-section-number">3.2.3</span> Out-of-Sample Error Targets:</a></li>
+  <li><a href="#cross-validation-point-estimate-naïve-standard-error" id="toc-cross-validation-point-estimate-naïve-standard-error" class="nav-link" data-scroll-target="#cross-validation-point-estimate-naïve-standard-error"><span class="header-section-number">3.2.4</span> Cross-Validation Point Estimate &amp; Naïve Standard Error:</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -263,58 +273,61 @@ window.Quarto = {
 <li><strong>Author:</strong> Stephen Bates, Trevor Hastie, and Robert Tibshiran</li>
 <li><strong>Journal:</strong> Journal of the American Statistical Association</li>
 </ul>
+<section id="the-big-picture-what-is-this-paper-about" class="level3" data-number="3.1.1">
+<h3 data-number="3.1.1" class="anchored" data-anchor-id="the-big-picture-what-is-this-paper-about"><span class="header-section-number">3.1.1</span> The Big Picture: What is This Paper About?</h3>
+<ul>
+<li>Imagine you train a machine learning model on a specific set of data you collected today. You use 10-fold cross-validation to check its accuracy and put a <span class="math inline">\(90\%\)</span> confidence interval around that error rate.Most people assume CV tells them: “Here is how well this exact model will perform on future data.”</li>
+<li>The authors prove two main points:
+<ul>
+<li><strong>Wrong Target:</strong> CV does not estimate the error of the exact model you just built (<span class="math inline">\(Err_{XY}\)</span>). Instead, it estimates the average error (<span class="math inline">\(Err\)</span>) of models trained on random datasets drawn from the same population.</li>
+<li><strong>Intervals are Too Optimistic:</strong> The standard way of calculating confidence intervals for CV assumes fold errors are independent. Because data points are reused across folds, they are actually correlated, making the estimated variance too small and confidence intervals too narrow (leading to undercoverage).<br>
+</li>
+<li><strong>The Solution:</strong> The authors introduce Nested Cross-Validation (NCV) to accurately estimate the sampling variance and construct valid confidence intervals.</li>
+</ul></li>
+</ul>
 </section>
-<section id="central-goal-of-study" class="level2" data-number="3.2">
-<h2 data-number="3.2" class="anchored" data-anchor-id="central-goal-of-study"><span class="header-section-number">3.2</span> Central Goal of Study:</h2>
-<p>Insert here</p>
+<section id="the-core-misconception-what-is-cross-validation-actually-measuring" class="level3" data-number="3.1.2">
+<h3 data-number="3.1.2" class="anchored" data-anchor-id="the-core-misconception-what-is-cross-validation-actually-measuring"><span class="header-section-number">3.1.2</span> The Core Misconception: What is Cross-Validation Actually Measuring?</h3>
+<ul>
+<li><strong>What people think happens:</strong> When you train a computer model on a specific dataset, you want to know how accurately that specific model will perform on brand-new, unseen data. People use a common tool called cross-validation (and related methods like data splitting, bootstrapping, or Mallows <span class="math inline">\(C_p\)</span>) believing it estimates the error rate of their specific model.</li>
+<li><strong>What actually happens:</strong> The authors prove mathematically (specifically for a standard statistical technique called Ordinary Least Squares linear regression) that cross-validation does not tell you the error rate of your specific model.</li>
+<li><strong>The reality:</strong> Instead, it estimates the average error rate you would get if you trained many similar models on different, hypothetical datasets drawn from the same overall population</li>
+</ul>
 </section>
-<section id="problem-and-proposed-solution" class="level2" data-number="3.3">
-<h2 data-number="3.3" class="anchored" data-anchor-id="problem-and-proposed-solution"><span class="header-section-number">3.3</span> Problem and Proposed Solution:</h2>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Topic</th>
-<th style="text-align: left;">Common Assumption</th>
-<th style="text-align: left;">Mathematical Reality / Discovery</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;"><strong>Target of Estimation</strong></td>
-<td style="text-align: left;">Estimates the prediction error of <em>your specific fitted model</em>.</td>
-<td style="text-align: left;">Estimates the <em>average error</em> of models fit on other unseen datasets from the same population.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><strong>Uncertainty / Confidence Intervals</strong></td>
-<td style="text-align: left;">Standard formulas give reliable error ranges.</td>
-<td style="text-align: left;">Standard ranges are <strong>too narrow</strong> due to recycled data inducing hidden correlations.</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><strong>Solution</strong></td>
-<td style="text-align: left;">Traditional Cross-Validation</td>
-<td style="text-align: left;"><strong>Nested Cross-Validation</strong> corrects the variance estimate and provides accurate coverage.</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><strong>Data Splitting Warning</strong></td>
-<td style="text-align: left;">Re-fitting the final model on combined data is harmless.</td>
-<td style="text-align: left;">Re-fitting <strong>invalidates</strong> the calculated confidence intervals.</td>
-</tr>
-</tbody>
-</table>
+<section id="the-problem-with-confidence-intervals-unreliable-safety-margins" class="level3" data-number="3.1.3">
+<h3 data-number="3.1.3" class="anchored" data-anchor-id="the-problem-with-confidence-intervals-unreliable-safety-margins"><span class="header-section-number">3.1.3</span> The Problem with Confidence Intervals: Unreliable Safety Margins</h3>
+<ul>
+<li><strong>The Flaw:</strong> When scientists calculate a “confidence interval” (a range of numbers showing how confident they are in the error rate), standard cross-validation gives ranges that are far too narrow.<br>
+</li>
+<li><strong>Why it breaks:</strong> Cross-validation reuses the same data points for both training and testing the model across different steps. Because data points are recycled, the measurements are correlated with one another. Standard statistical formulas assume these measurements are completely independent, causing them to vastly underestimate uncertainty and give a false sense of accuracy.</li>
+</ul>
 </section>
-<section id="hyperparameter-tuning" class="level2" data-number="3.4">
-<h2 data-number="3.4" class="anchored" data-anchor-id="hyperparameter-tuning"><span class="header-section-number">3.4</span> Hyperparameter Tuning:</h2>
+<section id="a-key-warning-for-simple-data-splitting" class="level3" data-number="3.1.4">
+<h3 data-number="3.1.4" class="anchored" data-anchor-id="a-key-warning-for-simple-data-splitting"><span class="header-section-number">3.1.4</span> A Key Warning for Simple Data Splitting</h3>
+<ul>
+<li><strong>Common Practice:</strong> A common trick when splitting data into “training” and “testing” sets is to evaluate the model on the test set, and then re-train (re-fit) the model on all the data combined to make it stronger.</li>
+<li><strong>The Takeaway:</strong> The authors warn that if you re-train the model on the combined data, your confidence intervals for accuracy become invalid and untrustworthy.</li>
+</ul>
+</section>
+<section id="authors-proposed-solution" class="level3" data-number="3.1.5">
+<h3 data-number="3.1.5" class="anchored" data-anchor-id="authors-proposed-solution"><span class="header-section-number">3.1.5</span> Author’s Proposed Solution:</h3>
+<ul>
+<li><strong>The Fix:</strong> The authors invent a modified method called nested cross-validation to measure the uncertainty properly.<br>
+</li>
+<li><strong>The Result:</strong> Through experiments, they show that this new method produces realistic confidence intervals that accurately capture the true range of prediction error in cases where standard cross-validation fails.</li>
+</ul>
+</section>
+</section>
+<section id="key-concepts-equations-explained" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="key-concepts-equations-explained"><span class="header-section-number">3.2</span> Key Concepts &amp; Equations Explained:</h2>
+<section id="hyperparameter-tuning" class="level3" data-number="3.2.1">
+<h3 data-number="3.2.1" class="anchored" data-anchor-id="hyperparameter-tuning"><span class="header-section-number">3.2.1</span> Hyperparameter Tuning:</h3>
 <ul>
 <li>Hyperparameter tuning refers to the action of choosing and fine-tuning parameter values for a given model that result in the minimal error / highest accuracy.</li>
 </ul>
 </section>
-<section id="nested-cross-validation" class="level2" data-number="3.5">
-<h2 data-number="3.5" class="anchored" data-anchor-id="nested-cross-validation"><span class="header-section-number">3.5</span> Nested Cross Validation:</h2>
+<section id="nested-cross-validation" class="level3" data-number="3.2.2">
+<h3 data-number="3.2.2" class="anchored" data-anchor-id="nested-cross-validation"><span class="header-section-number">3.2.2</span> Nested Cross Validation:</h3>
 <ul>
 <li>Outer Loop (Error Estimation):
 <ul>
@@ -361,6 +374,24 @@ window.Quarto = {
 <figcaption>Figure 2: Diagram of Nested Cross Validation Example.</figcaption>
 </figure>
 </div>
+</section>
+<section id="out-of-sample-error-targets" class="level3" data-number="3.2.3">
+<h3 data-number="3.2.3" class="anchored" data-anchor-id="out-of-sample-error-targets"><span class="header-section-number">3.2.3</span> Out-of-Sample Error Targets:</h3>
+<ul>
+<li><p><span class="math inline">\(Err_{XY}\)</span> (Instance-Specific Error): The expected error of the specific model trained on your observed data <span class="math inline">\((X, Y)\)</span> when tested on unseen future data <span class="math inline">\((X_{n+1}, Y_{n+1})\)</span>:<span class="math display">\[Err_{XY} := \mathbb{E}[\ell(\hat{f}(X_{n+1}, \hat{\theta}), Y_{n+1}) \mid (X, Y)]\]</span></p></li>
+<li><p>Translation: <span class="math inline">\(\hat{f}\)</span> is your fitted model with parameters <span class="math inline">\(\hat{\theta}\)</span>. <span class="math inline">\(\ell(\cdot, \cdot)\)</span> is the loss function (e.g., squared error or binary classification loss). <span class="math inline">\(Err_{XY}\)</span> is a random variable because it depends on the exact training dataset <span class="math inline">\((X, Y)\)</span> you happened to collect.</p></li>
+<li><p><span class="math inline">\(Err\)</span> (Average Error): The average error of models fitted on many hypothetical datasets drawn from the same population <span class="math inline">\(P\)</span>: <span class="math display">\[Err := \mathbb{E}[Err_{XY}]\]</span></p></li>
+<li><p><span class="math inline">\(Err_X\)</span> (Conditioned on Features): The expected error given the feature matrix <span class="math inline">\(X\)</span>, averaging over responses <span class="math inline">\(Y\)</span>: <span class="math display">\[Err_X := \mathbb{E}[Err_{XY} \mid X]\]</span></p></li>
+</ul>
+</section>
+<section id="cross-validation-point-estimate-naïve-standard-error" class="level3" data-number="3.2.4">
+<h3 data-number="3.2.4" class="anchored" data-anchor-id="cross-validation-point-estimate-naïve-standard-error"><span class="header-section-number">3.2.4</span> Cross-Validation Point Estimate &amp; Naïve Standard Error:</h3>
+<ul>
+<li><p>When splitting data into <span class="math inline">\(K\)</span> folds, the <span class="math inline">\(K\)</span>-fold CV estimator is: <span class="math display">\[\widehat{Err}^{(CV)} := \bar{e} = \frac{1}{n} \sum_{i=1}^n e_i\]</span></p></li>
+<li><p>where <span class="math inline">\(e_i\)</span> is the loss on data point <span class="math inline">\(i\)</span> when tested against a model fit on all folds except the one containing <span class="math inline">\(i\)</span>.</p></li>
+<li><p>The standard (“naïve”) confidence interval relies on: <span class="math display">\[se := \frac{1}{\sqrt{n}}\sqrt{\frac{1}{n-1}\sum_{i=1}^n (e_i - \bar{e})^2}\]</span> <span class="math display">\[\text{Interval} = \left(\widehat{Err}^{(CV)} - z_{1-\alpha/2} \cdot se, \; \widehat{Err}^{(CV)} + z_{1-\alpha/2} \cdot se\right)\]</span></p></li>
+<li><p>Why it fails: This formula assumes <span class="math inline">\(e_i\)</span> are independent. But because folds share overlap in training data, the errors <span class="math inline">\(e_i\)</span> are correlated (producing non-zero covariances across folds, as shown in the block-diagonal covariance matrix). Thus, <span class="math inline">\(se\)</span> underestimates the true variance, yielding intervals that are far too small.</p></li>
+</ul>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
@@ -368,6 +399,7 @@ window.Quarto = {
 Bates, T., S. Hastie, and R. Tibshiran. 2023. <span>“Cross-Validation: What Does It Estimate and How Well Does It Do It?”</span> <em>Journal of the American Statistical Association</em> 119 (546): 1434–45. <a href="https://doi.org/10.1080/01621459.2023.2197686">https://doi.org/10.1080/01621459.2023.2197686</a>.
 </div>
 </div>
+</section>
 </section>
 
 </main> <!-- /main -->
