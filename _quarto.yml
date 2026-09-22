@@ -8,13 +8,20 @@ book:
   chapters:
     - index.qmd
     - intro.qmd
-    - simulation-study.qmd
-    - simulation-study-bates-2023.qmd
-    - bivariate_norm_dist.qmd
-    - cross_validation.qmd
-    - boostrapping.qmd
+    - part: "Performance Measures"
+      chapters:
+        - simulation-study.qmd
+        - simulation-study-bates-2023.qmd
+    - part: "Visualizing Models"
+      chapters:
+        - visualizing_model_molnar_2022.qmd
     - summary.qmd
     - references.qmd
+    - part: "Appendix"
+      chapters:
+        - bivariate_norm_dist.qmd
+        - cross_validation.qmd
+        - boostrapping.qmd
 
 bibliography: references.bib
 
