@@ -305,12 +305,18 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#the-motivating-idea-of-pdp" id="toc-the-motivating-idea-of-pdp" class="nav-link active" data-scroll-target="#the-motivating-idea-of-pdp"><span class="header-section-number">4.1</span> The Motivating Idea of PDP</a></li>
-  <li><a href="#how-to-implement-use-interpret-the-pdp" id="toc-how-to-implement-use-interpret-the-pdp" class="nav-link" data-scroll-target="#how-to-implement-use-interpret-the-pdp"><span class="header-section-number">4.2</span> How to Implement, Use, &amp; Interpret the PDP</a></li>
-  <li><a href="#modeling-applications" id="toc-modeling-applications" class="nav-link" data-scroll-target="#modeling-applications"><span class="header-section-number">4.3</span> Modeling Applications</a>
+  <li><a href="#the-motivating-idea-of-partial-dependence-plot-pdp" id="toc-the-motivating-idea-of-partial-dependence-plot-pdp" class="nav-link active" data-scroll-target="#the-motivating-idea-of-partial-dependence-plot-pdp"><span class="header-section-number">4.1</span> The Motivating Idea of Partial Dependence Plot (PDP)</a>
+  <ul class="collapse">
+  <li><a href="#cp-plot-to-a-ice-plot-to-a-pdp" id="toc-cp-plot-to-a-ice-plot-to-a-pdp" class="nav-link" data-scroll-target="#cp-plot-to-a-ice-plot-to-a-pdp"><span class="header-section-number">4.1.1</span> CP Plot to a ICE Plot to a PDP</a></li>
+  <li><a href="#how-the-pdp-is-created-from-average-of-cp-curves" id="toc-how-the-pdp-is-created-from-average-of-cp-curves" class="nav-link" data-scroll-target="#how-the-pdp-is-created-from-average-of-cp-curves"><span class="header-section-number">4.1.2</span> How the PDP is Created from Average of CP Curves</a></li>
+  <li><a href="#what-is-a-pdp" id="toc-what-is-a-pdp" class="nav-link" data-scroll-target="#what-is-a-pdp"><span class="header-section-number">4.1.3</span> What is a PDP</a></li>
+  </ul></li>
+  <li><a href="#how-to-implement-use-interpret-the-partial-dependence-plot-pdp" id="toc-how-to-implement-use-interpret-the-partial-dependence-plot-pdp" class="nav-link" data-scroll-target="#how-to-implement-use-interpret-the-partial-dependence-plot-pdp"><span class="header-section-number">4.2</span> How to Implement, Use, &amp; Interpret the Partial Dependence Plot (PDP)</a></li>
+  <li><a href="#modeling-applications-of-the-partial-dependence-plot-pdp" id="toc-modeling-applications-of-the-partial-dependence-plot-pdp" class="nav-link" data-scroll-target="#modeling-applications-of-the-partial-dependence-plot-pdp"><span class="header-section-number">4.3</span> Modeling Applications of the Partial Dependence Plot (PDP)</a>
   <ul class="collapse">
   <li><a href="#random-forest-application" id="toc-random-forest-application" class="nav-link" data-scroll-target="#random-forest-application"><span class="header-section-number">4.3.1</span> Random Forest Application:</a></li>
   <li><a href="#linear-regression-with-splines-application" id="toc-linear-regression-with-splines-application" class="nav-link" data-scroll-target="#linear-regression-with-splines-application"><span class="header-section-number">4.3.2</span> Linear Regression with Splines Application:</a></li>
+  <li><a href="#model-comparison-results" id="toc-model-comparison-results" class="nav-link" data-scroll-target="#model-comparison-results"><span class="header-section-number">4.3.3</span> Model Comparison Results:</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -342,20 +348,326 @@ window.Quarto = {
 <li><strong>Author:</strong> Christoph Molnar</li>
 </ul>
 <p>The Interpretable Machine Learning: A Guide for Making Black Box Models Explainable by Christoph Molnar <span class="citation" data-cites="molnar2025">(<a href="references.html#ref-molnar2025" role="doc-biblioref">Molnar 2025</a>)</span> introduces the concept of the Partial Dependence Plot (PDP)</p>
-<section id="the-motivating-idea-of-pdp" class="level2" data-number="4.1">
-<h2 data-number="4.1" class="anchored" data-anchor-id="the-motivating-idea-of-pdp"><span class="header-section-number">4.1</span> The Motivating Idea of PDP</h2>
+<section id="the-motivating-idea-of-partial-dependence-plot-pdp" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="the-motivating-idea-of-partial-dependence-plot-pdp"><span class="header-section-number">4.1</span> The Motivating Idea of Partial Dependence Plot (PDP)</h2>
+<section id="cp-plot-to-a-ice-plot-to-a-pdp" class="level3" data-number="4.1.1">
+<h3 data-number="4.1.1" class="anchored" data-anchor-id="cp-plot-to-a-ice-plot-to-a-pdp"><span class="header-section-number">4.1.1</span> CP Plot to a ICE Plot to a PDP</h3>
+<p>A <mark style="background-color: #d5ebf2;"><strong>Partial Dependence Plot (PDP)</strong></mark> is a type of <strong>Ceteris Paribus (CP) Plot</strong> which is used to visualize how changes in one feature can affect changes in the target variable in a machine learning model. A PDP is the <strong>average of the collection of all CP curves</strong> of one dataset. The collection of all CP curves is the <strong>Individual Conditional Expectation (ICE) Plot</strong>.</p>
 <ul>
-<li>A Partial Dependence Plot (PDP) is a type of <strong>Ceteris Paribus (CP) Plot</strong> which is used to visualize how changes in one feature can effect changes in the target variable in a machine learning model. A PDP is the average of all CP curves of one dataset.
-<ul>
-<li>CP asks: What happens to this person’s prediction if I change X?</li>
-<li>PDP asks: On average, how does X affect the model’s prediction?</li>
-</ul></li>
-<li>The <strong>Partial Dependence Plot (PDP)</strong> visualizes the marginal effect of one feature on the predicted outcome of a machine learning model. In other words, it visualizes the change in the target variable when one select feature changes while all other features are kept constant.</li>
-<li>A PDP can therefore, reveal the relationship between the target variable and the specific feature.
-<ul>
-<li>For example, for a linear regression model, the relationship between the rpedictor variable and a specific feature variable might have a linear relationship which can be visualized with a PDP.</li>
-</ul></li>
+<li><strong>CP asks:</strong> What happens to this model’s prediction if I change X?</li>
+<li><strong>ICE Plot asks:</strong> What happens model’s prediction if I change X for every instance in the dataset?</li>
+<li><strong>PDP asks:</strong> On average, how does X affect the model’s prediction across all instances?</li>
 </ul>
+<div class="callout callout-style-default callout-note callout-titled" title="Progression from CP Plot to ICE Plot to PDP using Housing Prices">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Progression from CP Plot to ICE Plot to PDP using Housing Prices
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The relationship between ceteris paribus (CP) plots, individual conditional expectation (ICE) plots, and partial dependence plots (PDPs) can be understood as a progression from <strong>one observation to the entire dataset</strong>.</p>
+<p>Consider a housing price example: Suppose the feature of interest is <span class="math inline">\(X_1\)</span>, standardized home size. We can ask how the model’s predicted home price changes as <span class="math inline">\(X_1\)</span> changes for five home observations.</p>
+<ul>
+<li>A <strong>CP curve</strong> examines this question for <strong>one house</strong>.</li>
+<li>An <strong>ICE plot</strong> places the CP curves for <strong>many houses</strong> on the same graph.</li>
+<li>A <strong>PDP</strong> averages those individual curves to show the model’s <strong>average prediction</strong> as home size changes.</li>
+</ul>
+<p>The following diagram illustrates this progression:</p>
+<div id="cell-fig-cp-ice-pdp" class="cell" data-fig-height="4.5" data-fig-width="10" data-execution_count="1">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># -- Schematic house-price example --</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># X1 = standardized home size</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Y  = predicted home price</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># These curves are intentionally illustrative. They show the relationship between CP, ICE, and PDP rather than fitting a machine learning model</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.linspace(<span class="op">-</span><span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">100</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Five hypothetical houses.</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Each house has a slightly different prediction curve because its other features (such as age, renovation status, etc) are held fixed</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>intercepts <span class="op">=</span> np.array([<span class="fl">2.0</span>, <span class="fl">2.4</span>, <span class="fl">2.8</span>, <span class="fl">3.1</span>, <span class="fl">3.5</span>])</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> np.array([<span class="fl">0.55</span>, <span class="fl">0.70</span>, <span class="fl">0.85</span>, <span class="fl">0.65</span>, <span class="fl">0.80</span>])</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>curves <span class="op">=</span> []</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> intercept, slope <span class="kw">in</span> <span class="bu">zip</span>(intercepts, slopes):</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> intercept <span class="op">+</span> slope <span class="op">*</span> np.tanh(x)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    curves.append(y)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>curves <span class="op">=</span> np.array(curves)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co"># PDP = average of all ICE curves</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>pdp <span class="op">=</span> curves.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="co"># -- Create the three-panel diagram --</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">4</span>))</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Ceteris Paribus (CP) Plot</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].plot(x, curves[<span class="dv">2</span>], linewidth<span class="op">=</span><span class="dv">3</span>)</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">"1. CP Plot"</span>)</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">"Standardized home size ($X_1$)"</span>)</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">"Predicted home price"</span>)</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].text(</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="fl">0.05</span>, <span class="fl">0.08</span>,</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    <span class="st">"One house</span><span class="ch">\n</span><span class="st">"</span></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Other features held fixed"</span>,</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>    transform<span class="op">=</span>axes[<span class="dv">0</span>].transAxes</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. ICE Plot</span></span>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> curve <span class="kw">in</span> curves:</span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">1</span>].plot(x, curve, alpha<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">"2. ICE Plot"</span>)</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">"Standardized home size ($X_1$)"</span>)</span>
+<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">"Predicted home price"</span>)</span>
+<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].text(</span>
+<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>    <span class="fl">0.05</span>, <span class="fl">0.08</span>,</span>
+<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Many houses</span><span class="ch">\n</span><span class="st">"</span></span>
+<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>    <span class="st">"One curve per house"</span>,</span>
+<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a>    transform<span class="op">=</span>axes[<span class="dv">1</span>].transAxes</span>
+<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. PDP</span></span>
+<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> curve <span class="kw">in</span> curves:</span>
+<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">2</span>].plot(x, curve, alpha<span class="op">=</span><span class="fl">0.18</span>)</span>
+<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-64"><a href="#cb1-64" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].plot(x, pdp, linewidth<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb1-65"><a href="#cb1-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_title(<span class="st">"3. PDP"</span>)</span>
+<span id="cb1-67"><a href="#cb1-67" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_xlabel(<span class="st">"Standardized home size ($X_1$)"</span>)</span>
+<span id="cb1-68"><a href="#cb1-68" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_ylabel(<span class="st">"Predicted home price"</span>)</span>
+<span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].text(</span>
+<span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a>    <span class="fl">0.05</span>, <span class="fl">0.08</span>,</span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Average of the ICE curves"</span>,</span>
+<span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>    transform<span class="op">=</span>axes[<span class="dv">2</span>].transAxes</span>
+<span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-cp-ice-pdp" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-cp-ice-pdp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="visualizing_model_molnar_2022_files/figure-html/fig-cp-ice-pdp-output-1.png" width="1144" height="374" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cp-ice-pdp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4.1: Illustrative diagram showing the transition from one ceteris paribus (CP) curve to ICE curves and theavaerage of these curves which is the PDP. Note: This is generated using artificial data and does not use a trained model.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p><strong>1. Ceteris Paribus (CP)</strong><br>
+The first panel considers <strong>one particular house</strong>. We vary its home size <span class="math inline">\(X_1\)</span> across a range of values while keeping its other features, such as home age <span class="math inline">\(X_2\)</span> and renovation status <span class="math inline">\(X_3\)</span>, fixed. The resulting line shows how the model’s prediction changes for that particular house.</p>
+<p><strong>2. Individual Conditional Expectation (ICE)</strong><br>
+The second panel repeats this process for multiple houses. Each house produces its own CP curve, so the plot contains one line per observation. The curves can differ because the houses have different values of the other features that remain fixed.</p>
+<p><strong>3. Partial Dependence Plot (PDP)</strong><br>
+The third panel averages the predictions represented by the ICE curves at each value of <span class="math inline">\(X_1\)</span>. The resulting thick curve represents the model’s <strong>average predicted home price</strong> as standardized home size changes.</p>
+</section>
+<section id="how-the-pdp-is-created-from-average-of-cp-curves" class="level3" data-number="4.1.2">
+<h3 data-number="4.1.2" class="anchored" data-anchor-id="how-the-pdp-is-created-from-average-of-cp-curves"><span class="header-section-number">4.1.2</span> How the PDP is Created from Average of CP Curves</h3>
+<p>The PDP takes the average or mean of the collection of the individual CP curves in the ICE Plot vertically.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Averaging CP Curves to Create the PDP using Housing Prices">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Averaging CP Curves to Create the PDP using Housing Prices
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>For each fixed value of <span class="math inline">\(X_1\)</span>, the PDP averages down the column as shown in the example table below:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 28%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Home</th>
+<th style="text-align: right;">(<span class="math inline">\(X_1=1\)</span>,600 sq ft)</th>
+<th style="text-align: right;">(<span class="math inline">\(X_1=2\)</span>,000 sq ft)</th>
+<th style="text-align: right;">(<span class="math inline">\(X_1=2\)</span>,800 sq ft)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>House 1</td>
+<td style="text-align: right;">$200k</td>
+<td style="text-align: right;">$230k</td>
+<td style="text-align: right;">$260k</td>
+</tr>
+<tr class="even">
+<td>House 2</td>
+<td style="text-align: right;">$220k</td>
+<td style="text-align: right;">$250k</td>
+<td style="text-align: right;">$290k</td>
+</tr>
+<tr class="odd">
+<td>House 3</td>
+<td style="text-align: right;">$180k</td>
+<td style="text-align: right;">$210k</td>
+<td style="text-align: right;">$250k</td>
+</tr>
+<tr class="even">
+<td>House 4</td>
+<td style="text-align: right;">$240k</td>
+<td style="text-align: right;">$270k</td>
+<td style="text-align: right;">$310k</td>
+</tr>
+<tr class="odd">
+<td>House 5</td>
+<td style="text-align: right;">$210k</td>
+<td style="text-align: right;">$240k</td>
+<td style="text-align: right;">$280k</td>
+</tr>
+<tr class="even">
+<td><strong>PDP</strong></td>
+<td style="text-align: right;"><strong>$210k</strong></td>
+<td style="text-align: right;"><strong>$240k</strong></td>
+<td style="text-align: right;"><strong>$278k</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The following diagram illustrates this averaging process:</p>
+<div id="cell-fig-cp-ice-pdp-averaging" class="cell" data-fig-height="4" data-fig-width="14" data-execution_count="2">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># -- Artificial Data Generation --</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.linspace(<span class="op">-</span><span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">100</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Five hypothetical houses (ICE curves)</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>intercepts <span class="op">=</span> np.array([<span class="fl">2.0</span>, <span class="fl">2.4</span>, <span class="fl">2.8</span>, <span class="fl">3.1</span>, <span class="fl">3.5</span>])</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> np.array([<span class="fl">0.55</span>, <span class="fl">0.70</span>, <span class="fl">0.85</span>, <span class="fl">0.65</span>, <span class="fl">0.80</span>])</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>curves <span class="op">=</span> []</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> intercept, slope <span class="kw">in</span> <span class="bu">zip</span>(intercepts, slopes):</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> intercept <span class="op">+</span> slope <span class="op">*</span> np.tanh(x)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    curves.append(y)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>curves <span class="op">=</span> np.array(curves)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>pdp <span class="op">=</span> curves.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Target feature value to show vertical averaging</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>x_star <span class="op">=</span> <span class="fl">0.5</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>idx_star <span class="op">=</span> np.argmin(np.<span class="bu">abs</span>(x <span class="op">-</span> x_star))</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>x_val <span class="op">=</span> x[idx_star]</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Values at x_val</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>y_ice_vals <span class="op">=</span> curves[:, idx_star]</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>y_pdp_val <span class="op">=</span> pdp[idx_star]</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="co"># -- Create 4-panel figure --</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">4</span>, figsize<span class="op">=</span>(<span class="dv">15</span>, <span class="fl">3.8</span>), sharey<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Ceteris Paribus (CP) Plot</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].plot(x, curves[<span class="dv">2</span>], color<span class="op">=</span><span class="st">"#1f77b4"</span>, linewidth<span class="op">=</span><span class="fl">2.5</span>)</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">"1. CP Plot"</span>)</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">"Standardized home size ($X_1$)"</span>)</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">"Predicted home price"</span>)</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].text(</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    <span class="fl">0.05</span>, <span class="fl">0.08</span>,</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    <span class="st">"One house</span><span class="ch">\n</span><span class="st">Other features fixed"</span>,</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    transform<span class="op">=</span>axes[<span class="dv">0</span>].transAxes,</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    fontsize<span class="op">=</span><span class="dv">9</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. ICE Plot</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> curve <span class="kw">in</span> curves:</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">1</span>].plot(x, curve, color<span class="op">=</span><span class="st">"#1f77b4"</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, linewidth<span class="op">=</span><span class="fl">1.5</span>)</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">"2. ICE Plot"</span>)</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">"Standardized home size ($X_1$)"</span>)</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].text(</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>    <span class="fl">0.05</span>, <span class="fl">0.08</span>,</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Many houses</span><span class="ch">\n</span><span class="st">One curve per instance"</span>,</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>    transform<span class="op">=</span>axes[<span class="dv">1</span>].transAxes,</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>    fontsize<span class="op">=</span><span class="dv">9</span></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Vertical Averaging at X1 = x*</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> curve <span class="kw">in</span> curves:</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">2</span>].plot(x, curve, color<span class="op">=</span><span class="st">"#1f77b4"</span>, alpha<span class="op">=</span><span class="fl">0.35</span>, linewidth<span class="op">=</span><span class="fl">1.5</span>)</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a><span class="co"># Vertical dashed line at X1 = x*</span></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].axvline(x<span class="op">=</span>x_val, color<span class="op">=</span><span class="st">"#d62728"</span>, linestyle<span class="op">=</span><span class="st">"--"</span>, linewidth<span class="op">=</span><span class="fl">1.8</span>, label<span class="op">=</span><span class="vs">r"</span><span class="dv">$</span><span class="vs">X_1 = x</span><span class="dv">^</span><span class="op">*</span><span class="dv">$</span><span class="vs">"</span>)</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="co"># Points on individual ICE curves at X1 = x*</span></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].scatter([x_val]<span class="op">*</span><span class="bu">len</span>(y_ice_vals), y_ice_vals, color<span class="op">=</span><span class="st">"#d62728"</span>, s<span class="op">=</span><span class="dv">35</span>, zorder<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a><span class="co"># Mean point at X1 = x*</span></span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].scatter(x_val, y_pdp_val, color<span class="op">=</span><span class="st">"#2ca02c"</span>, s<span class="op">=</span><span class="dv">70</span>, marker<span class="op">=</span><span class="st">"D"</span>, zorder<span class="op">=</span><span class="dv">6</span>, label<span class="op">=</span><span class="vs">r"Mean </span><span class="dv">$</span><span class="er">\</span><span class="vs">hat{f}_{PDP}</span><span class="kw">(</span><span class="vs">x</span><span class="dv">^</span><span class="op">*</span><span class="kw">)</span><span class="dv">$</span><span class="vs">"</span>)</span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_title(<span class="st">"3. Vertical Mean at $X_1 = x^*$ on ICE Plot"</span>)</span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_xlabel(<span class="st">"Standardized home size ($X_1$)"</span>)</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].legend(loc<span class="op">=</span><span class="st">"upper left"</span>, fontsize<span class="op">=</span><span class="dv">8</span>, framealpha<span class="op">=</span><span class="fl">0.9</span>)</span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].text(</span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a>    <span class="fl">0.05</span>, <span class="fl">0.08</span>,</span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Average predictions</span><span class="ch">\n</span><span class="st">vertically at $x^*$"</span>,</span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>    transform<span class="op">=</span>axes[<span class="dv">2</span>].transAxes,</span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>    fontsize<span class="op">=</span><span class="dv">9</span></span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Resulting PDP</span></span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> curve <span class="kw">in</span> curves:</span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>    axes[<span class="dv">3</span>].plot(x, curve, color<span class="op">=</span><span class="st">"#1f77b4"</span>, alpha<span class="op">=</span><span class="fl">0.15</span>, linewidth<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a><span class="co"># Full PDP curve</span></span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">3</span>].plot(x, pdp, color<span class="op">=</span><span class="st">"#2ca02c"</span>, linewidth<span class="op">=</span><span class="fl">3.5</span>, label<span class="op">=</span><span class="st">"PDP Curve"</span>)</span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">3</span>].scatter(x_val, y_pdp_val, color<span class="op">=</span><span class="st">"#2ca02c"</span>, s<span class="op">=</span><span class="dv">70</span>, marker<span class="op">=</span><span class="st">"D"</span>, zorder<span class="op">=</span><span class="dv">6</span>)</span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">3</span>].set_title(<span class="st">"4. PDP"</span>)</span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">3</span>].set_xlabel(<span class="st">"Standardized home size ($X_1$)"</span>)</span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">3</span>].legend(loc<span class="op">=</span><span class="st">"upper left"</span>, fontsize<span class="op">=</span><span class="dv">8</span>, framealpha<span class="op">=</span><span class="fl">0.9</span>)</span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">3</span>].text(</span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>    <span class="fl">0.05</span>, <span class="fl">0.08</span>,</span>
+<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Repeat $</span><span class="ch">\\</span><span class="st">forall x_1 </span><span class="ch">\\</span><span class="st">in X_1$</span><span class="ch">\n</span><span class="st">Line of vertical means"</span>,</span>
+<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a>    transform<span class="op">=</span>axes[<span class="dv">3</span>].transAxes,</span>
+<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a>    fontsize<span class="op">=</span><span class="dv">9</span></span>
+<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-cp-ice-pdp-averaging" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-cp-ice-pdp-averaging-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="visualizing_model_molnar_2022_files/figure-html/fig-cp-ice-pdp-averaging-output-1.png" width="1431" height="355" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cp-ice-pdp-averaging-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4.2: Illustrative diagram showing the transition from a single Ceteris Paribus (CP) curve to ICE curves, the vertical averaging at a specific value <span class="math inline">\(X_1 = x^*\)</span>, and the resulting Partial Dependence Plot (PDP). Note: This is generated using artificial data and does not use a trained model.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="what-is-a-pdp" class="level3" data-number="4.1.3">
+<h3 data-number="4.1.3" class="anchored" data-anchor-id="what-is-a-pdp"><span class="header-section-number">4.1.3</span> What is a PDP</h3>
+<p>The PDP <strong>visualizes the marginal effect of one feature on the predicted outcome of a machine learning model.</strong> In other words, it visualizes the change in the target variable when one select feature changes while all other features are kept constant. A PDP can therefore, <strong>reveal the relationship between the target variable and the specific feature.</strong> - For example, for a linear regression model, the relationship between the rpedictor variable and a specific feature variable might have a linear relationship which can be visualized with a PDP.</p>
 <div class="callout callout-style-default callout-note callout-titled" title="Building Intuition - Predicting Housing Price Example">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -410,7 +722,7 @@ window.Quarto = {
 </table>
 <p>Further suppose we are interested in the effect of home size on housing prices. We want to determine for our machine-learning model, what happens to predicted house price as house size increases. However, in practice, many features can impact the predicted price of a house rather than size alone.</p>
 <p>If we used models such as random forest, we are not prvoided with a clean equation that provides intuitive insight about the relationship between home size and predicted house price. The model would instead involve a complicated collection of decision trees.</p>
-<p>An exanple of an intuitive and clean equation could be: Price=100(Size)+20(Bedrooms)−5(Age)</p>
+<p>An example of an intuitive and clean equation could be: Price=100(Size)+20(Bedrooms)−5(Age)</p>
 <p>Therefore, the PDP is used to detmerine what would the model predict on average if we forced all features in our dataset to have the same value of the chosen feature. This allows us to have a better idea into how the model behaves. In this example, we can determine what happens to predicted house price as house size increases on average according to our machine-learning model.</p>
 <p>Suppose we have 5 houses and we want to find the PDP for home size</p>
 <table class="caption-top table">
@@ -564,30 +876,32 @@ window.Quarto = {
 </tbody>
 </table>
 <p>The resulting relationship for home size can thus be visualized as:</p>
-<div id="cell-fig-house-size" class="cell" data-execution_count="1">
+<div id="cell-fig-house-size" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib.ticker <span class="im">import</span> FuncFormatter</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>size <span class="op">=</span> [<span class="dv">1000</span>, <span class="dv">1500</span>, <span class="dv">2000</span>, <span class="dv">2500</span>, <span class="dv">3000</span>]</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>average_prediction <span class="op">=</span> [<span class="dv">234000</span>, <span class="dv">280000</span>, <span class="dv">330000</span>, <span class="dv">365000</span>, <span class="dv">380000</span>]</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">5</span>))</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>plt.plot(size, average_prediction, marker<span class="op">=</span><span class="st">"o"</span>)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"House Size (sq ft)"</span>)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Average Predicted Price ($)"</span>)</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Line Plot of Average Predicted Price ($) vs. House Size (sq ft)"</span>)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>plt.gca().yaxis.set_major_formatter(</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    FuncFormatter(<span class="kw">lambda</span> x, pos: <span class="ss">f"$</span><span class="sc">{</span>x<span class="op">/</span><span class="dv">1000</span><span class="sc">:.0f}</span><span class="ss">k"</span>)</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib.ticker <span class="im">import</span> FuncFormatter</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># sample data of home size and average predicted home price</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>size <span class="op">=</span> [<span class="dv">1000</span>, <span class="dv">1500</span>, <span class="dv">2000</span>, <span class="dv">2500</span>, <span class="dv">3000</span>]</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>average_prediction <span class="op">=</span> [<span class="dv">234000</span>, <span class="dv">280000</span>, <span class="dv">330000</span>, <span class="dv">365000</span>, <span class="dv">380000</span>]</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co"># building line plot</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">5</span>))</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>plt.plot(size, average_prediction, marker<span class="op">=</span><span class="st">"o"</span>)</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"House Size (sq ft)"</span>)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Average Predicted Price ($)"</span>)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Line Plot of Average Predicted Price ($) vs. House Size (sq ft)"</span>)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>plt.gca().yaxis.set_major_formatter(</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    FuncFormatter(<span class="kw">lambda</span> x, pos: <span class="ss">f"$</span><span class="sc">{</span>x<span class="op">/</span><span class="dv">1000</span><span class="sc">:.0f}</span><span class="ss">k"</span>)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-house-size" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -596,7 +910,7 @@ window.Quarto = {
 <img src="visualizing_model_molnar_2022_files/figure-html/fig-house-size-output-1.png" width="664" height="470" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-house-size-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4.1: Example line plot visualizing a roughly linear relationship between home size and average predicted house price. Note: This is NOT the PDP since these five observations are not calculated from a machine learning model but are rather made-up house size and predicted house price pairs.
+Figure&nbsp;4.3: Example line plot visualizing a roughly linear relationship between home size and average predicted house price. Note: This is NOT the PDP since these five observations are not calculated from a machine learning model but are rather made-up house size and predicted house price pairs.
 </figcaption>
 </figure>
 </div>
@@ -605,8 +919,9 @@ Figure&nbsp;4.1: Example line plot visualizing a roughly linear relationship bet
 </div>
 </div>
 </section>
-<section id="how-to-implement-use-interpret-the-pdp" class="level2" data-number="4.2">
-<h2 data-number="4.2" class="anchored" data-anchor-id="how-to-implement-use-interpret-the-pdp"><span class="header-section-number">4.2</span> How to Implement, Use, &amp; Interpret the PDP</h2>
+</section>
+<section id="how-to-implement-use-interpret-the-partial-dependence-plot-pdp" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="how-to-implement-use-interpret-the-partial-dependence-plot-pdp"><span class="header-section-number">4.2</span> How to Implement, Use, &amp; Interpret the Partial Dependence Plot (PDP)</h2>
 <div class="callout callout-style-default callout-note callout-titled" title="Mathematical Derivation">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -636,11 +951,11 @@ Figure&nbsp;4.1: Example line plot visualizing a roughly linear relationship bet
 \right)
 \]</span></p>
 <ul>
-<li><span class="math inline">\(\mathbf{x}_S\)</span> represents the feature or features of interested in / features to be plotted. For the housing example, if we want to understand how house size affects predicted house price, then <span class="math inline">\(\mathbf{x}_S\)</span> could represent size in square feet.</li>
-<li><span class="math inline">\(\mathbf{X}_C\)</span> represents all other features in the model / features not to be plotted. For the housing example, this includes the number of bedrooms, home age, etc.</li>
+<li><span class="math inline">\(\mathbf{x}_S\)</span> represents the feature(s) of interest. For the housing example, if we want to understand how house size affects predicted house price, then <span class="math inline">\(\mathbf{x}_S\)</span> could represent size in square feet.</li>
+<li><span class="math inline">\(\mathbf{X}_C\)</span> represents all other features in the model (features not to be plotted). For the housing example, this includes the number of bedrooms, home age, etc.</li>
 <li>Set S contain the feature(s) which we want to know the effect on the prediction.</li>
 <li><span class="math inline">\(\hat{f}(\mathbf{x}_S, \mathbf{X}_C)\)</span> means that we give the model a particular value of the feature we are studying while allowing the other features to vary.</li>
-<li><span class="math inline">\(\hat{f}\)</span> is our already-trained machine learning model. It takes feature values as input and produces a prediction.</li>
+<li><span class="math inline">\(\hat{f}\)</span> is our trained machine learning model. It takes feature values as input and produces a prediction.</li>
 <li><span class="math inline">\(\mathbb{E}_{\mathbf{X}_C}[\cdot]\)</span> means take the average over the distribution of the other features.</li>
 </ul>
 <p>For each observation <span class="math inline">\(i\)</span>:</p>
@@ -654,8 +969,8 @@ Figure&nbsp;4.1: Example line plot visualizing a roughly linear relationship bet
 </div>
 </div>
 </section>
-<section id="modeling-applications" class="level2" data-number="4.3">
-<h2 data-number="4.3" class="anchored" data-anchor-id="modeling-applications"><span class="header-section-number">4.3</span> Modeling Applications</h2>
+<section id="modeling-applications-of-the-partial-dependence-plot-pdp" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="modeling-applications-of-the-partial-dependence-plot-pdp"><span class="header-section-number">4.3</span> Modeling Applications of the Partial Dependence Plot (PDP)</h2>
 <div class="callout callout-style-default callout-note callout-titled" title="Data Generating Process">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -678,49 +993,69 @@ X_3 &amp;\sim \text{Bernoulli}(p=0.4) \\
 \]</span></p>
 <p>For the housing example, the features are mapped as follows:</p>
 <ul>
-<li><span class="math inline">\(X_1\)</span> — standardized home <strong>size</strong> (the feature of interest for the PDP)</li>
-<li><span class="math inline">\(X_2\)</span> — standardized home <strong>age</strong></li>
-<li><span class="math inline">\(X_3\)</span> — binary <strong>renovated</strong> indicator</li>
-<li><span class="math inline">\(Y\)</span> — home <strong>price</strong></li>
+<li><p><span class="math inline">\(X_1\)</span> — standardized home <strong>size</strong></p>
+<ul>
+<li>the feature of interest for the PDP</li>
+<li>predictor variable</li>
+<li>centered at 0 with standard deviation of 1</li>
+</ul></li>
+<li><p><span class="math inline">\(X_2\)</span> — standardized home <strong>age</strong></p>
+<ul>
+<li>predictor variable</li>
+<li>centered at 0 with standard deviation of 1</li>
+</ul></li>
+<li><p><span class="math inline">\(X_3\)</span> — binary <strong>renovated</strong> home indicator variable</p>
+<ul>
+<li>predictor variable</li>
+<li>yes renovated = 1 with 40% probability of occuring, not renovated = 0 with 60% probability of occuring</li>
+</ul></li>
+<li><p><span class="math inline">\(Y\)</span> — home <strong>price</strong></p>
+<ul>
+<li>target variable</li>
+</ul></li>
+<li><p><span class="math inline">\(X\)</span> = (<span class="math inline">\(X_1\)</span>, <span class="math inline">\(X_2\)</span>, <span class="math inline">\(X_3\)</span>) — <strong>characteristics of the home</strong></p></li>
+<li><p><span class="math inline">\(E[Y \mid X]\)</span> - The <strong>expected (average)</strong> house price given the characteristics of the home, is determined by two components: one involving home size and renovation status, and another involving home age and renovation status.</p></li>
+<li><p><span class="math inline">\(V[Y \mid X]\)</span> - The amount of <strong>variability/randomness</strong> around the expected (average) house price given the characteristics of the home.</p></li>
+<li><p><span class="math inline">\(\text{sigmoid}(x)\)</span> - The <strong>sigmoid</strong> is a function that takes a number and turns it into a number between 0 and 1.</p></li>
 </ul>
 </div>
 </div>
-<div id="cell-dgp-setup" class="cell" data-execution_count="2">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">42</span>)</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">2000</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sigmoid(x):</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">1</span> <span class="op">/</span> (<span class="dv">1</span> <span class="op">+</span> np.exp(<span class="op">-</span>x))</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># X1: standardized home size, X2: home age, X3: renovated (0/1)</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>size_std  <span class="op">=</span> rng.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>age_std   <span class="op">=</span> rng.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>renovated <span class="op">=</span> rng.binomial(<span class="dv">1</span>, <span class="fl">0.4</span>, n)</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Conditional mean per the specified DGP</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>mean_price <span class="op">=</span> (</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    np.sqrt(<span class="dv">5</span>) <span class="op">*</span> sigmoid(size_std <span class="op">+</span> renovated)</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> np.sqrt(<span class="dv">5</span>) <span class="op">*</span> sigmoid(age_std) <span class="op">*</span> renovated</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co"># V[Y|X] = 1 is the unit-variance noise</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>price <span class="op">=</span> mean_price <span class="op">+</span> rng.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">"size_std"</span>: size_std,</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">"age_std"</span>: age_std,</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">"renovated"</span>: renovated,</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">"price"</span>: price</span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> df[[<span class="st">"size_std"</span>, <span class="st">"age_std"</span>, <span class="st">"renovated"</span>]]</span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> df[<span class="st">"price"</span>]</span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>df.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div id="dgp-setup" class="cell-output cell-output-display" data-execution_count="11">
+<div id="cell-dgp-setup" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">42</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">2000</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sigmoid(x):</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">1</span> <span class="op">/</span> (<span class="dv">1</span> <span class="op">+</span> np.exp(<span class="op">-</span>x))</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># X1: standardized home size, X2: home age, X3: renovated (0/1)</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>size_std  <span class="op">=</span> rng.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>age_std   <span class="op">=</span> rng.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>renovated <span class="op">=</span> rng.binomial(<span class="dv">1</span>, <span class="fl">0.4</span>, n)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Conditional mean per the specified DGP</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>mean_price <span class="op">=</span> (</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    np.sqrt(<span class="dv">5</span>) <span class="op">*</span> sigmoid(size_std <span class="op">+</span> renovated)</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> np.sqrt(<span class="dv">5</span>) <span class="op">*</span> sigmoid(age_std) <span class="op">*</span> renovated</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="co"># V[Y|X] = 1 is the unit-variance noise</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>price <span class="op">=</span> mean_price <span class="op">+</span> rng.normal(<span class="dv">0</span>, <span class="dv">1</span>, n)</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">"size_std"</span>: size_std,</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">"age_std"</span>: age_std,</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">"renovated"</span>: renovated,</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">"price"</span>: price</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> df[[<span class="st">"size_std"</span>, <span class="st">"age_std"</span>, <span class="st">"renovated"</span>]]</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> df[<span class="st">"price"</span>]</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>df.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="dgp-setup" class="cell-output cell-output-display" data-execution_count="67">
 <div>
 
 
@@ -776,92 +1111,92 @@ X_3 &amp;\sim \text{Bernoulli}(p=0.4) \\
 </div>
 </div>
 </div>
-<div id="pdp-helper" class="cell" data-execution_count="3">
+<div id="pdp-helper" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This function estimates the Partial Dependence Plot (PDP) for ONE feature, using ANY already-trained model (random forest, spline regression, etc.). It follows the exact recipe from the PDP definition:</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   1. Pick a value for the feature of interest (e.g., size = 0.5)</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   2. Force EVERY house in the dataset to have that size, but leave their other features (age, renovated) exactly as they really are</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   3. Ask the model to predict price for all of these "edited" houses</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   4. Average all of those predictions -&gt; this average is one point on the PDP curve</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   5. Repeat for many different size values to trace out the curve</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_pdp(model, X, feature, n_grid<span class="op">=</span><span class="dv">50</span>):</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Build a sequence of values to test for our feature of interest and span from its smallest to largest observed value in the data</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># with n_grid evenly spaced points (default: 50 points)</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    grid <span class="op">=</span> np.linspace(X[feature].<span class="bu">min</span>(), X[feature].<span class="bu">max</span>(), n_grid)</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Make a copy of the dataset so we don't overwrite the real data</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    X_temp <span class="op">=</span> X.copy()</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># This will hold the average prediction for each grid value</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>    pdp_vals <span class="op">=</span> np.empty(n_grid)</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Loop over every candidate value of the feature (every candidate size value)</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, val <span class="kw">in</span> <span class="bu">enumerate</span>(grid):</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>        <span class="co"># overwrite every row's feature value with this single value. So if val = 0.5, every house in X_temp now has size_std = 0.5, but keeps its own real values for other features</span></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>        X_temp[feature] <span class="op">=</span> val</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>        <span class="co"># get a prediction for every (edited) house, then average all of those predictions into one number</span></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>        pdp_vals[i] <span class="op">=</span> model.predict(X_temp).mean()</span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Return the grid of feature values and their matching average predictions. These are the (x, y) points to plot as the PDP</span></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> grid, pdp_vals</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This function estimates the Partial Dependence Plot (PDP) for ONE feature, using ANY already-trained model (random forest, spline regression, etc.). It follows the exact recipe from the PDP definition:</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   1. Pick a value for the feature of interest (e.g., size = 0.5)</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   2. Force EVERY house in the dataset to have that size, but leave their other features (age, renovated) exactly as they really are</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   3. Ask the model to predict price for all of these "edited" houses</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#   4. Average all of those predictions -&gt; this average is one point on the PDP curve</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   5. Repeat for many different size values to trace out the curve</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_pdp(model, X, feature, n_grid<span class="op">=</span><span class="dv">50</span>):</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Build a sequence of values to test for our feature of interest and span from its smallest to largest observed value in the data</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># with n_grid evenly spaced points (default: 50 points)</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    grid <span class="op">=</span> np.linspace(X[feature].<span class="bu">min</span>(), X[feature].<span class="bu">max</span>(), n_grid)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Make a copy of the dataset so we don't overwrite the real data</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    X_temp <span class="op">=</span> X.copy()</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># This will hold the average prediction for each grid value</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    pdp_vals <span class="op">=</span> np.empty(n_grid)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Loop over every candidate value of the feature (every candidate size value)</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, val <span class="kw">in</span> <span class="bu">enumerate</span>(grid):</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        <span class="co"># overwrite every row's feature value with this single value. So if val = 0.5, every house in X_temp now has size_std = 0.5, but keeps its own real values for other features</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        X_temp[feature] <span class="op">=</span> val</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>        <span class="co"># get a prediction for every (edited) house, then average all of those predictions into one number</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>        pdp_vals[i] <span class="op">=</span> model.predict(X_temp).mean()</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Return the grid of feature values and their matching average predictions. These are the (x, y) points to plot as the PDP</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> grid, pdp_vals</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="true-pdp" class="cell" data-execution_count="4">
+<div id="true-pdp" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compute_pdp() above estimates the PDP using a select model's predictions but because we made up this data ourselves, we actually know the real mathematical formula that generated it using: E[Y|X] = sqrt(5)*sigmoid(X1 + X3) + sqrt(5)*sigmoid(X2)*X3</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co"># So instead of relying on a trained model's (imperfect) guesses, we can plug real formula directly and get the true partial dependence. This gives us a benchmark to compare our models against. If a model's PDP is close to this true curve, that's a sign the model is doing a good job at learning how size affects price.</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> true_pdp_size(grid, age_std, renovated):</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># This will hold the true average outcome for each size value we test</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    vals <span class="op">=</span> np.empty(<span class="bu">len</span>(grid))</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Loop over every candidate size value (same idea as compute_pdp)</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, s <span class="kw">in</span> <span class="bu">enumerate</span>(grid):</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Plug this fixed size value s into the real formula, while using every house's actual age and renovation values (this mirrors "keep the other features as they really are" from the PDP definition, just using the true formula instead of a trained model)</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        contrib <span class="op">=</span> (</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>            np.sqrt(<span class="dv">5</span>) <span class="op">*</span> sigmoid(s <span class="op">+</span> renovated)</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> np.sqrt(<span class="dv">5</span>) <span class="op">*</span> sigmoid(age_std) <span class="op">*</span> renovated</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Average across all houses -&gt; this is the true PDP value for this particular size</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>        vals[i] <span class="op">=</span> contrib.mean()</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> vals</span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Build the grid of size values we want to evaluate (50 points spanning the range of sizes actually seen in the data)</span></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>grid <span class="op">=</span> np.linspace(df[<span class="st">"size_std"</span>].<span class="bu">min</span>(), df[<span class="st">"size_std"</span>].<span class="bu">max</span>(), <span class="dv">50</span>)</span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute the true PDP curve using the real formula and every house's actual age and bedroom count</span></span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>pdp_truth <span class="op">=</span> true_pdp_size(grid, df[<span class="st">"age_std"</span>].values, df[<span class="st">"renovated"</span>].values)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compute_pdp() above estimates the PDP using a select model's predictions but because we made up this data ourselves, we actually know the real mathematical formula that generated it using: E[Y|X] = sqrt(5)*sigmoid(X1 + X3) + sqrt(5)*sigmoid(X2)*X3</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># So instead of relying on a trained model's (imperfect) guesses, we can plug real formula directly and get the true partial dependence. This gives us a benchmark to compare our models against. If a model's PDP is close to this true curve, that's a sign the model is doing a good job at learning how size affects price.</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> true_pdp_size(grid, age_std, renovated):</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># This will hold the true average outcome for each size value we test</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    vals <span class="op">=</span> np.empty(<span class="bu">len</span>(grid))</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Loop over every candidate size value (same idea as compute_pdp)</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, s <span class="kw">in</span> <span class="bu">enumerate</span>(grid):</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Plug this fixed size value s into the real formula, while using every house's actual age and renovation values (this mirrors "keep the other features as they really are" from the PDP definition, just using the true formula instead of a trained model)</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        contrib <span class="op">=</span> (</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>            np.sqrt(<span class="dv">5</span>) <span class="op">*</span> sigmoid(s <span class="op">+</span> renovated)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>            <span class="op">+</span> np.sqrt(<span class="dv">5</span>) <span class="op">*</span> sigmoid(age_std) <span class="op">*</span> renovated</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Average across all houses -&gt; this is the true PDP value for this particular size</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>        vals[i] <span class="op">=</span> contrib.mean()</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> vals</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Build the grid of size values we want to evaluate (50 points spanning the range of sizes actually seen in the data)</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>grid <span class="op">=</span> np.linspace(df[<span class="st">"size_std"</span>].<span class="bu">min</span>(), df[<span class="st">"size_std"</span>].<span class="bu">max</span>(), <span class="dv">50</span>)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute the true PDP curve using the real formula and every house's actual age and bedroom count</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>pdp_truth <span class="op">=</span> true_pdp_size(grid, df[<span class="st">"age_std"</span>].values, df[<span class="st">"renovated"</span>].values)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <section id="random-forest-application" class="level3" data-number="4.3.1">
 <h3 data-number="4.3.1" class="anchored" data-anchor-id="random-forest-application"><span class="header-section-number">4.3.1</span> Random Forest Application:</h3>
-<div id="cell-fig-pdp-rf" class="cell" data-execution_count="5">
+<div id="cell-fig-pdp-rf" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestRegressor</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>rf <span class="op">=</span> RandomForestRegressor(n_estimators<span class="op">=</span><span class="dv">500</span>, max_depth<span class="op">=</span><span class="va">None</span>, random_state<span class="op">=</span><span class="dv">42</span>)</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>rf.fit(X, y)</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>grid_rf, pdp_rf <span class="op">=</span> compute_pdp(rf, X, <span class="st">"size_std"</span>)</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">5</span>))</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>plt.plot(grid_rf, pdp_rf, marker<span class="op">=</span><span class="st">"o"</span>, markersize<span class="op">=</span><span class="dv">3</span>, label<span class="op">=</span><span class="st">"RF estimated PDP"</span>)</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>plt.plot(grid, pdp_truth, linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"True partial dependence"</span>)</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Standardized Home Size ($X_1$)"</span>)</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Average Predicted Price"</span>)</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"PDP for Home Size Using Random Forest"</span>)</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>plt.grid(alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestRegressor</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>rf <span class="op">=</span> RandomForestRegressor(n_estimators<span class="op">=</span><span class="dv">500</span>, max_depth<span class="op">=</span><span class="va">None</span>, random_state<span class="op">=</span><span class="dv">42</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>rf.fit(X, y)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>grid_rf, pdp_rf <span class="op">=</span> compute_pdp(rf, X, <span class="st">"size_std"</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">5</span>))</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>plt.plot(grid_rf, pdp_rf, marker<span class="op">=</span><span class="st">"o"</span>, markersize<span class="op">=</span><span class="dv">3</span>, label<span class="op">=</span><span class="st">"RF estimated PDP"</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>plt.plot(grid, pdp_truth, linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"True partial dependence"</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Standardized Home Size ($X_1$)"</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Average Predicted Price"</span>)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"PDP for Home Size Using Random Forest"</span>)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>plt.grid(alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-pdp-rf" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -870,7 +1205,7 @@ X_3 &amp;\sim \text{Bernoulli}(p=0.4) \\
 <img src="visualizing_model_molnar_2022_files/figure-html/fig-pdp-rf-output-1.png" width="663" height="470" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pdp-rf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4.2: PDP for home size from a random forest, compared to the true partial dependence implied by the data generating model.
+Figure&nbsp;4.4: PDP for home size from a random forest, compared to the true partial dependence.
 </figcaption>
 </figure>
 </div>
@@ -879,7 +1214,82 @@ Figure&nbsp;4.2: PDP for home size from a random forest, compared to the true pa
 </section>
 <section id="linear-regression-with-splines-application" class="level3" data-number="4.3.2">
 <h3 data-number="4.3.2" class="anchored" data-anchor-id="linear-regression-with-splines-application"><span class="header-section-number">4.3.2</span> Linear Regression with Splines Application:</h3>
-<p>To be completed.</p>
+<div id="cell-fig-pdp-spline" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.compose <span class="im">import</span> ColumnTransformer</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> Pipeline</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> SplineTransformer</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>preprocess <span class="op">=</span> ColumnTransformer([</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"size_spline"</span>, SplineTransformer(degree<span class="op">=</span><span class="dv">3</span>, n_knots<span class="op">=</span><span class="dv">6</span>), [<span class="st">"size_std"</span>]),</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"age_spline"</span>,  SplineTransformer(degree<span class="op">=</span><span class="dv">3</span>, n_knots<span class="op">=</span><span class="dv">6</span>), [<span class="st">"age_std"</span>]),</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>], remainder<span class="op">=</span><span class="st">"passthrough"</span>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>spline_model <span class="op">=</span> Pipeline([</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"preprocess"</span>, preprocess),</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"linreg"</span>, LinearRegression())</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>spline_model.fit(X, y)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>grid_sp, pdp_sp <span class="op">=</span> compute_pdp(spline_model, X, <span class="st">"size_std"</span>)</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">5</span>))</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>plt.plot(grid_sp, pdp_sp, marker<span class="op">=</span><span class="st">"o"</span>, markersize<span class="op">=</span><span class="dv">3</span>, color<span class="op">=</span><span class="st">"tab:orange"</span>, label<span class="op">=</span><span class="st">"Spline Linear Regression Model estimated PDP"</span>)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>plt.plot(grid, pdp_truth, linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"True partial dependence"</span>)</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Standardized Home Size ($X_1$)"</span>)</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Average Predicted Price"</span>)</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"PDP for Home Size Using Linear Regression with Splines"</span>)</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>plt.grid(alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-pdp-spline" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pdp-spline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="visualizing_model_molnar_2022_files/figure-html/fig-pdp-spline-output-1.png" width="664" height="470" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pdp-spline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4.5: PDP for home size from a linear regression with splines, compared to the true partial dependence.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="model-comparison-results" class="level3" data-number="4.3.3">
+<h3 data-number="4.3.3" class="anchored" data-anchor-id="model-comparison-results"><span class="header-section-number">4.3.3</span> Model Comparison Results:</h3>
+<div id="cell-fig-pdp-compare" class="cell" data-execution_count="9">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">5</span>))</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>plt.plot(grid, pdp_truth, linestyle<span class="op">=</span><span class="st">"--"</span>, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"True partial dependence"</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>plt.plot(grid_rf, pdp_rf, marker<span class="op">=</span><span class="st">"o"</span>, markersize<span class="op">=</span><span class="dv">3</span>, label<span class="op">=</span><span class="st">"Random Forest"</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>plt.plot(grid_sp, pdp_sp, marker<span class="op">=</span><span class="st">"s"</span>, markersize<span class="op">=</span><span class="dv">3</span>, label<span class="op">=</span><span class="st">"Linear Regression + Splines"</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Standardized Home Size ($X_1$)"</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Average Predicted Price"</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"PDP for Home Size: Model Comparison"</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>plt.grid(alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-pdp-compare" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-pdp-compare-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="visualizing_model_molnar_2022_files/figure-html/fig-pdp-compare-output-1.png" width="664" height="470" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-pdp-compare-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4.6: Comparison of estimated PDPs for home size across models, against the true partial dependence.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">

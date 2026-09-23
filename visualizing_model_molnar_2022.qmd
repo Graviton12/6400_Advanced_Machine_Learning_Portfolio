@@ -5,13 +5,255 @@
 
 The Interpretable Machine Learning: A Guide for Making Black Box Models Explainable by Christoph Molnar [@molnar2025] introduces the concept of the Partial Dependence Plot (PDP)
 
-## The Motivating Idea of PDP
-* A Partial Dependence Plot (PDP) is a type of **Ceteris Paribus (CP) Plot** which is used to visualize how changes in one feature can effect changes in the target variable in a machine learning model. A PDP is the average of all CP curves of one dataset.
-    - CP asks: What happens to this person's prediction if I change X?
-    - PDP asks: On average, how does X affect the model's prediction?
-* The **Partial Dependence Plot (PDP)** visualizes the marginal effect of one feature on the predicted outcome of a machine learning model. In other words, it visualizes the change in the target variable when one select feature changes while all other features are kept constant. 
-* A PDP can therefore, reveal the relationship between the target variable and the specific feature. 
-     - For example, for a linear regression model, the relationship between the rpedictor variable and a specific feature variable might have a linear relationship which can be visualized with a PDP.
+## The Motivating Idea of Partial Dependence Plot (PDP)
+
+### CP Plot to a ICE Plot to a PDP
+
+A <mark style="background-color: #d5ebf2;"><strong>Partial Dependence Plot (PDP)</strong></mark> is a type of **Ceteris Paribus (CP) Plot** which is used to visualize how changes in one feature can affect changes in the target variable in a machine learning model. A PDP is the **average of the collection of all CP curves** of one dataset. The collection of all CP curves is the **Individual Conditional Expectation (ICE) Plot**.
+
+- **CP asks:** What happens to this model's prediction if I change X?
+- **ICE Plot asks:** What happens model's prediction if I change X for every instance in the dataset?
+- **PDP asks:** On average, how does X affect the model's prediction across all instances?
+
+::: {.callout-note title="Progression from CP Plot to ICE Plot to PDP using Housing Prices"}
+The relationship between ceteris paribus (CP) plots, individual conditional expectation (ICE) plots, and partial dependence plots (PDPs) can be understood as a progression from **one observation to the entire dataset**.
+
+Consider a housing price example: Suppose the feature of interest is $X_1$, standardized home size. We can ask how the model's predicted home price changes as $X_1$ changes for five home observations.
+
+- A **CP curve** examines this question for **one house**.
+- An **ICE plot** places the CP curves for **many houses** on the same graph.
+- A **PDP** averages those individual curves to show the model's **average prediction** as home size changes.
+
+The following diagram illustrates this progression:
+
+```{python}
+
+#| label: fig-cp-ice-pdp
+#| fig-cap: "Illustrative diagram showing the transition from one ceteris paribus (CP) curve to ICE curves and theavaerage of these curves which is the PDP. Note: This is generated using artificial data and does not use a trained model."
+#| fig-width: 10
+#| fig-height: 4.5
+#| code-fold: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# -- Schematic house-price example --
+
+# X1 = standardized home size
+# Y  = predicted home price
+
+# These curves are intentionally illustrative. They show the relationship between CP, ICE, and PDP rather than fitting a machine learning model
+
+x = np.linspace(-2, 2, 100)
+
+# Five hypothetical houses.
+# Each house has a slightly different prediction curve because its other features (such as age, renovation status, etc) are held fixed
+intercepts = np.array([2.0, 2.4, 2.8, 3.1, 3.5])
+slopes = np.array([0.55, 0.70, 0.85, 0.65, 0.80])
+
+curves = []
+
+for intercept, slope in zip(intercepts, slopes):
+    y = intercept + slope * np.tanh(x)
+    curves.append(y)
+
+curves = np.array(curves)
+
+# PDP = average of all ICE curves
+pdp = curves.mean(axis=0)
+
+# -- Create the three-panel diagram --
+
+fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+
+# 1. Ceteris Paribus (CP) Plot
+axes[0].plot(x, curves[2], linewidth=3)
+
+axes[0].set_title("1. CP Plot")
+axes[0].set_xlabel("Standardized home size ($X_1$)")
+axes[0].set_ylabel("Predicted home price")
+axes[0].text(
+    0.05, 0.08,
+    "One house\n"
+    "Other features held fixed",
+    transform=axes[0].transAxes
+)
+
+# 2. ICE Plot
+for curve in curves:
+    axes[1].plot(x, curve, alpha=0.7)
+
+axes[1].set_title("2. ICE Plot")
+axes[1].set_xlabel("Standardized home size ($X_1$)")
+axes[1].set_ylabel("Predicted home price")
+axes[1].text(
+    0.05, 0.08,
+    "Many houses\n"
+    "One curve per house",
+    transform=axes[1].transAxes
+)
+
+# 3. PDP
+for curve in curves:
+    axes[2].plot(x, curve, alpha=0.18)
+
+axes[2].plot(x, pdp, linewidth=4)
+
+axes[2].set_title("3. PDP")
+axes[2].set_xlabel("Standardized home size ($X_1$)")
+axes[2].set_ylabel("Predicted home price")
+axes[2].text(
+    0.05, 0.08,
+    "Average of the ICE curves",
+    transform=axes[2].transAxes
+)
+
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+**1. Ceteris Paribus (CP)**  
+The first panel considers **one particular house**. We vary its home size $X_1$ across a range of values while keeping its other features, such as home age $X_2$ and renovation status $X_3$, fixed. The resulting line shows how the model's prediction changes for that particular house.
+
+**2. Individual Conditional Expectation (ICE)**  
+The second panel repeats this process for multiple houses. Each house produces its own CP curve, so the plot contains one line per observation. The curves can differ because the houses have different values of the other features that remain fixed.
+
+**3. Partial Dependence Plot (PDP)**  
+The third panel averages the predictions represented by the ICE curves at each value of $X_1$. The resulting thick curve represents the model's **average predicted home price** as standardized home size changes.
+
+### How the PDP is Created from Average of CP Curves
+The PDP takes the average or mean of the collection of the individual CP curves in the ICE Plot vertically.
+
+::: {.callout-note title="Averaging CP Curves to Create the PDP using Housing Prices"}
+For each fixed value of $X_1$, the PDP averages down the column as shown in the example table below:
+
+| Home    | ($X_1=1$,600 sq ft) | ($X_1=2$,000 sq ft) | ($X_1=2$,800 sq ft) |
+| ------- | ---------: | --------: | --------: |
+| House 1 |      $200k |     $230k |     $260k |
+| House 2 |      $220k |     $250k |     $290k |
+| House 3 |      $180k |     $210k |     $250k |
+| House 4 |      $240k |     $270k |     $310k |
+| House 5 |      $210k |     $240k |     $280k |
+| **PDP** |  **$210k** | **$240k** | **$278k** |
+
+The following diagram illustrates this averaging process:
+
+```{python}
+
+#| label: fig-cp-ice-pdp-averaging
+#| fig-cap: "Illustrative diagram showing the transition from a single Ceteris Paribus (CP) curve to ICE curves, the vertical averaging at a specific value $X_1 = x^*$, and the resulting Partial Dependence Plot (PDP). Note: This is generated using artificial data and does not use a trained model."
+#| fig-width: 14
+#| fig-height: 4
+#| code-fold: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# -- Artificial Data Generation --
+x = np.linspace(-2, 2, 100)
+
+# Five hypothetical houses (ICE curves)
+intercepts = np.array([2.0, 2.4, 2.8, 3.1, 3.5])
+slopes = np.array([0.55, 0.70, 0.85, 0.65, 0.80])
+
+curves = []
+for intercept, slope in zip(intercepts, slopes):
+    y = intercept + slope * np.tanh(x)
+    curves.append(y)
+
+curves = np.array(curves)
+pdp = curves.mean(axis=0)
+
+# Target feature value to show vertical averaging
+x_star = 0.5
+idx_star = np.argmin(np.abs(x - x_star))
+x_val = x[idx_star]
+
+# Values at x_val
+y_ice_vals = curves[:, idx_star]
+y_pdp_val = pdp[idx_star]
+
+# -- Create 4-panel figure --
+fig, axes = plt.subplots(1, 4, figsize=(15, 3.8), sharey=True)
+
+# 1. Ceteris Paribus (CP) Plot
+axes[0].plot(x, curves[2], color="#1f77b4", linewidth=2.5)
+axes[0].set_title("1. CP Plot")
+axes[0].set_xlabel("Standardized home size ($X_1$)")
+axes[0].set_ylabel("Predicted home price")
+axes[0].text(
+    0.05, 0.08,
+    "One house\nOther features fixed",
+    transform=axes[0].transAxes,
+    fontsize=9
+)
+
+# 2. ICE Plot
+for curve in curves:
+    axes[1].plot(x, curve, color="#1f77b4", alpha=0.7, linewidth=1.5)
+
+axes[1].set_title("2. ICE Plot")
+axes[1].set_xlabel("Standardized home size ($X_1$)")
+axes[1].text(
+    0.05, 0.08,
+    "Many houses\nOne curve per instance",
+    transform=axes[1].transAxes,
+    fontsize=9
+)
+
+# 3. Vertical Averaging at X1 = x*
+for curve in curves:
+    axes[2].plot(x, curve, color="#1f77b4", alpha=0.35, linewidth=1.5)
+
+# Vertical dashed line at X1 = x*
+axes[2].axvline(x=x_val, color="#d62728", linestyle="--", linewidth=1.8, label=r"$X_1 = x^*$")
+
+# Points on individual ICE curves at X1 = x*
+axes[2].scatter([x_val]*len(y_ice_vals), y_ice_vals, color="#d62728", s=35, zorder=5)
+
+# Mean point at X1 = x*
+axes[2].scatter(x_val, y_pdp_val, color="#2ca02c", s=70, marker="D", zorder=6, label=r"Mean $\hat{f}_{PDP}(x^*)$")
+
+axes[2].set_title("3. Vertical Mean at $X_1 = x^*$ on ICE Plot")
+axes[2].set_xlabel("Standardized home size ($X_1$)")
+axes[2].legend(loc="upper left", fontsize=8, framealpha=0.9)
+axes[2].text(
+    0.05, 0.08,
+    "Average predictions\nvertically at $x^*$",
+    transform=axes[2].transAxes,
+    fontsize=9
+)
+
+# 4. Resulting PDP
+for curve in curves:
+    axes[3].plot(x, curve, color="#1f77b4", alpha=0.15, linewidth=1)
+
+# Full PDP curve
+axes[3].plot(x, pdp, color="#2ca02c", linewidth=3.5, label="PDP Curve")
+axes[3].scatter(x_val, y_pdp_val, color="#2ca02c", s=70, marker="D", zorder=6)
+
+axes[3].set_title("4. PDP")
+axes[3].set_xlabel("Standardized home size ($X_1$)")
+axes[3].legend(loc="upper left", fontsize=8, framealpha=0.9)
+axes[3].text(
+    0.05, 0.08,
+    "Repeat $\\forall x_1 \\in X_1$\nLine of vertical means",
+    transform=axes[3].transAxes,
+    fontsize=9
+)
+
+plt.tight_layout()
+plt.show()
+```
+
+:::
+
+### What is a PDP
+The PDP **visualizes the marginal effect of one feature on the predicted outcome of a machine learning model.** In other words, it visualizes the change in the target variable when one select feature changes while all other features are kept constant. 
+A PDP can therefore, **reveal the relationship between the target variable and the specific feature.**
+    - For example, for a linear regression model, the relationship between the rpedictor variable and a specific feature variable might have a linear relationship which can be visualized with a PDP.
 
 ::: {.callout-note title="Building Intuition - Predicting Housing Price Example"}
 Assume we have data about houses and we want a machine learning model to predict housing prices using the features size, number of bedrooms, and age.
@@ -27,7 +269,7 @@ Further suppose we are interested in the effect of home size on housing prices. 
 
 If we used models such as random forest, we are not prvoided with a clean equation that provides intuitive insight about the relationship between home size and predicted house price. The model would instead involve a complicated collection of decision trees.
 
-An exanple of an intuitive and clean equation could be: Price=100(Size)+20(Bedrooms)−5(Age)
+An example of an intuitive and clean equation could be: Price=100(Size)+20(Bedrooms)−5(Age)
 
 Therefore, the PDP is used to detmerine what would the model predict on average if we forced all features in our dataset to have the same value of the chosen feature. This allows us to have a better idea into how the model behaves. In this example, we can determine what happens to predicted house price as house size increases on average according to our machine-learning model.
 
@@ -88,9 +330,11 @@ The resulting relationship for home size can thus be visualized as:
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 
+# sample data of home size and average predicted home price
 size = [1000, 1500, 2000, 2500, 3000]
 average_prediction = [234000, 280000, 330000, 365000, 380000]
 
+# building line plot
 plt.figure(figsize=(7, 5))
 
 plt.plot(size, average_prediction, marker="o")
@@ -110,7 +354,7 @@ plt.show()
 
 :::
 
-## How to Implement, Use, & Interpret the PDP
+## How to Implement, Use, & Interpret the Partial Dependence Plot (PDP)
 
 ::: {.callout-note title="Mathematical Derivation"}
 The partial dependence function is defined as:
@@ -135,11 +379,11 @@ $$
 \right)
 $$
 
-* $\mathbf{x}_S$ represents the feature or features of interested in / features to be plotted. For the housing example, if we want to understand how house size affects predicted house price, then $\mathbf{x}_S$ could represent size in square feet.
-* $\mathbf{X}_C$ represents all other features in the model / features not to be plotted. For the housing example, this includes the number of bedrooms, home age, etc.
+* $\mathbf{x}_S$ represents the feature(s) of interest. For the housing example, if we want to understand how house size affects predicted house price, then $\mathbf{x}_S$ could represent size in square feet.
+* $\mathbf{X}_C$ represents all other features in the model (features not to be plotted). For the housing example, this includes the number of bedrooms, home age, etc.
 * Set S contain the feature(s) which we want to know the effect on the prediction.
 * $\hat{f}(\mathbf{x}_S, \mathbf{X}_C)$ means that we give the model a particular value of the feature we are studying while allowing the other features to vary.
-* $\hat{f}$ is our already-trained machine learning model. It takes feature values as input and produces a prediction.
+* $\hat{f}$ is our trained machine learning model. It takes feature values as input and produces a prediction.
 * $\mathbb{E}_{\mathbf{X}_C}[\cdot]$ means take the average over the distribution of the other features.
 
 For each observation $i$:
@@ -153,7 +397,7 @@ For each observation $i$:
 
 ::: 
 
-## Modeling Applications
+## Modeling Applications of the Partial Dependence Plot (PDP)
 
 ::: {.callout-note title="Data Generating Process"}
 To illustrate the Random Forest and Linear Regression with Splines models, data is simulated from the following model:
@@ -170,13 +414,27 @@ $$
 
 For the housing example, the features are mapped as follows:
 
-* $X_1$ — standardized home **size** (the feature of interest for the PDP)
-* $X_2$ — standardized home **age**
-* $X_3$ — binary **renovated** indicator
-* $Y$ — home **price**
+* $X_1$ — standardized home **size** 
+    - the feature of interest for the PDP
+    - predictor variable
+    - centered at 0 with standard deviation of 1
+* $X_2$ — standardized home **age** 
+    - predictor variable
+    - centered at 0 with standard deviation of 1
+* $X_3$ — binary **renovated** home indicator variable
+    - predictor variable
+    - yes renovated = 1 with 40% probability of occuring, not renovated = 0 with 60% probability of occuring
+* $Y$ — home **price** 
+    - target variable
+* $X$ = ($X_1$, $X_2$, $X_3$) — **characteristics of the home**
+
+* $E[Y \mid X]$ - The **expected (average)** house price given the characteristics of the home, is determined by two components: one involving home size and renovation status, and another involving home age and renovation status.
+* $V[Y \mid X]$ - The amount of **variability/randomness** around the expected (average) house price given the characteristics of the home.
+* $\text{sigmoid}(x)$ - The **sigmoid** is a function that takes a number and turns it into a number between 0 and 1.
 :::
 
 ```{python}
+
 #| label: dgp-setup
 
 import numpy as np
@@ -289,7 +547,7 @@ pdp_truth = true_pdp_size(grid, df["age_std"].values, df["renovated"].values)
 ```{python}
 
 #| label: fig-pdp-rf
-#| fig-cap: "PDP for home size from a random forest, compared to the true partial dependence implied by the data generating model."
+#| fig-cap: "PDP for home size from a random forest, compared to the true partial dependence."
 #| code-fold: true
 
 from sklearn.ensemble import RandomForestRegressor
@@ -313,4 +571,60 @@ plt.show()
 ```
 
 ### Linear Regression with Splines Application:
-To be completed.
+
+```{python}
+
+#| label: fig-pdp-spline
+#| fig-cap: "PDP for home size from a linear regression with splines, compared to the true partial dependence."
+#| code-fold: true
+
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import SplineTransformer
+from sklearn.linear_model import LinearRegression
+
+preprocess = ColumnTransformer([
+    ("size_spline", SplineTransformer(degree=3, n_knots=6), ["size_std"]),
+    ("age_spline",  SplineTransformer(degree=3, n_knots=6), ["age_std"]),
+], remainder="passthrough")
+
+spline_model = Pipeline([
+    ("preprocess", preprocess),
+    ("linreg", LinearRegression())
+])
+spline_model.fit(X, y)
+
+grid_sp, pdp_sp = compute_pdp(spline_model, X, "size_std")
+
+plt.figure(figsize=(7, 5))
+plt.plot(grid_sp, pdp_sp, marker="o", markersize=3, color="tab:orange", label="Spline Linear Regression Model estimated PDP")
+plt.plot(grid, pdp_truth, linestyle="--", color="black", label="True partial dependence")
+plt.xlabel("Standardized Home Size ($X_1$)")
+plt.ylabel("Average Predicted Price")
+plt.title("PDP for Home Size Using Linear Regression with Splines")
+plt.legend()
+plt.grid(alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+### Model Comparison Results:
+
+```{python}
+
+#| label: fig-pdp-compare
+#| fig-cap: "Comparison of estimated PDPs for home size across models, against the true partial dependence."
+#| code-fold: true
+
+plt.figure(figsize=(7, 5))
+plt.plot(grid, pdp_truth, linestyle="--", color="black", label="True partial dependence")
+plt.plot(grid_rf, pdp_rf, marker="o", markersize=3, label="Random Forest")
+plt.plot(grid_sp, pdp_sp, marker="s", markersize=3, label="Linear Regression + Splines")
+plt.xlabel("Standardized Home Size ($X_1$)")
+plt.ylabel("Average Predicted Price")
+plt.title("PDP for Home Size: Model Comparison")
+plt.legend()
+plt.grid(alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
