@@ -400,7 +400,7 @@ For each observation $i$:
 ## Modeling Applications of the Partial Dependence Plot (PDP)
 
 ::: {.callout-note title="Data Generating Process"}
-To illustrate the Random Forest and Linear Regression with Splines models, data is simulated from the following model:
+To illustrate the Random Forest and Linear Regression with Splines models, data is simulated from the following generating model:
 
 $$
 \begin{array}{rl}
@@ -433,6 +433,8 @@ For the housing example, the features are mapped as follows:
 * $\text{sigmoid}(x)$ - The **sigmoid** is a function that takes a number and turns it into a number between 0 and 1.
 :::
 
+The following table provides the artificial dataset which will be used to predict average house prices: 
+
 ```{python}
 
 #| label: dgp-setup
@@ -440,26 +442,32 @@ For the housing example, the features are mapped as follows:
 import numpy as np
 import pandas as pd
 
+# create random number generaotr with seed = 42
 rng = np.random.default_rng(42)
+# number of oberservations = 2,000 homes
 n = 2000
 
+# create sigmoid function
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-# X1: standardized home size, X2: home age, X3: renovated (0/1)
+# X1: standardized home size predictor var
 size_std  = rng.normal(0, 1, n)
+# X2: standardized home age predictor var
 age_std   = rng.normal(0, 1, n)
+# X3: renovated (0/1) predictor var
 renovated = rng.binomial(1, 0.4, n)
 
-# Conditional mean per the specified DGP
+# conditional mean (expectation value of average home price given home characteristics)
 mean_price = (
     np.sqrt(5) * sigmoid(size_std + renovated)
     + np.sqrt(5) * sigmoid(age_std) * renovated
 )
 
-# V[Y|X] = 1 is the unit-variance noise
+# create V[Y|X] = 1 is the unit-variance noise
 price = mean_price + rng.normal(0, 1, n)
 
+# create artificial datatset with key predictors and target column
 df = pd.DataFrame({
     "size_std": size_std,
     "age_std": age_std,
@@ -467,7 +475,9 @@ df = pd.DataFrame({
     "price": price
 })
 
+# specify predictors
 X = df[["size_std", "age_std", "renovated"]]
+# specify target column
 y = df["price"]
 
 df.head()
@@ -478,16 +488,15 @@ df.head()
 #| label: pdp-helper
 #| code-fold: true
 
-# This function estimates the Partial Dependence Plot (PDP) for ONE feature, using ANY already-trained model (random forest, spline regression, etc.). It follows the exact recipe from the PDP definition:
-#   1. Pick a value for the feature of interest (e.g., size = 0.5)
+# This function estimates the Partial Dependence Plot (PDP) for ONE feature, using ANY already-trained model (random forest, spline linear regression, etc.). It follows the exact recipe from the PDP definition:
+#   1. Pick a value for the feature of interest (ex. size = 0.5)
 #   2. Force EVERY house in the dataset to have that size, but leave their other features (age, renovated) exactly as they really are
 #   3. Ask the model to predict price for all of these "edited" houses
 #   4. Average all of those predictions -> this average is one point on the PDP curve
 #   5. Repeat for many different size values to trace out the curve
 
 def compute_pdp(model, X, feature, n_grid=50):
-    # Build a sequence of values to test for our feature of interest and span from its smallest to largest observed value in the data
-    # with n_grid evenly spaced points (default: 50 points)
+    # Build a sequence of values to test for our feature of interest and span from its smallest to largest observed value in the data ith n_grid evenly spaced points (default = 50 points)
     grid = np.linspace(X[feature].min(), X[feature].max(), n_grid)
 
     # Make a copy of the dataset so we don't overwrite the real data
@@ -509,10 +518,11 @@ def compute_pdp(model, X, feature, n_grid=50):
 
 ```
 
+Since this is generated artifial data, we can calculate the true PDP for this dataset:
+
 ```{python}
 
 #| label: true-pdp
-#| code-fold: true
 
 # compute_pdp() above estimates the PDP using a select model's predictions but because we made up this data ourselves, we actually know the real mathematical formula that generated it using: E[Y|X] = sqrt(5)*sigmoid(X1 + X3) + sqrt(5)*sigmoid(X2)*X3
 # So instead of relying on a trained model's (imperfect) guesses, we can plug real formula directly and get the true partial dependence. This gives us a benchmark to compare our models against. If a model's PDP is close to this true curve, that's a sign the model is doing a good job at learning how size affects price.
@@ -553,9 +563,12 @@ pdp_truth = true_pdp_size(grid, df["age_std"].values, df["renovated"].values)
 from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
 
+# create the ranfom forest regression model
 rf = RandomForestRegressor(n_estimators=500, max_depth=None, random_state=42)
+# fit the model
 rf.fit(X, y)
 
+#create plot
 grid_rf, pdp_rf = compute_pdp(rf, X, "size_std")
 
 plt.figure(figsize=(7, 5))
@@ -570,6 +583,8 @@ plt.tight_layout()
 plt.show()
 ```
 
+Overall, the artificial dataset included 2,000 observations was generated from a random number generator with seed = 42. The random forest utilized 5000 trees without beinging constrained to a maximum depth with a fixed seed = 42 for reproducibility.
+
 ### Linear Regression with Splines Application:
 
 ```{python}
@@ -583,6 +598,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import SplineTransformer
 from sklearn.linear_model import LinearRegression
 
+# using column trnasofrmers to conduct intilial prepccressing
 preprocess = ColumnTransformer([
     ("size_spline", SplineTransformer(degree=3, n_knots=6), ["size_std"]),
     ("age_spline",  SplineTransformer(degree=3, n_knots=6), ["age_std"]),
@@ -608,6 +624,8 @@ plt.tight_layout()
 plt.show()
 ```
 
+The spline linear regression is linear regression applied to spline-transformed predictors, allowing the model to represent smooth nonlinear relationships between the original predictors and the response.
+
 ### Model Comparison Results:
 
 ```{python}
@@ -617,9 +635,9 @@ plt.show()
 #| code-fold: true
 
 plt.figure(figsize=(7, 5))
-plt.plot(grid, pdp_truth, linestyle="--", color="black", label="True partial dependence")
-plt.plot(grid_rf, pdp_rf, marker="o", markersize=3, label="Random Forest")
-plt.plot(grid_sp, pdp_sp, marker="s", markersize=3, label="Linear Regression + Splines")
+plt.plot(grid, pdp_truth, linestyle="--", color="black", label="True PDP")
+plt.plot(grid_rf, pdp_rf, marker="o", markersize=3, label="PDP estimated by Random Forest")
+plt.plot(grid_sp, pdp_sp, marker="s", markersize=3, label="PDP estimated by Spline Linear Regression")
 plt.xlabel("Standardized Home Size ($X_1$)")
 plt.ylabel("Average Predicted Price")
 plt.title("PDP for Home Size: Model Comparison")
@@ -628,3 +646,5 @@ plt.grid(alpha=0.3)
 plt.tight_layout()
 plt.show()
 ```
+
+According to the True PDP, larger homes tend to have higher predicted prices. The PDPs show that both models learn the general positive and nonlinear relationship between standardized home size and predicted price. As home size increases, the average predicted price increases, with the rate of increase gradually diminishing at larger home sizes. The Random Forest captures the overall trend but produces a more irregular PDP due to the piecewise nature of tree-based predictions. The spline-based linear regression produces a smoother PDP and closely follows the true partial-dependence curve through the central range of the data, but it deviates substantially near the extremes where fewer observations are available. 
