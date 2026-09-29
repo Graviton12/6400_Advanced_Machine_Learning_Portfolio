@@ -313,5 +313,105 @@
       "Visualizing Models",
       "<span class='chapter-number'>4</span>  <span class='chapter-title'>Partial Dependence Plot (PDP)</span>"
     ]
+  },
+  {
+    "objectID": "ordinal_regression.html",
+    "href": "ordinal_regression.html",
+    "title": "5  Ordinal Regression",
+    "section": "",
+    "text": "5.1 Motivation:\nModeling Continuous Response Variables Using Ordinal Regression (Liu et al. 2017) introduces the concept of Ordinal Regression.",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Ordinal Regression</span>"
+    ]
+  },
+  {
+    "objectID": "ordinal_regression.html#motivation",
+    "href": "ordinal_regression.html#motivation",
+    "title": "5  Ordinal Regression",
+    "section": "",
+    "text": "A continuous variable/measurement is also an ordered variable/measurement.\nInstead of trying to guess the exact shape of the outcome distribution or the exact transformation needed like in linear regression, we can model the probability that the continuous outcome is below any particular value.\nTherefore, ordinal regression does not assume a shape for the outcvome distribution.",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Ordinal Regression</span>"
+    ]
+  },
+  {
+    "objectID": "ordinal_regression.html#what-does-ordinal-mean",
+    "href": "ordinal_regression.html#what-does-ordinal-mean",
+    "title": "5  Ordinal Regression",
+    "section": "5.3 What does Ordinal Mean?",
+    "text": "5.3 What does Ordinal Mean?\n\nConsider an example where our outcome is to determine health improvement in a patient:\n\nFor a categorical variable where values are ordered, (Ordinal Categorical Discrete Variable):\n\nFor example: Poor &lt; Fair &lt; Good &lt; Excellent\n\nOne can intuitively understand that Poor &lt; Fair.\nHowever, we don’t necessarily know that the difference between Poor and Fair is numerically equal to the difference between Good and Excellent.\nThe jump from Poor to Fair might not represent the same amount of health improvement as Good to Excellent.\n\nConsider an example where our outcome is to determine the weight in a patient:\n\nFor a continuous numerical variable, values are ordered, (Ordinal Numerical Continuous Variable), but they also have numerical distances.\n\nFor example: 120 &lt; 135 &lt; 190 &lt; 230 (in lb)\n\nThe differences or distances between each value have a numerical meaning\n\nThe main insight of the paper is Ordinal Regression uses ordering without assuming anything about the shape of the outcome distribution..",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Ordinal Regression</span>"
+    ]
+  },
+  {
+    "objectID": "ordinal_regression.html#what-problem-is-this-paper-trying-to-solve",
+    "href": "ordinal_regression.html#what-problem-is-this-paper-trying-to-solve",
+    "title": "5  Ordinal Regression",
+    "section": "5.3 What Problem is this Paper Trying to Solve?",
+    "text": "5.3 What Problem is this Paper Trying to Solve?\n\n5.3.1 The Issue with Linear Regression:\n\nSuppose we want to predict a continuous numerical outcome \\(Y_i\\) = blood pressure, and predictor variables \\(X_i\\), such as age, height, gender, etc.\nOne could use Linear Regression to predict \\(Y_i\\) = blood pressure: \\[ Y_i = \\beta_0+\\beta_1X_{i1}+\\beta_2X_{i2}+\\cdots+\\epsilon_i. \\]\nThe problem: Linear regression makes assumptions about the distribution of Y\n\nAssumption #1: Linearity of the conditional mean - The average value of Y, given X, is a linear function of \\(X_i\\). \\[ E(Y_i|X_i) = \\beta_0+\\beta_1X_{i1} \\]\nAssumption #2: Homoscedasticity - The amount of variability around the regression line is assumed to be roughly constant across values of \\(X_i\\) where \\(σ^2\\) does not depend on \\(X_i\\). \\[ Var(\\epsilon_i∣X_i)=σ^2​ \\]\n\n\n\n\nFigure 1: Diagram of Homoscedasticity vs. Heteroscedasticty.\n\n\n\nAssumption #3: Errors are independent \\[ \\epsilon_1, \\epsilon_2 ,  \\epsilon_3, \\cdots, independent \\] \\[ \\]\nAssumption #4: The errors have mean zero - Model does not systematically overpredict or underpredict the target variable \\[ E(Y_i|X_i) = 0 \\]\nAssumption #5: Appropriate transformation choice for Y\n\nAssume \\(Y_i\\) is heavily-rigth skewed. One might take the log(\\(Y_i\\)) such that: \\[ log(Y_i) = \\beta_0+\\beta_1X_{i1}+\\beta_2X_{i2}+\\cdots+\\epsilon_i. \\]\nBut how do we know that logarithm is the right transformation? What about \\(Y_i^2\\), \\(\\sqrt{Y_i}\\), etc. The correct transformation is often unknown.\n\n\nTo avoid arbitrarily picking a linear transformation, the paper says to use the Cumulative probability model (CPM).\n\n\n\n\n\nLiu, Qi, Bryan E. Shepherd, Chun Li, and Frank E. Harrell Jr. 2017. “Modeling Continuous Response Variables Using Ordinal Regression.” Statistics in Medicine 36 (27): 4316–35. https://doi.org/https://doi.org/10.1002/sim.7433.",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Ordinal Regression</span>"
+    ]
+  },
+  {
+    "objectID": "ordinal_regression.html#what-problem-is-the-paper-addressing---the-issue-with-linear-regression",
+    "href": "ordinal_regression.html#what-problem-is-the-paper-addressing---the-issue-with-linear-regression",
+    "title": "5  Ordinal Regression",
+    "section": "5.4 What Problem is the Paper Addressing - The Issue with Linear Regression",
+    "text": "5.4 What Problem is the Paper Addressing - The Issue with Linear Regression\n\nSuppose we want to predict a continuous numerical outcome \\(Y_i\\) = blood pressure, and predictor variables \\(X_i\\), such as age, height, gender, etc.\nOne could use Linear Regression to predict \\(Y_i\\) = blood pressure: \\[ Y_i = \\beta_0+\\beta_1X_{i1}+\\beta_2X_{i2}+\\cdots+\\epsilon_i. \\]\nThe problem: Linear regression makes assumptions about the distribution of Y\n\nAssumption #1: Linearity of the conditional mean - The average value of Y, given X, is a linear function of \\(X_i\\). \\[ E(Y_i|X_i) = \\beta_0+\\beta_1X_{i1} \\]\nAssumption #2: Homoscedasticity - The amount of variability around the regression line is assumed to be roughly constant across values of \\(X_i\\) where \\(σ^2\\) does not depend on \\(X_i\\). \\[ Var(\\epsilon_i∣X_i)=σ^2​ \\]\n\n\n\n\nFigure 1: Diagram of Homoscedasticity vs. Heteroscedasticty.\n\n\n\nAssumption #3: Errors are independent \\[ \\epsilon_1, \\epsilon_2 ,  \\epsilon_3, \\cdots, independent \\]\nAssumption #4: The errors have mean zero - Model does not systematically overpredict or underpredict the target variable \\[ E(Y_i|X_i) = 0 \\]\nAssumption #5: Appropriate transformation choice for Y\n\nAssume \\(Y_i\\) is heavily-rigth skewed. One might take the log(\\(Y_i\\)) such that: \\[ log(Y_i) = \\beta_0+\\beta_1X_{i1}+\\beta_2X_{i2}+\\cdots+\\epsilon_i. \\]\nBut how do we know that logarithm is the right transformation? What about \\(Y_i^2\\), \\(\\sqrt{Y_i}\\), etc. The correct transformation is often unknown.\n\n\nTo avoid arbitrarily picking a linear transformation, the paper says to use the Cumulative probability model (CPM).",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Ordinal Regression</span>"
+    ]
+  },
+  {
+    "objectID": "ordinal_regression.html#cumulative-probability-model",
+    "href": "ordinal_regression.html#cumulative-probability-model",
+    "title": "5  Ordinal Regression",
+    "section": "5.4 Cumulative Probability Model",
+    "text": "5.4 Cumulative Probability Model\n\n.\n\n\n\n\n\nLiu, Qi, Bryan E. Shepherd, Chun Li, and Frank E. Harrell Jr. 2017. “Modeling Continuous Response Variables Using Ordinal Regression.” Statistics in Medicine 36 (27): 4316–35. https://doi.org/https://doi.org/10.1002/sim.7433.",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Ordinal Regression</span>"
+    ]
+  },
+  {
+    "objectID": "ordinal_regression.html#cumulative-probability-model-cpm",
+    "href": "ordinal_regression.html#cumulative-probability-model-cpm",
+    "title": "5  Ordinal Regression",
+    "section": "5.5 Cumulative Probability Model (CPM)",
+    "text": "5.5 Cumulative Probability Model (CPM)\n\nThe CPM is a way to model a continuous outcome by asking what is the probability that \\(Y\\) is less than or equal to a particular value y given some predictor variables \\(X\\). \\[ P(Y≤y∣X) \\]\nTherefore, the CPM is the Ordinal Regression model for the link-transformed probability that an outcome falls at or below each value, with a specific intercept per distinct value, apply the link function G to it. Also called the Cumulative Link Model.\n\n\\[\nP(Y≤y∣X) → \\text{link function G} →\n\\underbrace{G\\left[P(Y \\leq y \\mid X)\\right]}_{\\text{link-transformed probability}}\n=\n\\underbrace{\\alpha(y)}_{\\text{cutoff-specific intercept}} - \\underbrace{\\beta^T X}_{\\text{effect of predictors}}\n\\]\n\nThe CPM directly models the conditional cumulative distribution function (CDF) of an outcome given a set of covariates \\[ F⁡(y|X) = P(Y ≤ y|X) \\]",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Ordinal Regression</span>"
+    ]
+  },
+  {
+    "objectID": "ordinal_regression.html#important-vocab",
+    "href": "ordinal_regression.html#important-vocab",
+    "title": "5  Ordinal Regression",
+    "section": "5.2 Important Vocab:",
+    "text": "5.2 Important Vocab:\n\nOrdinal - meaans that there is an order to the possible outcomes.\nCovariates - a set of explanatory/independet/predictor variables that might affect an outcome we are measuring, but are not the main focus of our study.\nLink function - is simply a mathematical function that transforms a probability into a scale that can be modeled using a linear predictor.\nlink - connects the probability we’re interested in to the scale on which we can use a linear predictor.",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Ordinal Regression</span>"
+    ]
+  },
+  {
+    "objectID": "ordinal_regression.html#deriving-the-cpm",
+    "href": "ordinal_regression.html#deriving-the-cpm",
+    "title": "5  Ordinal Regression",
+    "section": "5.6 Deriving the CPM:",
+    "text": "5.6 Deriving the CPM:\n\n5.6.1 Linear Transformation Model:\n\nThe Linear Transformation Model is a model with some unknown increasing transformation of the outcome follows a linear model with a known error distribution. \\[Y = H(Y^*)\\] \\[Y^* = \\beta^T X + \\epsilon_i\\]\n\n\\[\\epsilon \\sim F_\\epsilon\\]\n\n\n5.6.2 Defining Variables:\n\n\\(Y\\) - continuous predicted variable (increasing function).\n\\(Y^*\\) - Unobserved continuous variable (underlying numerical scale).\n\\(H\\) - Unknown monotone increasing function/transformation.\n\nIts shape is nonparametric. So, \\(H(.)\\) is a nonparametric transformation or shift from the baseline distribution.\n\n\\(\\epsilon\\) - Random error. Assumed to come from some distribution\n\nFor ex. Normal error distribution \\(ϵ \\sim N(0,1)\\) → probit link\n\n\\(F_\\epsilon\\) - Distribution function\n\\(X\\) - Vector of predictor variables\n\\(\\beta\\) - Vector of the regression coefficients which describe how predictors shift the baseline distribution.\n\\(\\alpha(y)\\) - a monotone function of the outcome threshold y estimated directly from the data, that captures the marginal distribution of without assuming normality or any other parametric form.\n\nExpressed in terms of matrices:\n\nVector of predictor variables in matrix form \\[\nX =\n\\begin{bmatrix}\nX_1 \\\\\n\\cdot \\\\\n\\cdot \\\\\n\\cdot \\\\\nX_n\n\\end{bmatrix}\n\\]\nVector of the regression coefficients in matrix form \\[\n\\beta =\n\\begin{bmatrix}\n\\beta_1 \\\\\n\\cdot \\\\\n\\cdot \\\\\n\\cdot \\\\\n\\beta_n\n\\end{bmatrix}\n\\]\nTranspose of the regression coefficients \\[\n\\beta^T =\n\\begin{bmatrix}\n\\beta_1 \\cdot \\cdot \\cdot \\beta_n\n\\end{bmatrix}\n\\]\nTherefore, the linear transofrmaiton can be epxressed via the matrices: \\[ Y = \\beta^T X + \\epsilon_i \\]\n\n\\[\n\\begin{bmatrix}\ny_1 \\\\\n\\vdots \\\\\ny_n\n\\end{bmatrix}\n=\n\\begin{bmatrix}\n\\beta_1 & \\cdots & \\beta_n\n\\end{bmatrix}\n\\begin{bmatrix}\nX_1 \\\\\n\\vdots \\\\\nX_n\n\\end{bmatrix}\n+\n\\begin{bmatrix}\n\\epsilon_1 \\\\\n\\vdots \\\\\n\\epsilon_n\n\\end{bmatrix}\n\\]\nThe cummulative CDF of Y can be defined as: \\[\n\\begin{aligned}\nF(y \\mid X)\n&= P(Y \\leq y \\mid X) \\\\\n&= P\\left[H(\\beta^\\top X + \\epsilon) \\leq y \\mid X\\right] \\\\\n&= P\\left[\\epsilon \\leq H^{-1}(y) - \\beta^\\top X \\mid X\\right] \\\\\n&= F_{\\epsilon}\\left[H^{-1}(y) - \\beta^\\top X\\right]\n\\end{aligned}\n\\] Letting \\(G = F_𝜖^{-1}\\) be the link function and \\(𝛼 = H − 1\\) be the intercept function. We take the inverse to both sides by applying G to both sides yield: \\[\nF_𝜖^{-1}\\left[P(Y \\leq y \\mid X)\\right]\n=\nF_𝜖^{-1}[F_𝜖(H^{-1}(y) - \\beta^\\top X)]\n\\] \\[\nF_𝜖^{-1}\\left[P(Y \\leq y \\mid X)\\right]\n=\nH^{-1}(y) - \\beta^\\top X\n\\] \\[\nG\\left[P(Y \\leq y \\mid X)\\right]\n=\n\\alpha(y) - \\beta^\\top X\n\\]\n\n\n\n\nLiu, Qi, Bryan E. Shepherd, Chun Li, and Frank E. Harrell Jr. 2017. “Modeling Continuous Response Variables Using Ordinal Regression.” Statistics in Medicine 36 (27): 4316–35. https://doi.org/https://doi.org/10.1002/sim.7433.",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Ordinal Regression</span>"
+    ]
+  },
+  {
+    "objectID": "ordinal_regression.html#important-vocabulary",
+    "href": "ordinal_regression.html#important-vocabulary",
+    "title": "5  Ordinal Regression",
+    "section": "5.2 Important Vocabulary:",
+    "text": "5.2 Important Vocabulary:\n\nOrdinal - meaans that there is an order to the possible outcomes.\nMonotone Transformation - Is a transformation which preserves the order.\nCovariates - a set of explanatory/independet/predictor variables that might affect an outcome we are measuring, but are not the main focus of our study.\nLink Function - is simply a mathematical function that transforms a probability into a scale that can be modeled using a linear predictor.\nLink - connects the probability we’re interested in to the scale on which we can use a linear predictor.\nParametric Model - model that captures the relationship between variables using a fixed, predetermined number of parameters.\nParametric Baseline - standard parametric model used as a reference point to evaluate how well more complex models perform.\nNonparametric Model - model that captures the relationship between variables without using a fixed, predetermined number of parameters.",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Ordinal Regression</span>"
+    ]
   }
 ]

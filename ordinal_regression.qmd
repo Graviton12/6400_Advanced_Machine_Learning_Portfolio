@@ -1,0 +1,175 @@
+# Ordinal Regression
+
+* **Article Titie:** Modeling Continuous Response Variables Using Ordinal Regression
+* **Author:** Qi Liu, Bryan E. Shepherd, Chun Li, Frank E. Harrell Jr.
+
+Modeling Continuous Response Variables Using Ordinal Regression [@liu2017] introduces the concept of Ordinal Regression.
+
+## Motivation:
+* A **continuous variable/measurement** is also an **ordered variable/measurement.**
+* Instead of trying to guess the exact shape of the outcome distribution or the exact transformation needed like in linear regression, we can model the probability that the **continuous outcome is below any particular value.**
+* Therefore, ordinal regression does not assume a shape for the outcvome distribution.
+
+## Important Vocabulary:
+* **Ordinal** - meaans that there is an order to the possible outcomes.
+* **Monotone Transformation** - Is a transformation which preserves the order.
+* **Covariates** - a set of explanatory/independet/predictor variables that might affect an outcome we are measuring, but are not the main focus of our study.
+* **Link Function** - is simply a mathematical function that transforms a probability into a scale that can be modeled using a linear predictor.
+* **Link** - connects the probability we're interested in to the scale on which we can use a linear predictor.
+* **Parametric Model** - model that captures the relationship between variables using a fixed, predetermined number of parameters.
+* **Parametric Baseline** - standard parametric model used as a reference point to evaluate how well more complex models perform.
+* **Nonparametric Model** - model that captures the relationship between variables without using a fixed, predetermined number of parameters.
+
+## What does Ordinal Mean?
+* Consider an example where our outcome is to determine health improvement in a patient:
+    * For a categorical variable where values are ordered, **(Ordinal Categorical Discrete Variable)**:
+        - For example: Poor < Fair < Good < Excellent
+    * One can intuitively understand that Poor < Fair. 
+    * However, we don't necessarily know that the difference between Poor and Fair is numerically equal to the difference between Good and Excellent.
+    * The jump from Poor to Fair might not represent the same amount of health improvement as Good to Excellent.
+* Consider an example where our outcome is to determine the weight in a patient:
+    * For a continuous numerical variable, values are ordered, **(Ordinal Numerical Continuous Variable)**, but they also have numerical distances.
+        - For example: 120 < 135 < 190 < 230 (in lb)
+    * The differences or distances between each value have a numerical meaning
+* **The main insight of the paper is Ordinal Regression uses ordering without assuming anything about the shape of the outcome distribution.**.
+
+## What Problem is the Paper Addressing - The Issue with Linear Regression
+* Suppose we want to predict a continuous numerical outcome $Y_i$ = blood pressure, and predictor variables $X_i$, such as age, height, gender, etc.
+* One could use **Linear Regression** to predict $Y_i$ = blood pressure:
+$$ Y_i = \beta_0+\beta_1X_{i1}+\beta_2X_{i2}+\cdots+\epsilon_i. $$
+* **The problem: Linear regression makes assumptions about the distribution of Y**
+    - Assumption #1: Linearity of the conditional mean - The average value of Y, given X, is a linear function of $X_i$. 
+    $$ E(Y_i|X_i) = \beta_0+\beta_1X_{i1} $$
+    - Assumption #2: Homoscedasticity - The amount of variability around the regression line is assumed to be roughly constant across values of $X_i$ where $σ^2$ does not depend on $X_i$.
+    $$ Var(\epsilon_i∣X_i)=σ^2​ $$
+    
+    ![Figure 1: Diagram of Homoscedasticity vs. Heteroscedasticty.](images/homoscedasticty.jpg)
+
+    - Assumption #3: Errors are independent 
+    $$ \epsilon_1, \epsilon_2 ,  \epsilon_3, \cdots, independent $$
+    - Assumption #4: The errors have mean zero - Model does not systematically overpredict or underpredict the target variable
+    $$ E(Y_i|X_i) = 0 $$
+    - **Assumption #5: Appropriate transformation choice for Y**
+        * Assume $Y_i$ is heavily-rigth skewed. One might take the log($Y_i$) such that:
+        $$ log(Y_i) = \beta_0+\beta_1X_{i1}+\beta_2X_{i2}+\cdots+\epsilon_i. $$
+        * But how do we know that logarithm is the right transformation? What about $Y_i^2$, $\sqrt{Y_i}$, etc. **The correct transformation is often unknown.**
+* **To avoid arbitrarily picking a linear transformation**, the paper says to use the **Cumulative probability model (CPM)**.
+
+## Cumulative Probability Model (CPM)
+* The CPM is a way to model a continuous outcome by asking what is the probability that $Y$ is less than or equal to a particular value y given some predictor variables $X$.
+$$ P(Y≤y∣X) $$
+* Therefore, the CPM is the **Ordinal Regression model** for the link-transformed probability that an outcome falls at or below each value, with a specific intercept per distinct value, apply the **link function G** to it. Also called the **Cumulative Link Model**.
+
+$$ 
+P(Y≤y∣X) → \text{link function G} → 
+\underbrace{G\left[P(Y \leq y \mid X)\right]}_{\text{link-transformed probability}}
+=
+\underbrace{\alpha(y)}_{\text{cutoff-specific intercept}} - \underbrace{\beta^T X}_{\text{effect of predictors}} 
+$$
+
+* The CPM directly models the **conditional cumulative distribution function (CDF)** of an outcome given a set of **covariates**
+$$ F⁡(y|X) = P(Y ≤ y|X) $$
+
+## Deriving the CPM:
+### Linear Transformation Model:
+* The **Linear Transformation Model** is a model with some unknown increasing transformation of the outcome follows a linear model with a known error distribution.
+$$Y = H(Y^*)$$
+$$Y^* = \beta^T X + \epsilon_i$$
+
+$$\epsilon \sim F_\epsilon$$
+
+### Defining Variables:
+* $Y$ - continuous predicted variable (increasing function).
+* $Y^*$ - Unobserved continuous variable (underlying numerical scale).
+* $H$ - Unknown monotone increasing function/transformation. 
+    - Its shape is nonparametric. So, $H(.)$ is a nonparametric transformation or shift from the baseline distribution.
+* $\epsilon$ - Random error. Assumed to come from some distribution 
+    - For ex. Normal error distribution $ϵ \sim N(0,1)$ → probit link
+* $F_\epsilon$ - Distribution function
+* $X$ - Vector of predictor variables
+* $\beta$ - Vector of the regression coefficients which describe how predictors shift the baseline distribution.
+* $\alpha(y)$ - a monotone function of the outcome threshold y estimated directly from the data, that captures the marginal distribution of without assuming normality or any other parametric form.
+
+Expressed in terms of matrices:
+
+* Vector of predictor variables in matrix form
+$$
+X =
+\begin{bmatrix}
+X_1 \\ 
+\cdot \\
+\cdot \\
+\cdot \\
+X_n
+\end{bmatrix}
+$$
+* Vector of the regression coefficients in matrix form
+$$
+\beta =
+\begin{bmatrix}
+\beta_1 \\ 
+\cdot \\
+\cdot \\
+\cdot \\
+\beta_n
+\end{bmatrix}
+$$
+* Transpose of the regression coefficients
+$$
+\beta^T =
+\begin{bmatrix}
+\beta_1 \cdot \cdot \cdot \beta_n
+\end{bmatrix}
+$$
+* Therefore, the linear transofrmaiton can be epxressed via the matrices:
+$$ Y = \beta^T X + \epsilon_i $$
+
+$$
+\begin{bmatrix}
+y_1 \\
+\vdots \\
+y_n
+\end{bmatrix}
+=
+\begin{bmatrix}
+\beta_1 & \cdots & \beta_n
+\end{bmatrix}
+\begin{bmatrix}
+X_1 \\
+\vdots \\
+X_n
+\end{bmatrix}
++
+\begin{bmatrix}
+\epsilon_1 \\
+\vdots \\
+\epsilon_n
+\end{bmatrix}
+$$
+
+The cummulative CDF of Y can be defined as:
+$$
+\begin{aligned}
+F(y \mid X)
+&= P(Y \leq y \mid X) \\
+&= P\left[H(\beta^\top X + \epsilon) \leq y \mid X\right] \\
+&= P\left[\epsilon \leq H^{-1}(y) - \beta^\top X \mid X\right] \\
+&= F_{\epsilon}\left[H^{-1}(y) - \beta^\top X\right]
+\end{aligned}
+$$
+Letting $G = F_𝜖^{-1}$ be the link function and $𝛼 = H − 1$ be the intercept function. We take the inverse to both sides by applying G to both sides yield:
+$$
+F_𝜖^{-1}\left[P(Y \leq y \mid X)\right]
+=
+F_𝜖^{-1}[F_𝜖(H^{-1}(y) - \beta^\top X)]
+$$
+$$
+F_𝜖^{-1}\left[P(Y \leq y \mid X)\right]
+=
+H^{-1}(y) - \beta^\top X
+$$
+$$
+G\left[P(Y \leq y \mid X)\right]
+=
+\alpha(y) - \beta^\top X
+$$
