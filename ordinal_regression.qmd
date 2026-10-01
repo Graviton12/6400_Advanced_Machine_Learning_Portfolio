@@ -236,10 +236,15 @@ import matplotlib.pyplot as plt
 #    X ~ Bernoulli(0.5), Y* = beta*X + eps, eps ~ N(0,1), Y = H(Y*)
 # ---------------------------------------------------------------------
 def simulate_data(n, beta=1.0, H=lambda ystar: ystar, rng=None):
+    # number generator
     rng = np.random.default_rng() if rng is None else rng
+    # binomial predictor
     x = rng.binomial(1, 0.5, size=n).astype(float)
-    eps = rng.normal(0.0, 1.0, size=n)
+    # creates the error term $\epsilon \sim N(0,1)$. It draws n random numbers from a bell curve with mean 0 and standard deviation 1
+    eps = rng.normal(0.0, 1.0, size=n) 
+    # Y* hidden outcome
     ystar = beta * x + eps
+    # Y observed outcome
     y = H(ystar)
     return x, y
 
@@ -259,15 +264,18 @@ $$
 #    Probit link: G = Phi^{-1}, so  P(Y <= y_i | x) = Phi(alpha_i - beta*x)
 #    Likelihood term for person i (data sorted by y):
 #       Phi(alpha_i - beta*x_i) - Phi(alpha_{i-1} - beta*x_i)
-#    with alpha_0 = -inf and alpha_n = +inf.
+#    Person i's outcome sits between cutoff alpha_{i-1} and cutoff alpha_i. 
+#    The probability of landing in that slice is
+#       \Phi(\alpha_i - \beta x_i) - \Phi(\alpha_{i-1} - \beta x_i)
 # ---------------------------------------------------------------------
+
+# This computes \Phi(\text{upper}) - \Phi(\text{lower}) for every person at once (Maximizes the likelihood over $\beta$ and the $n-1$ increasing intercepts)
 def _interval_prob(upper, lower):
-    """Phi(upper) - Phi(lower), computed carefully in the upper tail."""
     return np.where(lower > 0,
                     norm.sf(lower) - norm.sf(upper),
                     norm.cdf(upper) - norm.cdf(lower))
  
- 
+# scoring function the optimizer uses to decide which values of β and the intercepts α are best
 def _neg_loglik(params, x):
     n = len(x)
     beta, theta = params[0], params[1:]
@@ -307,7 +315,13 @@ def cpm_cdf_at_observed(beta_hat, alpha, x_value):
     """Estimated conditional CDF, F(y_i | X = x_value), at the sorted observed y's."""
     return norm.cdf(alpha - beta_hat * x_value)
  
- 
+```
+
+Comparing the nonparametric with the parametric model:
+```{python}
+
+#| code-fold: true
+
 # ---------------------------------------------------------------------
 # 3. The two comparison models from the paper
 # ---------------------------------------------------------------------
