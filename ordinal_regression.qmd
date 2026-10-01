@@ -10,17 +10,8 @@ Modeling Continuous Response Variables Using Ordinal Regression [@liu2017] intro
 * Instead of trying to guess the exact shape of the outcome distribution or the exact transformation needed like in linear regression, we can model the probability that the **continuous outcome is below any particular value.**
 * Therefore, ordinal regression does not assume a shape for the outcvome distribution.
 
-## Important Vocabulary:
-* **Ordinal** - meaans that there is an order to the possible outcomes.
-* **Monotone Transformation** - Is a transformation which preserves the order.
-* **Covariates** - a set of explanatory/independet/predictor variables that might affect an outcome we are measuring, but are not the main focus of our study.
-* **Link Function** - is simply a mathematical function that transforms a probability into a scale that can be modeled using a linear predictor.
-* **Link** - connects the probability we're interested in to the scale on which we can use a linear predictor.
-* **Parametric Model** - model that captures the relationship between variables using a fixed, predetermined number of parameters.
-* **Parametric Baseline** - standard parametric model used as a reference point to evaluate how well more complex models perform.
-* **Nonparametric Model** - model that captures the relationship between variables without using a fixed, predetermined number of parameters.
-
 ## What does Ordinal Mean?
+* **Ordinal** - means that there is an order to the possible outcomes.
 * Consider an example where our outcome is to determine health improvement in a patient:
     * For a categorical variable where values are ordered, **(Ordinal Categorical Discrete Variable)**:
         - For example: Poor < Fair < Good < Excellent
@@ -31,9 +22,10 @@ Modeling Continuous Response Variables Using Ordinal Regression [@liu2017] intro
     * For a continuous numerical variable, values are ordered, **(Ordinal Numerical Continuous Variable)**, but they also have numerical distances.
         - For example: 120 < 135 < 190 < 230 (in lb)
     * The differences or distances between each value have a numerical meaning
-* **The main insight of the paper is Ordinal Regression uses ordering without assuming anything about the shape of the outcome distribution.**.
+* **The main insight of the paper is Ordinal Regression uses ordering without assuming anything about the shape of the outcome distribution**.
+* **Ordinal regression allows us to provide meaning to ordered outcomes after a transformation has been performed**.
 
-## What Problem is the Paper Addressing - The Issue with Linear Regression
+## What Problem is the Paper Addressing
 * Suppose we want to predict a continuous numerical outcome $Y_i$ = blood pressure, and predictor variables $X_i$, such as age, height, gender, etc.
 * One could use **Linear Regression** to predict $Y_i$ = blood pressure:
 $$ Y_i = \beta_0+\beta_1X_{i1}+\beta_2X_{i2}+\cdots+\epsilon_i. $$
@@ -56,74 +48,68 @@ $$ Y_i = \beta_0+\beta_1X_{i1}+\beta_2X_{i2}+\cdots+\epsilon_i. $$
 * **To avoid arbitrarily picking a linear transformation**, the paper says to use the **Cumulative probability model (CPM)**.
 
 ## Cumulative Probability Model (CPM)
-* The CPM is a way to model a continuous outcome by asking what is the probability that $Y$ is less than or equal to a particular value y given some predictor variables $X$.
+
+Also called the **Cumulative Link Model**
+
+The **cumulative probability model (CPM)** is a type of **Ordinal Regression Model**. Instead of modeling the outcome $Y$ (a continuous ordinal variable) directly, it models the probability that $Y$ is at or below a cutoff $y$ (which is a specific value we specify) given predictors $X$.
 $$ P(Y≤y∣X) $$
-* Therefore, the CPM is the **Ordinal Regression model** for the link-transformed probability that an outcome falls at or below each value, with a specific intercept per distinct value, apply the **link function G** to it. Also called the **Cumulative Link Model**.
-
-$$ 
-P(Y≤y∣X) → \text{link function G} → 
-\underbrace{G\left[P(Y \leq y \mid X)\right]}_{\text{link-transformed probability}}
-=
-\underbrace{\alpha(y)}_{\text{cutoff-specific intercept}} - \underbrace{\beta^T X}_{\text{effect of predictors}} 
-$$
-
-* The CPM directly models the **conditional cumulative distribution function (CDF)** of an outcome given a set of **covariates**
+The CPM can be computed every every possible cutoff value $y$ which is the **conditional cumulative distribution function (CDF)** of an outcome given a set of covariates. Therefore, it models the whole distribution of the outcome.
 $$ F⁡(y|X) = P(Y ≤ y|X) $$
 
-## Deriving the CPM:
-### Linear Transformation Model:
-* The **Linear Transformation Model** is a model with some unknown increasing transformation of the outcome follows a linear model with a known error distribution.
-$$Y = H(Y^*)$$
-$$Y^* = \beta^T X + \epsilon_i$$
+::: {.callout-note title="Vocabulary Note"}
+* **Covariates** - are a set of predictors $X$ that may affect the outcome $Y$ that we are measuring. 
+::: 
 
-$$\epsilon \sim F_\epsilon$$
+### Mathematically Deriving the CPM:
 
-### Defining Variables:
-* $Y$ - continuous predicted variable (increasing function).
-* $Y^*$ - Unobserved continuous variable (underlying numerical scale).
+Consider the **Linear Transformation Model** which is a regression model where for an outcome $Y$ which is not assumed to be linear. There is some unknown increasing **monotone transformation** $H$ which follows a linear model that is applied to the outcome with errors that have a known distribution (we define the distribution of the error terms).
+$$
+\begin{aligned}
+& Y = H(Y^*) \\
+& Y^* = \beta^\top X + \epsilon \\
+& Y = H(\beta^\top X + \epsilon) \\
+& \epsilon \sim F_\epsilon
+\end{aligned}
+$$
+
+::: {.callout-note title="Vocabulary Note"}
+* **Monotone transformation/Monotone function** - transformation or function $H$ which preserves the order.
+::: 
+
+::: {.callout-note title="Defining Variables"}
+
+* $Y$ - Outcome/Continuous ordered predicted variable (increasing function).
+* $Y^*$ - Unobserved continuous variable (underlying/hidden relationship function of the data).
+* $X$ - Vector of predictor variables
+* $y$ - Cutoff threshold value
 * $H$ - Unknown monotone increasing function/transformation. 
     - Its shape is nonparametric. So, $H(.)$ is a nonparametric transformation or shift from the baseline distribution.
-* $\epsilon$ - Random error. Assumed to come from some distribution 
+* $\epsilon$ - Random error. Assumed to come from some distribution. We specify this.
     - For ex. Normal error distribution $ϵ \sim N(0,1)$ → probit link
 * $F_\epsilon$ - Distribution function
-* $X$ - Vector of predictor variables
 * $\beta$ - Vector of the regression coefficients which describe how predictors shift the baseline distribution.
-* $\alpha(y)$ - a monotone function of the outcome threshold y estimated directly from the data, that captures the marginal distribution of without assuming normality or any other parametric form.
+* $\alpha(y)$ - Monotone function of the outcome threshold y estimated directly from the data, this captures the marginal distribution without assuming normality or any other parametric form. It is a different intercept for each cutoff threshold vlaue $y$
 
-Expressed in terms of matrices:
+:::
 
-* Vector of predictor variables in matrix form
+Vectors of predictor variables, regression coefficients, and transpose regression coefficients in matrix form:
 $$
 X =
 \begin{bmatrix}
-X_1 \\ 
-\cdot \\
-\cdot \\
-\cdot \\
-X_n
-\end{bmatrix}
-$$
-* Vector of the regression coefficients in matrix form
-$$
+X_1 \\ \vdots \\ X_n
+\end{bmatrix},
+\qquad
 \beta =
 \begin{bmatrix}
-\beta_1 \\ 
-\cdot \\
-\cdot \\
-\cdot \\
-\beta_n
-\end{bmatrix}
-$$
-* Transpose of the regression coefficients
-$$
+\beta_1 \\ \vdots \\ \beta_n
+\end{bmatrix},
+\qquad
 \beta^T =
 \begin{bmatrix}
 \beta_1 \cdot \cdot \cdot \beta_n
 \end{bmatrix}
 $$
-* Therefore, the linear transofrmaiton can be epxressed via the matrices:
-$$ Y = \beta^T X + \epsilon_i $$
-
+Therefore, the linear transformation can be epxressed via the matrices:
 $$
 \begin{bmatrix}
 y_1 \\
@@ -145,31 +131,289 @@ X_n
 \vdots \\
 \epsilon_n
 \end{bmatrix}
+→ 
+Y = \beta^T X + \epsilon_i
 $$
-
 The cummulative CDF of Y can be defined as:
 $$
 \begin{aligned}
-F(y \mid X)
-&= P(Y \leq y \mid X) \\
-&= P\left[H(\beta^\top X + \epsilon) \leq y \mid X\right] \\
-&= P\left[\epsilon \leq H^{-1}(y) - \beta^\top X \mid X\right] \\
-&= F_{\epsilon}\left[H^{-1}(y) - \beta^\top X\right]
+& F(y \mid X) = P(Y \leq y \mid X) \\
+& F(y \mid X) = P\left[H(\beta^\top X + \epsilon) \leq y \mid X\right] \\
+& F(y \mid X) = P\left[\epsilon \leq H^{-1}(y) - \beta^\top X \mid X\right] \\
+& F(y \mid X) = F_{\epsilon}\left[H^{-1}(y) - \beta^\top X\right]
 \end{aligned}
 $$
-Letting $G = F_𝜖^{-1}$ be the link function and $𝛼 = H − 1$ be the intercept function. We take the inverse to both sides by applying G to both sides yield:
+
+A probability is constrained between between 0 and 1, but the linear part $(\alpha(y) − \beta^TX)$ can be any number. Where $\alpha(y) = H^{-1}(y)$ is the transformation/intercept function. So we apply a **link function** $G = F_\epsilon^{-1}$ by taking the inverse of $F_𝜖$ for both sides of the equation to stretch the probability onto the whole number line so that it can be written as a linear model.
 $$
-F_𝜖^{-1}\left[P(Y \leq y \mid X)\right]
+\begin{aligned}
+& F_\epsilon^{-1}\left[P(Y \leq y \mid X)\right] = F_\epsilon^{-1}\left[F_\epsilon(H^{-1}(y) - \beta^\top X)\right] \\
+& F_\epsilon^{-1}\left[P(Y \leq y \mid X)\right] = H^{-1}(y) - \beta^\top X \\
+& G\left[P(Y \leq y \mid X)\right] = H^{-1}(y) - \beta^\top X \\
+& G\left[P(Y \leq y \mid X)\right] = \alpha(y) - \beta^\top X
+\end{aligned}
+$$
+
+::: {.callout-note title="Vocabulary Note"}
+* **Link Function** - is simply a mathematical function that transforms a probability into a scale that can be modeled using a linear predictor. It is a transformation function using some underlying distribution assumption. 
+* **Link** - connects the probability we're interested in to the scale on which we can use a linear predictor.
+::: 
+
+The CPM is the linear transformation model in another parameterized form:
+$$ 
+P(Y≤y∣X) → \text{link function G} → 
+\underbrace{G\left[P(Y \leq y \mid X)\right]}_{\text{link-transformed probability}}
 =
-F_𝜖^{-1}[F_𝜖(H^{-1}(y) - \beta^\top X)]
+\underbrace{\alpha(y)}_{\text{cutoff-specific intercept}} - \underbrace{\beta^T X}_{\text{effect of predictors}} 
 $$
+
+### Relation Between the CPM and Being Semiparametric:
+
+A convenient property of this model is that it uses only the **order** of the outcome $Y$. Because $H$ is increasing, applying any monotonic transformation to $Y$ leaves the model's results unchanged, so we never have to choose a transformation ourselves.
+
+The @tbl-transformations shows the transformations $\alpha(y) = H^{-1}(y)$ that a researcher might otherwise have to pick. The CPM estimates $\alpha(y)$ directly.
+
+| Transformation of $Y$: $\alpha(y) = H^{-1}(y)$ | Resulting regression |
+|:---------------|:-------------|
+| $\alpha(y) = y$ (none) | Ordinary linear regression |
+| $\alpha(y) = \log(y)$ | Log-linear regression |
+| $\alpha(y) = \text{Box-Cox}(y)$ | Box-Cox regression |
+| $\alpha(y)$ unknown | The CPM, which estimates the transformation from the data |
+
+: Possible transformations of the outcome {#tbl-transformations} 
+
+As y gets bigger, the probability of being at or below y goes up, so $\alpha(y)$ must increase too (The CDF increeases). $\alpha(y)$ is the **baseline link-transformed CDF**. For cases when $X = 0$, The $\beta^T X$ term vanishes.
+
+$$G\left[P(Y \leq y \mid X=0)\right] = \alpha(y)$$
+Since $\alpha(y)$ must rise as $y$ rises, the $\alpha(y)$ term is described as **nonparametric** where we observe $\alpha_1 \le \alpha_2 \le \dots \le \alpha_n$.
+
+The CPM $G\left[P(Y \leq y \mid X)\right] = \alpha(y) - \beta^\top X$ is **semiparametric**:
+
+* $\beta^T X$ is **parametric**: a finite set of coefficients describing the effect of the predictors.
+* $\alpha(y)$ is **nonparametric**: an unspecified increasing function estimated from the data.
+* The link function $G$ is chosen by the analyst and determines the assumed error distribution.
+
+### Choosing the Link Function:
+
+Recall that the link function is $G = F_\epsilon^{-1}$. This means choosing a link function is the same as choosing the distribution of the errors $\epsilon$ on the transformed scale. @tbl-links lists the most common choices.
+
+| Name | Link function $G(p)$ | Error distribution | CDF $F_\epsilon(y)$ |
+|:-----|:---------------------|:-------------------|:--------------------|
+| logit | $\log\left[\dfrac{p}{1-p}\right]$ | Logistic | $\dfrac{\exp(y)}{1+\exp(y)}$ |
+| probit | $\Phi^{-1}(p)$ | Normal | $\Phi(y)$ |
+| loglog | $-\log\left[-\log(p)\right]$ | Extreme value type 2 (Gumbel maximum) | $\exp\left[-\exp(-y)\right]$ |
+| cloglog | $\log\left[-\log(1-p)\right]$ | Extreme value type 1 (Gumbel minimum) | $1-\exp\left[-\exp(y)\right]$ |
+
+: Commonly used link functions and their corresponding error distributions. {#tbl-links}
+
+* **Each row is one assumption about the error distribution.** The **CDF** column is $F_\epsilon$, and the **link function** column is its inverse, $G = F_\epsilon^{-1}$.
+    * **Example (logit):** If the errors are logistic, then $p = F_\epsilon(y) = \dfrac{e^y}{1+e^y}$. Solving for $y$ gives $y = \log\left(\dfrac{p}{1-p}\right)$, which is the logit link.
+* **Symmetric assumptions depend on error distribution.** 
+    * The logit and probit assume symmetric, bell-shaped errors. The loglog and cloglog assume skewed errors, skewed in opposite directions.
+* **Interpretation of $\beta$ depends on the link.** 
+    * With the logit link, $\beta$ is a log-odds ratio. With the cloglog link, $\beta$ is a log-hazard ratio.
+* **The transformation $\alpha(y)$ is left unspecified, but the link $G$ is not.**
+
+## Simulation Study:
+Building the data generation function based on assumptions specified in the paper:
+
+* $X \sim Bernoulli(0.5)$
+* $Y = H(Y^*)$
+* $Y^* = \beta^\top X + \epsilon$
+* $\epsilon \sim N(0,1)$
+
+```{python}
+
+#| code-fold: true
+
+import numpy as np
+from scipy.optimize import minimize
+from scipy.stats import norm
+import matplotlib.pyplot as plt
+
+# ---------------------------------------------------------------------
+# 1. Data-generating process (Section 2.3 of the paper)
+#    X ~ Bernoulli(0.5), Y* = beta*X + eps, eps ~ N(0,1), Y = H(Y*)
+# ---------------------------------------------------------------------
+def simulate_data(n, beta=1.0, H=lambda ystar: ystar, rng=None):
+    rng = np.random.default_rng() if rng is None else rng
+    x = rng.binomial(1, 0.5, size=n).astype(float)
+    eps = rng.normal(0.0, 1.0, size=n)
+    ystar = beta * x + eps
+    y = H(ystar)
+    return x, y
+
+```
+
+Fit the cumulative probability model (CPM) with a probit link
+$$ 
+\Phi^{-1}[ P(Y \leq y | X) ] = \alpha(y) - \beta X \\
+\Phi^{-1}[ P(Y \leq y | X) ] = \Phi(\alpha_i - \beta X ) 
 $$
-F_𝜖^{-1}\left[P(Y \leq y \mid X)\right]
-=
-H^{-1}(y) - \beta^\top X
-$$
-$$
-G\left[P(Y \leq y \mid X)\right]
-=
-\alpha(y) - \beta^\top X
-$$
+```{python}
+
+#| code-fold: true
+
+# ---------------------------------------------------------------------
+# 2. The CPM (probit link), fit by nonparametric maximum likelihood
+#    Probit link: G = Phi^{-1}, so  P(Y <= y_i | x) = Phi(alpha_i - beta*x)
+#    Likelihood term for person i (data sorted by y):
+#       Phi(alpha_i - beta*x_i) - Phi(alpha_{i-1} - beta*x_i)
+#    with alpha_0 = -inf and alpha_n = +inf.
+# ---------------------------------------------------------------------
+def _interval_prob(upper, lower):
+    """Phi(upper) - Phi(lower), computed carefully in the upper tail."""
+    return np.where(lower > 0,
+                    norm.sf(lower) - norm.sf(upper),
+                    norm.cdf(upper) - norm.cdf(lower))
+ 
+ 
+def _neg_loglik(params, x):
+    n = len(x)
+    beta, theta = params[0], params[1:]
+    gaps = np.exp(theta[1:])                      # positive steps -> alpha increasing
+    alpha = np.concatenate([[theta[0]], theta[0] + np.cumsum(gaps)])  # n-1 intercepts
+    eta = beta * x
+    upper = np.concatenate([alpha, [np.inf]]) - eta
+    lower = np.concatenate([[-np.inf], alpha]) - eta
+    p = np.maximum(_interval_prob(upper, lower), 1e-300)
+    ll = np.sum(np.log(p))
+ 
+    # analytic gradient (makes the fit fast even with hundreds of intercepts)
+    phi_u, phi_l = norm.pdf(upper), norm.pdf(lower)
+    d_beta = -np.sum(x * (phi_u - phi_l) / p)
+    g_alpha = phi_u[:-1] / p[:-1] - phi_l[1:] / p[1:]
+    rev = np.cumsum(g_alpha[::-1])[::-1]
+    grad = np.concatenate([[d_beta], [g_alpha.sum()], gaps * rev[1:]])
+    return -ll, -grad
+ 
+ 
+def fit_cpm_probit(x, y):
+    """Returns beta_hat, alpha_hat (one per sorted y, last is +inf), sorted y, sorted x."""
+    order = np.argsort(y)
+    xs, ys = x[order], y[order]
+    n = len(ys)
+    a0 = norm.ppf(np.arange(1, n) / n)            # starting values for the intercepts
+    start = np.concatenate([[0.0], [a0[0]], np.log(np.diff(a0))])
+    res = minimize(_neg_loglik, start, args=(xs,), jac=True, method="L-BFGS-B",
+                   options={"maxiter": 5000, "maxfun": 20000})
+    beta_hat, theta = res.x[0], res.x[1:]
+    alpha = np.concatenate([[theta[0]], theta[0] + np.cumsum(np.exp(theta[1:]))])
+    alpha = np.concatenate([alpha, [np.inf]])     # alpha_n = +inf (CDF reaches 1)
+    return beta_hat, alpha, ys, xs
+ 
+ 
+def cpm_cdf_at_observed(beta_hat, alpha, x_value):
+    """Estimated conditional CDF, F(y_i | X = x_value), at the sorted observed y's."""
+    return norm.cdf(alpha - beta_hat * x_value)
+ 
+ 
+# ---------------------------------------------------------------------
+# 3. The two comparison models from the paper
+# ---------------------------------------------------------------------
+def empirical_cdf(y_group):
+    """Nonparametric: empirical CDF within one subgroup."""
+    ys = np.sort(y_group)
+    return ys, np.arange(1, len(ys) + 1) / len(ys)
+ 
+ 
+def fit_linear_regression(x, y):
+    """Parametric: OLS of y on x, then a normal CDF with the fitted mean and sd."""
+    X = np.column_stack([np.ones_like(x), x])
+    coef, *_ = np.linalg.lstsq(X, y, rcond=None)
+    resid = y - X @ coef
+    sigma = np.sqrt(resid @ resid / (len(y) - 2))
+    return coef, sigma
+ 
+ 
+# ---------------------------------------------------------------------
+# 4. PART 1: reproduce Figure 4
+# ---------------------------------------------------------------------
+def make_figure4(sample_sizes=(10, 100), beta=1.0, seed=2017,
+                 outfile="fig4_n10_n100.png"):
+    rng = np.random.default_rng(seed)
+    fig, axes = plt.subplots(len(sample_sizes), 3, figsize=(12, 3.4 * len(sample_sizes)),
+                             sharey=True)
+    titles = ["Nonparametric", "Semiparametric (CPM)", "Parametric"]
+    colors = {0: "black", 1: "gray"}
+ 
+    for r, n in enumerate(sample_sizes):
+        x, y = simulate_data(n, beta, rng=rng)
+        grid = np.linspace(y.min() - 1, y.max() + 1, 500)
+        beta_hat, alpha, ys, xs = fit_cpm_probit(x, y)
+        coef, sigma = fit_linear_regression(x, y)
+ 
+        for c in range(3):
+            ax = axes[r, c]
+            for xv in (0, 1):
+                # true CDF (dotted): Phi(y - beta*x)
+                ax.plot(grid, norm.cdf(grid - beta * xv), ":", color=colors[xv], lw=1)
+                if c == 0:      # nonparametric: step function per subgroup
+                    gy, gF = empirical_cdf(y[x == xv])
+                    ax.step(np.r_[grid[0], gy, grid[-1]], np.r_[0, gF, 1],
+                            where="post", color=colors[xv], label=f"est CDF for X={xv}")
+                elif c == 1:    # CPM: step function, jumps at ALL observed y
+                    F = cpm_cdf_at_observed(beta_hat, alpha, xv)
+                    ax.step(np.r_[grid[0], ys, grid[-1]], np.r_[0, F, 1],
+                            where="post", color=colors[xv], label=f"est CDF for X={xv}")
+                else:           # parametric: smooth normal CDF
+                    ax.plot(grid, norm.cdf((grid - (coef[0] + coef[1] * xv)) / sigma),
+                            color=colors[xv], label=f"est CDF for X={xv}")
+            if r == 0:
+                ax.set_title(titles[c])
+            if c == 0:
+                ax.set_ylabel(f"n = {n}\nP(Y <= y | X)")
+            if r == len(sample_sizes) - 1:
+                ax.set_xlabel("Y")
+            if r == 0 and c == 0:
+                ax.legend(fontsize=7, loc="upper left")
+        print(f"n={n}: CPM beta_hat = {beta_hat:.3f}   OLS slope = {coef[1]:.3f}   (true beta = {beta})")
+ 
+    fig.tight_layout()
+    fig.savefig(outfile, dpi=150)
+    return fig
+ 
+ 
+# ---------------------------------------------------------------------
+# 5. PART 2: repeated-sampling study (in the spirit of Section 3.1)
+#    Compare estimators of beta over many simulated datasets.
+#    Scenario A: H(y) = y          (no transformation needed)
+#    Scenario B: H(y) = exp(y)     (outcome is skewed; log(Y) would be the right transform)
+#    Estimators: CPM (probit), OLS on raw Y, OLS on the *true* transform H^{-1}(Y) ("oracle")
+# ---------------------------------------------------------------------
+def run_study(sample_sizes=(10, 100), reps=300, beta=1.0, seed=1):
+    rng = np.random.default_rng(seed)
+    scenarios = {"A: H(y)=y": (lambda s: s, lambda y: y),
+                 "B: H(y)=exp(y)": (np.exp, np.log)}
+    rows = []
+    for name, (H, Hinv) in scenarios.items():
+        for n in sample_sizes:
+            est = {"CPM": [], "OLS raw Y": [], "OLS oracle": []}
+            for _ in range(reps):
+                x, y = simulate_data(n, beta, H=H, rng=rng)
+                est["CPM"].append(fit_cpm_probit(x, y)[0])
+                est["OLS raw Y"].append(fit_linear_regression(x, y)[0][1])
+                est["OLS oracle"].append(fit_linear_regression(x, Hinv(y))[0][1])
+            est = {k: np.array(v) for k, v in est.items()}
+            mse = {k: np.mean((v - beta) ** 2) for k, v in est.items()}
+            rows.append(dict(scenario=name, n=n,
+                             CPM_bias=est["CPM"].mean() - beta,
+                             CPM_sd=est["CPM"].std(ddof=1),
+                             OLSraw_bias=est["OLS raw Y"].mean() - beta,
+                             rel_eff=mse["OLS oracle"] / mse["CPM"]))  # paper: MSE ratio
+    return rows
+ 
+ 
+def print_table(rows):
+    print(f"{'scenario':<16}{'n':>5}{'CPM bias':>10}{'CPM sd':>9}{'OLS(raw) bias':>15}{'rel. eff.':>11}")
+    for r in rows:
+        print(f"{r['scenario']:<16}{r['n']:>5}{r['CPM_bias']:>10.3f}{r['CPM_sd']:>9.3f}"
+              f"{r['OLSraw_bias']:>15.3f}{r['rel_eff']:>11.2f}")
+ 
+ 
+if __name__ == "__main__":
+    make_figure4()
+    rows = run_study()
+    print_table(rows)
+    plt.show()
+```

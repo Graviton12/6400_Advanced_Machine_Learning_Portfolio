@@ -26,6 +26,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 /* CSS for citations */
 div.csl-bib-body { }
 div.csl-entry {
@@ -271,15 +306,15 @@ window.Quarto = {
    
   <ul>
   <li><a href="#motivation" id="toc-motivation" class="nav-link active" data-scroll-target="#motivation"><span class="header-section-number">5.1</span> Motivation:</a></li>
-  <li><a href="#important-vocabulary" id="toc-important-vocabulary" class="nav-link" data-scroll-target="#important-vocabulary"><span class="header-section-number">5.2</span> Important Vocabulary:</a></li>
-  <li><a href="#what-does-ordinal-mean" id="toc-what-does-ordinal-mean" class="nav-link" data-scroll-target="#what-does-ordinal-mean"><span class="header-section-number">5.3</span> What does Ordinal Mean?</a></li>
-  <li><a href="#what-problem-is-the-paper-addressing---the-issue-with-linear-regression" id="toc-what-problem-is-the-paper-addressing---the-issue-with-linear-regression" class="nav-link" data-scroll-target="#what-problem-is-the-paper-addressing---the-issue-with-linear-regression"><span class="header-section-number">5.4</span> What Problem is the Paper Addressing - The Issue with Linear Regression</a></li>
-  <li><a href="#cumulative-probability-model-cpm" id="toc-cumulative-probability-model-cpm" class="nav-link" data-scroll-target="#cumulative-probability-model-cpm"><span class="header-section-number">5.5</span> Cumulative Probability Model (CPM)</a></li>
-  <li><a href="#deriving-the-cpm" id="toc-deriving-the-cpm" class="nav-link" data-scroll-target="#deriving-the-cpm"><span class="header-section-number">5.6</span> Deriving the CPM:</a>
+  <li><a href="#what-does-ordinal-mean" id="toc-what-does-ordinal-mean" class="nav-link" data-scroll-target="#what-does-ordinal-mean"><span class="header-section-number">5.2</span> What does Ordinal Mean?</a></li>
+  <li><a href="#what-problem-is-the-paper-addressing" id="toc-what-problem-is-the-paper-addressing" class="nav-link" data-scroll-target="#what-problem-is-the-paper-addressing"><span class="header-section-number">5.3</span> What Problem is the Paper Addressing</a></li>
+  <li><a href="#cumulative-probability-model-cpm" id="toc-cumulative-probability-model-cpm" class="nav-link" data-scroll-target="#cumulative-probability-model-cpm"><span class="header-section-number">5.4</span> Cumulative Probability Model (CPM)</a>
   <ul class="collapse">
-  <li><a href="#linear-transformation-model" id="toc-linear-transformation-model" class="nav-link" data-scroll-target="#linear-transformation-model"><span class="header-section-number">5.6.1</span> Linear Transformation Model:</a></li>
-  <li><a href="#defining-variables" id="toc-defining-variables" class="nav-link" data-scroll-target="#defining-variables"><span class="header-section-number">5.6.2</span> Defining Variables:</a></li>
+  <li><a href="#mathematically-deriving-the-cpm" id="toc-mathematically-deriving-the-cpm" class="nav-link" data-scroll-target="#mathematically-deriving-the-cpm"><span class="header-section-number">5.4.1</span> Mathematically Deriving the CPM:</a></li>
+  <li><a href="#relation-between-the-cpm-and-being-semiparametric" id="toc-relation-between-the-cpm-and-being-semiparametric" class="nav-link" data-scroll-target="#relation-between-the-cpm-and-being-semiparametric"><span class="header-section-number">5.4.2</span> Relation Between the CPM and Being Semiparametric:</a></li>
+  <li><a href="#choosing-the-link-function" id="toc-choosing-the-link-function" class="nav-link" data-scroll-target="#choosing-the-link-function"><span class="header-section-number">5.4.3</span> Choosing the Link Function:</a></li>
   </ul></li>
+  <li><a href="#simulation-study" id="toc-simulation-study" class="nav-link" data-scroll-target="#simulation-study"><span class="header-section-number">5.5</span> Simulation Study:</a></li>
   </ul>
 </nav>
     </div>
@@ -318,22 +353,10 @@ window.Quarto = {
 <li>Therefore, ordinal regression does not assume a shape for the outcvome distribution.</li>
 </ul>
 </section>
-<section id="important-vocabulary" class="level2" data-number="5.2">
-<h2 data-number="5.2" class="anchored" data-anchor-id="important-vocabulary"><span class="header-section-number">5.2</span> Important Vocabulary:</h2>
+<section id="what-does-ordinal-mean" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="what-does-ordinal-mean"><span class="header-section-number">5.2</span> What does Ordinal Mean?</h2>
 <ul>
-<li><strong>Ordinal</strong> - meaans that there is an order to the possible outcomes.</li>
-<li><strong>Monotone Transformation</strong> - Is a transformation which preserves the order.</li>
-<li><strong>Covariates</strong> - a set of explanatory/independet/predictor variables that might affect an outcome we are measuring, but are not the main focus of our study.</li>
-<li><strong>Link Function</strong> - is simply a mathematical function that transforms a probability into a scale that can be modeled using a linear predictor.</li>
-<li><strong>Link</strong> - connects the probability we’re interested in to the scale on which we can use a linear predictor.</li>
-<li><strong>Parametric Model</strong> - model that captures the relationship between variables using a fixed, predetermined number of parameters.</li>
-<li><strong>Parametric Baseline</strong> - standard parametric model used as a reference point to evaluate how well more complex models perform.</li>
-<li><strong>Nonparametric Model</strong> - model that captures the relationship between variables without using a fixed, predetermined number of parameters.</li>
-</ul>
-</section>
-<section id="what-does-ordinal-mean" class="level2" data-number="5.3">
-<h2 data-number="5.3" class="anchored" data-anchor-id="what-does-ordinal-mean"><span class="header-section-number">5.3</span> What does Ordinal Mean?</h2>
-<ul>
+<li><strong>Ordinal</strong> - means that there is an order to the possible outcomes.</li>
 <li>Consider an example where our outcome is to determine health improvement in a patient:
 <ul>
 <li>For a categorical variable where values are ordered, <strong>(Ordinal Categorical Discrete Variable)</strong>:
@@ -352,11 +375,12 @@ window.Quarto = {
 </ul></li>
 <li>The differences or distances between each value have a numerical meaning</li>
 </ul></li>
-<li><strong>The main insight of the paper is Ordinal Regression uses ordering without assuming anything about the shape of the outcome distribution.</strong>.</li>
+<li><strong>The main insight of the paper is Ordinal Regression uses ordering without assuming anything about the shape of the outcome distribution</strong>.</li>
+<li><strong>Ordinal regression allows us to provide meaning to ordered outcomes after a transformation has been performed</strong>.</li>
 </ul>
 </section>
-<section id="what-problem-is-the-paper-addressing---the-issue-with-linear-regression" class="level2" data-number="5.4">
-<h2 data-number="5.4" class="anchored" data-anchor-id="what-problem-is-the-paper-addressing---the-issue-with-linear-regression"><span class="header-section-number">5.4</span> What Problem is the Paper Addressing - The Issue with Linear Regression</h2>
+<section id="what-problem-is-the-paper-addressing" class="level2" data-number="5.3">
+<h2 data-number="5.3" class="anchored" data-anchor-id="what-problem-is-the-paper-addressing"><span class="header-section-number">5.3</span> What Problem is the Paper Addressing</h2>
 <ul>
 <li>Suppose we want to predict a continuous numerical outcome <span class="math inline">\(Y_i\)</span> = blood pressure, and predictor variables <span class="math inline">\(X_i\)</span>, such as age, height, gender, etc.</li>
 <li>One could use <strong>Linear Regression</strong> to predict <span class="math inline">\(Y_i\)</span> = blood pressure: <span class="math display">\[ Y_i = \beta_0+\beta_1X_{i1}+\beta_2X_{i2}+\cdots+\epsilon_i. \]</span></li>
@@ -383,80 +407,95 @@ window.Quarto = {
 <li><strong>To avoid arbitrarily picking a linear transformation</strong>, the paper says to use the <strong>Cumulative probability model (CPM)</strong>.</li>
 </ul>
 </section>
-<section id="cumulative-probability-model-cpm" class="level2" data-number="5.5">
-<h2 data-number="5.5" class="anchored" data-anchor-id="cumulative-probability-model-cpm"><span class="header-section-number">5.5</span> Cumulative Probability Model (CPM)</h2>
+<section id="cumulative-probability-model-cpm" class="level2" data-number="5.4">
+<h2 data-number="5.4" class="anchored" data-anchor-id="cumulative-probability-model-cpm"><span class="header-section-number">5.4</span> Cumulative Probability Model (CPM)</h2>
+<p>Also called the <strong>Cumulative Link Model</strong></p>
+<p>The <strong>cumulative probability model (CPM)</strong> is a type of <strong>Ordinal Regression Model</strong>. Instead of modeling the outcome <span class="math inline">\(Y\)</span> (a continuous ordinal variable) directly, it models the probability that <span class="math inline">\(Y\)</span> is at or below a cutoff <span class="math inline">\(y\)</span> (which is a specific value we specify) given predictors <span class="math inline">\(X\)</span>. <span class="math display">\[ P(Y≤y∣X) \]</span> The CPM can be computed every every possible cutoff value <span class="math inline">\(y\)</span> which is the <strong>conditional cumulative distribution function (CDF)</strong> of an outcome given a set of covariates. Therefore, it models the whole distribution of the outcome. <span class="math display">\[ F⁡(y|X) = P(Y ≤ y|X) \]</span></p>
+<div class="callout callout-style-default callout-note callout-titled" title="Vocabulary Note">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Vocabulary Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <ul>
-<li>The CPM is a way to model a continuous outcome by asking what is the probability that <span class="math inline">\(Y\)</span> is less than or equal to a particular value y given some predictor variables <span class="math inline">\(X\)</span>. <span class="math display">\[ P(Y≤y∣X) \]</span></li>
-<li>Therefore, the CPM is the <strong>Ordinal Regression model</strong> for the link-transformed probability that an outcome falls at or below each value, with a specific intercept per distinct value, apply the <strong>link function G</strong> to it. Also called the <strong>Cumulative Link Model</strong>.</li>
+<li><strong>Covariates</strong> - are a set of predictors <span class="math inline">\(X\)</span> that may affect the outcome <span class="math inline">\(Y\)</span> that we are measuring.</li>
 </ul>
-<p><span class="math display">\[
-P(Y≤y∣X) → \text{link function G} →
-\underbrace{G\left[P(Y \leq y \mid X)\right]}_{\text{link-transformed probability}}
-=
-\underbrace{\alpha(y)}_{\text{cutoff-specific intercept}} - \underbrace{\beta^T X}_{\text{effect of predictors}}
+</div>
+</div>
+<section id="mathematically-deriving-the-cpm" class="level3" data-number="5.4.1">
+<h3 data-number="5.4.1" class="anchored" data-anchor-id="mathematically-deriving-the-cpm"><span class="header-section-number">5.4.1</span> Mathematically Deriving the CPM:</h3>
+<p>Consider the <strong>Linear Transformation Model</strong> which is a regression model where for an outcome <span class="math inline">\(Y\)</span> which is not assumed to be linear. There is some unknown increasing <strong>monotone transformation</strong> <span class="math inline">\(H\)</span> which follows a linear model that is applied to the outcome with errors that have a known distribution (we define the distribution of the error terms). <span class="math display">\[
+\begin{aligned}
+&amp; Y = H(Y^*) \\
+&amp; Y^* = \beta^\top X + \epsilon \\
+&amp; Y = H(\beta^\top X + \epsilon) \\
+&amp; \epsilon \sim F_\epsilon
+\end{aligned}
 \]</span></p>
+<div class="callout callout-style-default callout-note callout-titled" title="Vocabulary Note">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Vocabulary Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <ul>
-<li>The CPM directly models the <strong>conditional cumulative distribution function (CDF)</strong> of an outcome given a set of <strong>covariates</strong> <span class="math display">\[ F⁡(y|X) = P(Y ≤ y|X) \]</span></li>
+<li><strong>Monotone transformation/Monotone function</strong> - transformation or function <span class="math inline">\(H\)</span> which preserves the order.</li>
 </ul>
-</section>
-<section id="deriving-the-cpm" class="level2" data-number="5.6">
-<h2 data-number="5.6" class="anchored" data-anchor-id="deriving-the-cpm"><span class="header-section-number">5.6</span> Deriving the CPM:</h2>
-<section id="linear-transformation-model" class="level3" data-number="5.6.1">
-<h3 data-number="5.6.1" class="anchored" data-anchor-id="linear-transformation-model"><span class="header-section-number">5.6.1</span> Linear Transformation Model:</h3>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" title="Defining Variables">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Defining Variables
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <ul>
-<li>The <strong>Linear Transformation Model</strong> is a model with some unknown increasing transformation of the outcome follows a linear model with a known error distribution. <span class="math display">\[Y = H(Y^*)\]</span> <span class="math display">\[Y^* = \beta^T X + \epsilon_i\]</span></li>
-</ul>
-<p><span class="math display">\[\epsilon \sim F_\epsilon\]</span></p>
-</section>
-<section id="defining-variables" class="level3" data-number="5.6.2">
-<h3 data-number="5.6.2" class="anchored" data-anchor-id="defining-variables"><span class="header-section-number">5.6.2</span> Defining Variables:</h3>
-<ul>
-<li><span class="math inline">\(Y\)</span> - continuous predicted variable (increasing function).</li>
-<li><span class="math inline">\(Y^*\)</span> - Unobserved continuous variable (underlying numerical scale).</li>
+<li><span class="math inline">\(Y\)</span> - Outcome/Continuous ordered predicted variable (increasing function).</li>
+<li><span class="math inline">\(Y^*\)</span> - Unobserved continuous variable (underlying/hidden relationship function of the data).</li>
+<li><span class="math inline">\(X\)</span> - Vector of predictor variables</li>
+<li><span class="math inline">\(y\)</span> - Cutoff threshold value</li>
 <li><span class="math inline">\(H\)</span> - Unknown monotone increasing function/transformation.
 <ul>
 <li>Its shape is nonparametric. So, <span class="math inline">\(H(.)\)</span> is a nonparametric transformation or shift from the baseline distribution.</li>
 </ul></li>
-<li><span class="math inline">\(\epsilon\)</span> - Random error. Assumed to come from some distribution
+<li><span class="math inline">\(\epsilon\)</span> - Random error. Assumed to come from some distribution. We specify this.
 <ul>
 <li>For ex. Normal error distribution <span class="math inline">\(ϵ \sim N(0,1)\)</span> → probit link</li>
 </ul></li>
 <li><span class="math inline">\(F_\epsilon\)</span> - Distribution function</li>
-<li><span class="math inline">\(X\)</span> - Vector of predictor variables</li>
 <li><span class="math inline">\(\beta\)</span> - Vector of the regression coefficients which describe how predictors shift the baseline distribution.</li>
-<li><span class="math inline">\(\alpha(y)\)</span> - a monotone function of the outcome threshold y estimated directly from the data, that captures the marginal distribution of without assuming normality or any other parametric form.</li>
+<li><span class="math inline">\(\alpha(y)\)</span> - Monotone function of the outcome threshold y estimated directly from the data, this captures the marginal distribution without assuming normality or any other parametric form. It is a different intercept for each cutoff threshold vlaue <span class="math inline">\(y\)</span></li>
 </ul>
-<p>Expressed in terms of matrices:</p>
-<ul>
-<li>Vector of predictor variables in matrix form <span class="math display">\[
+</div>
+</div>
+<p>Vectors of predictor variables, regression coefficients, and transpose regression coefficients in matrix form: <span class="math display">\[
 X =
 \begin{bmatrix}
-X_1 \\
-\cdot \\
-\cdot \\
-\cdot \\
-X_n
-\end{bmatrix}
-\]</span></li>
-<li>Vector of the regression coefficients in matrix form <span class="math display">\[
+X_1 \\ \vdots \\ X_n
+\end{bmatrix},
+\qquad
 \beta =
 \begin{bmatrix}
-\beta_1 \\
-\cdot \\
-\cdot \\
-\cdot \\
-\beta_n
-\end{bmatrix}
-\]</span></li>
-<li>Transpose of the regression coefficients <span class="math display">\[
+\beta_1 \\ \vdots \\ \beta_n
+\end{bmatrix},
+\qquad
 \beta^T =
 \begin{bmatrix}
 \beta_1 \cdot \cdot \cdot \beta_n
 \end{bmatrix}
-\]</span></li>
-<li>Therefore, the linear transofrmaiton can be epxressed via the matrices: <span class="math display">\[ Y = \beta^T X + \epsilon_i \]</span></li>
-</ul>
-<p><span class="math display">\[
+\]</span> Therefore, the linear transformation can be epxressed via the matrices: <span class="math display">\[
 \begin{bmatrix}
 y_1 \\
 \vdots \\
@@ -477,28 +516,387 @@ X_n
 \vdots \\
 \epsilon_n
 \end{bmatrix}
-\]</span></p>
-<p>The cummulative CDF of Y can be defined as: <span class="math display">\[
+→
+Y = \beta^T X + \epsilon_i
+\]</span> The cummulative CDF of Y can be defined as: <span class="math display">\[
 \begin{aligned}
-F(y \mid X)
-&amp;= P(Y \leq y \mid X) \\
-&amp;= P\left[H(\beta^\top X + \epsilon) \leq y \mid X\right] \\
-&amp;= P\left[\epsilon \leq H^{-1}(y) - \beta^\top X \mid X\right] \\
-&amp;= F_{\epsilon}\left[H^{-1}(y) - \beta^\top X\right]
+&amp; F(y \mid X) = P(Y \leq y \mid X) \\
+&amp; F(y \mid X) = P\left[H(\beta^\top X + \epsilon) \leq y \mid X\right] \\
+&amp; F(y \mid X) = P\left[\epsilon \leq H^{-1}(y) - \beta^\top X \mid X\right] \\
+&amp; F(y \mid X) = F_{\epsilon}\left[H^{-1}(y) - \beta^\top X\right]
 \end{aligned}
-\]</span> Letting <span class="math inline">\(G = F_𝜖^{-1}\)</span> be the link function and <span class="math inline">\(𝛼 = H − 1\)</span> be the intercept function. We take the inverse to both sides by applying G to both sides yield: <span class="math display">\[
-F_𝜖^{-1}\left[P(Y \leq y \mid X)\right]
-=
-F_𝜖^{-1}[F_𝜖(H^{-1}(y) - \beta^\top X)]
-\]</span> <span class="math display">\[
-F_𝜖^{-1}\left[P(Y \leq y \mid X)\right]
-=
-H^{-1}(y) - \beta^\top X
-\]</span> <span class="math display">\[
-G\left[P(Y \leq y \mid X)\right]
-=
-\alpha(y) - \beta^\top X
 \]</span></p>
+<p>A probability is constrained between between 0 and 1, but the linear part <span class="math inline">\((\alpha(y) − \beta^TX)\)</span> can be any number. Where <span class="math inline">\(\alpha(y) = H^{-1}(y)\)</span> is the transformation/intercept function. So we apply a <strong>link function</strong> <span class="math inline">\(G = F_\epsilon^{-1}\)</span> by taking the inverse of <span class="math inline">\(F_𝜖\)</span> for both sides of the equation to stretch the probability onto the whole number line so that it can be written as a linear model. <span class="math display">\[
+\begin{aligned}
+&amp; F_\epsilon^{-1}\left[P(Y \leq y \mid X)\right] = F_\epsilon^{-1}\left[F_\epsilon(H^{-1}(y) - \beta^\top X)\right] \\
+&amp; F_\epsilon^{-1}\left[P(Y \leq y \mid X)\right] = H^{-1}(y) - \beta^\top X \\
+&amp; G\left[P(Y \leq y \mid X)\right] = H^{-1}(y) - \beta^\top X \\
+&amp; G\left[P(Y \leq y \mid X)\right] = \alpha(y) - \beta^\top X
+\end{aligned}
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled" title="Vocabulary Note">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Vocabulary Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Link Function</strong> - is simply a mathematical function that transforms a probability into a scale that can be modeled using a linear predictor. It is a transformation function using some underlying distribution assumption.</li>
+<li><strong>Link</strong> - connects the probability we’re interested in to the scale on which we can use a linear predictor.</li>
+</ul>
+</div>
+</div>
+<p>The CPM is the linear transformation model in another parameterized form: <span class="math display">\[
+P(Y≤y∣X) → \text{link function G} →
+\underbrace{G\left[P(Y \leq y \mid X)\right]}_{\text{link-transformed probability}}
+=
+\underbrace{\alpha(y)}_{\text{cutoff-specific intercept}} - \underbrace{\beta^T X}_{\text{effect of predictors}}
+\]</span></p>
+</section>
+<section id="relation-between-the-cpm-and-being-semiparametric" class="level3" data-number="5.4.2">
+<h3 data-number="5.4.2" class="anchored" data-anchor-id="relation-between-the-cpm-and-being-semiparametric"><span class="header-section-number">5.4.2</span> Relation Between the CPM and Being Semiparametric:</h3>
+<p>A convenient property of this model is that it uses only the <strong>order</strong> of the outcome <span class="math inline">\(Y\)</span>. Because <span class="math inline">\(H\)</span> is increasing, applying any monotonic transformation to <span class="math inline">\(Y\)</span> leaves the model’s results unchanged, so we never have to choose a transformation ourselves.</p>
+<p>The <a href="#tbl-transformations" class="quarto-xref">Table&nbsp;<span>5.1</span></a> shows the transformations <span class="math inline">\(\alpha(y) = H^{-1}(y)\)</span> that a researcher might otherwise have to pick. The CPM estimates <span class="math inline">\(\alpha(y)\)</span> directly.</p>
+<div id="tbl-transformations" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-transformations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;5.1: Possible transformations of the outcome
+</figcaption>
+<div aria-describedby="tbl-transformations-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 53%">
+<col style="width: 46%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Transformation of <span class="math inline">\(Y\)</span>: <span class="math inline">\(\alpha(y) = H^{-1}(y)\)</span></th>
+<th style="text-align: left;">Resulting regression</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\alpha(y) = y\)</span> (none)</td>
+<td style="text-align: left;">Ordinary linear regression</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\alpha(y) = \log(y)\)</span></td>
+<td style="text-align: left;">Log-linear regression</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(\alpha(y) = \text{Box-Cox}(y)\)</span></td>
+<td style="text-align: left;">Box-Cox regression</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(\alpha(y)\)</span> unknown</td>
+<td style="text-align: left;">The CPM, which estimates the transformation from the data</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>As y gets bigger, the probability of being at or below y goes up, so <span class="math inline">\(\alpha(y)\)</span> must increase too (The CDF increeases). <span class="math inline">\(\alpha(y)\)</span> is the <strong>baseline link-transformed CDF</strong>. For cases when <span class="math inline">\(X = 0\)</span>, The <span class="math inline">\(\beta^T X\)</span> term vanishes.</p>
+<p><span class="math display">\[G\left[P(Y \leq y \mid X=0)\right] = \alpha(y)\]</span> Since <span class="math inline">\(\alpha(y)\)</span> must rise as <span class="math inline">\(y\)</span> rises, the <span class="math inline">\(\alpha(y)\)</span> term is described as <strong>nonparametric</strong> where we observe <span class="math inline">\(\alpha_1 \le \alpha_2 \le \dots \le \alpha_n\)</span>.</p>
+<p>The CPM <span class="math inline">\(G\left[P(Y \leq y \mid X)\right] = \alpha(y) - \beta^\top X\)</span> is <strong>semiparametric</strong>:</p>
+<ul>
+<li><span class="math inline">\(\beta^T X\)</span> is <strong>parametric</strong>: a finite set of coefficients describing the effect of the predictors.</li>
+<li><span class="math inline">\(\alpha(y)\)</span> is <strong>nonparametric</strong>: an unspecified increasing function estimated from the data.</li>
+<li>The link function <span class="math inline">\(G\)</span> is chosen by the analyst and determines the assumed error distribution.</li>
+</ul>
+</section>
+<section id="choosing-the-link-function" class="level3" data-number="5.4.3">
+<h3 data-number="5.4.3" class="anchored" data-anchor-id="choosing-the-link-function"><span class="header-section-number">5.4.3</span> Choosing the Link Function:</h3>
+<p>Recall that the link function is <span class="math inline">\(G = F_\epsilon^{-1}\)</span>. This means choosing a link function is the same as choosing the distribution of the errors <span class="math inline">\(\epsilon\)</span> on the transformed scale. <a href="#tbl-links" class="quarto-xref">Table&nbsp;<span>5.2</span></a> lists the most common choices.</p>
+<div id="tbl-links" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-links-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;5.2: Commonly used link functions and their corresponding error distributions.
+</figcaption>
+<div aria-describedby="tbl-links-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 31%">
+<col style="width: 28%">
+<col style="width: 30%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Link function <span class="math inline">\(G(p)\)</span></th>
+<th style="text-align: left;">Error distribution</th>
+<th style="text-align: left;">CDF <span class="math inline">\(F_\epsilon(y)\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">logit</td>
+<td style="text-align: left;"><span class="math inline">\(\log\left[\dfrac{p}{1-p}\right]\)</span></td>
+<td style="text-align: left;">Logistic</td>
+<td style="text-align: left;"><span class="math inline">\(\dfrac{\exp(y)}{1+\exp(y)}\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">probit</td>
+<td style="text-align: left;"><span class="math inline">\(\Phi^{-1}(p)\)</span></td>
+<td style="text-align: left;">Normal</td>
+<td style="text-align: left;"><span class="math inline">\(\Phi(y)\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">loglog</td>
+<td style="text-align: left;"><span class="math inline">\(-\log\left[-\log(p)\right]\)</span></td>
+<td style="text-align: left;">Extreme value type 2 (Gumbel maximum)</td>
+<td style="text-align: left;"><span class="math inline">\(\exp\left[-\exp(-y)\right]\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cloglog</td>
+<td style="text-align: left;"><span class="math inline">\(\log\left[-\log(1-p)\right]\)</span></td>
+<td style="text-align: left;">Extreme value type 1 (Gumbel minimum)</td>
+<td style="text-align: left;"><span class="math inline">\(1-\exp\left[-\exp(y)\right]\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<ul>
+<li><strong>Each row is one assumption about the error distribution.</strong> The <strong>CDF</strong> column is <span class="math inline">\(F_\epsilon\)</span>, and the <strong>link function</strong> column is its inverse, <span class="math inline">\(G = F_\epsilon^{-1}\)</span>.
+<ul>
+<li><strong>Example (logit):</strong> If the errors are logistic, then <span class="math inline">\(p = F_\epsilon(y) = \dfrac{e^y}{1+e^y}\)</span>. Solving for <span class="math inline">\(y\)</span> gives <span class="math inline">\(y = \log\left(\dfrac{p}{1-p}\right)\)</span>, which is the logit link.</li>
+</ul></li>
+<li><strong>Symmetric assumptions depend on error distribution.</strong>
+<ul>
+<li>The logit and probit assume symmetric, bell-shaped errors. The loglog and cloglog assume skewed errors, skewed in opposite directions.</li>
+</ul></li>
+<li><strong>Interpretation of <span class="math inline">\(\beta\)</span> depends on the link.</strong>
+<ul>
+<li>With the logit link, <span class="math inline">\(\beta\)</span> is a log-odds ratio. With the cloglog link, <span class="math inline">\(\beta\)</span> is a log-hazard ratio.</li>
+</ul></li>
+<li><strong>The transformation <span class="math inline">\(\alpha(y)\)</span> is left unspecified, but the link <span class="math inline">\(G\)</span> is not.</strong></li>
+</ul>
+</section>
+</section>
+<section id="simulation-study" class="level2" data-number="5.5">
+<h2 data-number="5.5" class="anchored" data-anchor-id="simulation-study"><span class="header-section-number">5.5</span> Simulation Study:</h2>
+<p>Building the data generation function based on assumptions specified in the paper:</p>
+<ul>
+<li><span class="math inline">\(X \sim Bernoulli(0.5)\)</span></li>
+<li><span class="math inline">\(Y = H(Y^*)\)</span></li>
+<li><span class="math inline">\(Y^* = \beta^\top X + \epsilon\)</span></li>
+<li><span class="math inline">\(\epsilon \sim N(0,1)\)</span></li>
+</ul>
+<div id="98e5dc90" class="cell" data-execution_count="1">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.optimize <span class="im">import</span> minimize</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> norm</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------------------------------------------------------------------</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Data-generating process (Section 2.3 of the paper)</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">#    X ~ Bernoulli(0.5), Y* = beta*X + eps, eps ~ N(0,1), Y = H(Y*)</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------------------------------------------------------------------</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> simulate_data(n, beta<span class="op">=</span><span class="fl">1.0</span>, H<span class="op">=</span><span class="kw">lambda</span> ystar: ystar, rng<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng() <span class="cf">if</span> rng <span class="kw">is</span> <span class="va">None</span> <span class="cf">else</span> rng</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> rng.binomial(<span class="dv">1</span>, <span class="fl">0.5</span>, size<span class="op">=</span>n).astype(<span class="bu">float</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    eps <span class="op">=</span> rng.normal(<span class="fl">0.0</span>, <span class="fl">1.0</span>, size<span class="op">=</span>n)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    ystar <span class="op">=</span> beta <span class="op">*</span> x <span class="op">+</span> eps</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> H(ystar)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x, y</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<p>Fit the cumulative probability model (CPM) with a probit link <span class="math display">\[
+\Phi^{-1}[ P(Y \leq y | X) ] = \alpha(y) - \beta X \\
+\Phi^{-1}[ P(Y \leq y | X) ] = \Phi(\alpha_i - \beta X )
+\]</span></p>
+<div id="d1adfc46" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------------------------------------------------------------------</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. The CPM (probit link), fit by nonparametric maximum likelihood</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#    Probit link: G = Phi^{-1}, so  P(Y &lt;= y_i | x) = Phi(alpha_i - beta*x)</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#    Likelihood term for person i (data sorted by y):</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#       Phi(alpha_i - beta*x_i) - Phi(alpha_{i-1} - beta*x_i)</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co">#    with alpha_0 = -inf and alpha_n = +inf.</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------------------------------------------------------------------</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _interval_prob(upper, lower):</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Phi(upper) - Phi(lower), computed carefully in the upper tail."""</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.where(lower <span class="op">&gt;</span> <span class="dv">0</span>,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                    norm.sf(lower) <span class="op">-</span> norm.sf(upper),</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>                    norm.cdf(upper) <span class="op">-</span> norm.cdf(lower))</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _neg_loglik(params, x):</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(x)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    beta, theta <span class="op">=</span> params[<span class="dv">0</span>], params[<span class="dv">1</span>:]</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    gaps <span class="op">=</span> np.exp(theta[<span class="dv">1</span>:])                      <span class="co"># positive steps -&gt; alpha increasing</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    alpha <span class="op">=</span> np.concatenate([[theta[<span class="dv">0</span>]], theta[<span class="dv">0</span>] <span class="op">+</span> np.cumsum(gaps)])  <span class="co"># n-1 intercepts</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    eta <span class="op">=</span> beta <span class="op">*</span> x</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    upper <span class="op">=</span> np.concatenate([alpha, [np.inf]]) <span class="op">-</span> eta</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    lower <span class="op">=</span> np.concatenate([[<span class="op">-</span>np.inf], alpha]) <span class="op">-</span> eta</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> np.maximum(_interval_prob(upper, lower), <span class="fl">1e-300</span>)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    ll <span class="op">=</span> np.<span class="bu">sum</span>(np.log(p))</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># analytic gradient (makes the fit fast even with hundreds of intercepts)</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    phi_u, phi_l <span class="op">=</span> norm.pdf(upper), norm.pdf(lower)</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    d_beta <span class="op">=</span> <span class="op">-</span>np.<span class="bu">sum</span>(x <span class="op">*</span> (phi_u <span class="op">-</span> phi_l) <span class="op">/</span> p)</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    g_alpha <span class="op">=</span> phi_u[:<span class="op">-</span><span class="dv">1</span>] <span class="op">/</span> p[:<span class="op">-</span><span class="dv">1</span>] <span class="op">-</span> phi_l[<span class="dv">1</span>:] <span class="op">/</span> p[<span class="dv">1</span>:]</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    rev <span class="op">=</span> np.cumsum(g_alpha[::<span class="op">-</span><span class="dv">1</span>])[::<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    grad <span class="op">=</span> np.concatenate([[d_beta], [g_alpha.<span class="bu">sum</span>()], gaps <span class="op">*</span> rev[<span class="dv">1</span>:]])</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">-</span>ll, <span class="op">-</span>grad</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fit_cpm_probit(x, y):</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Returns beta_hat, alpha_hat (one per sorted y, last is +inf), sorted y, sorted x."""</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    order <span class="op">=</span> np.argsort(y)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    xs, ys <span class="op">=</span> x[order], y[order]</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(ys)</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    a0 <span class="op">=</span> norm.ppf(np.arange(<span class="dv">1</span>, n) <span class="op">/</span> n)            <span class="co"># starting values for the intercepts</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    start <span class="op">=</span> np.concatenate([[<span class="fl">0.0</span>], [a0[<span class="dv">0</span>]], np.log(np.diff(a0))])</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> minimize(_neg_loglik, start, args<span class="op">=</span>(xs,), jac<span class="op">=</span><span class="va">True</span>, method<span class="op">=</span><span class="st">"L-BFGS-B"</span>,</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>                   options<span class="op">=</span>{<span class="st">"maxiter"</span>: <span class="dv">5000</span>, <span class="st">"maxfun"</span>: <span class="dv">20000</span>})</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>    beta_hat, theta <span class="op">=</span> res.x[<span class="dv">0</span>], res.x[<span class="dv">1</span>:]</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>    alpha <span class="op">=</span> np.concatenate([[theta[<span class="dv">0</span>]], theta[<span class="dv">0</span>] <span class="op">+</span> np.cumsum(np.exp(theta[<span class="dv">1</span>:]))])</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>    alpha <span class="op">=</span> np.concatenate([alpha, [np.inf]])     <span class="co"># alpha_n = +inf (CDF reaches 1)</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> beta_hat, alpha, ys, xs</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cpm_cdf_at_observed(beta_hat, alpha, x_value):</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Estimated conditional CDF, F(y_i | X = x_value), at the sorted observed y's."""</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> norm.cdf(alpha <span class="op">-</span> beta_hat <span class="op">*</span> x_value)</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------------------------------------------------------------------</span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. The two comparison models from the paper</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------------------------------------------------------------------</span></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> empirical_cdf(y_group):</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Nonparametric: empirical CDF within one subgroup."""</span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>    ys <span class="op">=</span> np.sort(y_group)</span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ys, np.arange(<span class="dv">1</span>, <span class="bu">len</span>(ys) <span class="op">+</span> <span class="dv">1</span>) <span class="op">/</span> <span class="bu">len</span>(ys)</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fit_linear_regression(x, y):</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Parametric: OLS of y on x, then a normal CDF with the fitted mean and sd."""</span></span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> np.column_stack([np.ones_like(x), x])</span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>    coef, <span class="op">*</span>_ <span class="op">=</span> np.linalg.lstsq(X, y, rcond<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>    resid <span class="op">=</span> y <span class="op">-</span> X <span class="op">@</span> coef</span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>    sigma <span class="op">=</span> np.sqrt(resid <span class="op">@</span> resid <span class="op">/</span> (<span class="bu">len</span>(y) <span class="op">-</span> <span class="dv">2</span>))</span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> coef, sigma</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------------------------------------------------------------------</span></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. PART 1: reproduce Figure 4</span></span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------------------------------------------------------------------</span></span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> make_figure4(sample_sizes<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">100</span>), beta<span class="op">=</span><span class="fl">1.0</span>, seed<span class="op">=</span><span class="dv">2017</span>,</span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>                 outfile<span class="op">=</span><span class="st">"fig4_n10_n100.png"</span>):</span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(seed)</span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>    fig, axes <span class="op">=</span> plt.subplots(<span class="bu">len</span>(sample_sizes), <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="fl">3.4</span> <span class="op">*</span> <span class="bu">len</span>(sample_sizes)),</span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>                             sharey<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>    titles <span class="op">=</span> [<span class="st">"Nonparametric"</span>, <span class="st">"Semiparametric (CPM)"</span>, <span class="st">"Parametric"</span>]</span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>    colors <span class="op">=</span> {<span class="dv">0</span>: <span class="st">"black"</span>, <span class="dv">1</span>: <span class="st">"gray"</span>}</span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> r, n <span class="kw">in</span> <span class="bu">enumerate</span>(sample_sizes):</span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>        x, y <span class="op">=</span> simulate_data(n, beta, rng<span class="op">=</span>rng)</span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>        grid <span class="op">=</span> np.linspace(y.<span class="bu">min</span>() <span class="op">-</span> <span class="dv">1</span>, y.<span class="bu">max</span>() <span class="op">+</span> <span class="dv">1</span>, <span class="dv">500</span>)</span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>        beta_hat, alpha, ys, xs <span class="op">=</span> fit_cpm_probit(x, y)</span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>        coef, sigma <span class="op">=</span> fit_linear_regression(x, y)</span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> c <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">3</span>):</span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>            ax <span class="op">=</span> axes[r, c]</span>
+<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> xv <span class="kw">in</span> (<span class="dv">0</span>, <span class="dv">1</span>):</span>
+<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a>                <span class="co"># true CDF (dotted): Phi(y - beta*x)</span></span>
+<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a>                ax.plot(grid, norm.cdf(grid <span class="op">-</span> beta <span class="op">*</span> xv), <span class="st">":"</span>, color<span class="op">=</span>colors[xv], lw<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> c <span class="op">==</span> <span class="dv">0</span>:      <span class="co"># nonparametric: step function per subgroup</span></span>
+<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a>                    gy, gF <span class="op">=</span> empirical_cdf(y[x <span class="op">==</span> xv])</span>
+<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a>                    ax.step(np.r_[grid[<span class="dv">0</span>], gy, grid[<span class="op">-</span><span class="dv">1</span>]], np.r_[<span class="dv">0</span>, gF, <span class="dv">1</span>],</span>
+<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a>                            where<span class="op">=</span><span class="st">"post"</span>, color<span class="op">=</span>colors[xv], label<span class="op">=</span><span class="ss">f"est CDF for X=</span><span class="sc">{</span>xv<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a>                <span class="cf">elif</span> c <span class="op">==</span> <span class="dv">1</span>:    <span class="co"># CPM: step function, jumps at ALL observed y</span></span>
+<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a>                    F <span class="op">=</span> cpm_cdf_at_observed(beta_hat, alpha, xv)</span>
+<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a>                    ax.step(np.r_[grid[<span class="dv">0</span>], ys, grid[<span class="op">-</span><span class="dv">1</span>]], np.r_[<span class="dv">0</span>, F, <span class="dv">1</span>],</span>
+<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a>                            where<span class="op">=</span><span class="st">"post"</span>, color<span class="op">=</span>colors[xv], label<span class="op">=</span><span class="ss">f"est CDF for X=</span><span class="sc">{</span>xv<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a>                <span class="cf">else</span>:           <span class="co"># parametric: smooth normal CDF</span></span>
+<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a>                    ax.plot(grid, norm.cdf((grid <span class="op">-</span> (coef[<span class="dv">0</span>] <span class="op">+</span> coef[<span class="dv">1</span>] <span class="op">*</span> xv)) <span class="op">/</span> sigma),</span>
+<span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a>                            color<span class="op">=</span>colors[xv], label<span class="op">=</span><span class="ss">f"est CDF for X=</span><span class="sc">{</span>xv<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> r <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a>                ax.set_title(titles[c])</span>
+<span id="cb2-108"><a href="#cb2-108" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> c <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a>                ax.set_ylabel(<span class="ss">f"n = </span><span class="sc">{</span>n<span class="sc">}</span><span class="ch">\n</span><span class="ss">P(Y &lt;= y | X)"</span>)</span>
+<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> r <span class="op">==</span> <span class="bu">len</span>(sample_sizes) <span class="op">-</span> <span class="dv">1</span>:</span>
+<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a>                ax.set_xlabel(<span class="st">"Y"</span>)</span>
+<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> r <span class="op">==</span> <span class="dv">0</span> <span class="kw">and</span> c <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a>                ax.legend(fontsize<span class="op">=</span><span class="dv">7</span>, loc<span class="op">=</span><span class="st">"upper left"</span>)</span>
+<span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"n=</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">: CPM beta_hat = </span><span class="sc">{</span>beta_hat<span class="sc">:.3f}</span><span class="ss">   OLS slope = </span><span class="sc">{</span>coef[<span class="dv">1</span>]<span class="sc">:.3f}</span><span class="ss">   (true beta = </span><span class="sc">{</span>beta<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a>    fig.tight_layout()</span>
+<span id="cb2-117"><a href="#cb2-117" aria-hidden="true" tabindex="-1"></a>    fig.savefig(outfile, dpi<span class="op">=</span><span class="dv">150</span>)</span>
+<span id="cb2-118"><a href="#cb2-118" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> fig</span>
+<span id="cb2-119"><a href="#cb2-119" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-120"><a href="#cb2-120" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-121"><a href="#cb2-121" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------------------------------------------------------------------</span></span>
+<span id="cb2-122"><a href="#cb2-122" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. PART 2: repeated-sampling study (in the spirit of Section 3.1)</span></span>
+<span id="cb2-123"><a href="#cb2-123" aria-hidden="true" tabindex="-1"></a><span class="co">#    Compare estimators of beta over many simulated datasets.</span></span>
+<span id="cb2-124"><a href="#cb2-124" aria-hidden="true" tabindex="-1"></a><span class="co">#    Scenario A: H(y) = y          (no transformation needed)</span></span>
+<span id="cb2-125"><a href="#cb2-125" aria-hidden="true" tabindex="-1"></a><span class="co">#    Scenario B: H(y) = exp(y)     (outcome is skewed; log(Y) would be the right transform)</span></span>
+<span id="cb2-126"><a href="#cb2-126" aria-hidden="true" tabindex="-1"></a><span class="co">#    Estimators: CPM (probit), OLS on raw Y, OLS on the *true* transform H^{-1}(Y) ("oracle")</span></span>
+<span id="cb2-127"><a href="#cb2-127" aria-hidden="true" tabindex="-1"></a><span class="co"># ---------------------------------------------------------------------</span></span>
+<span id="cb2-128"><a href="#cb2-128" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_study(sample_sizes<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">100</span>), reps<span class="op">=</span><span class="dv">300</span>, beta<span class="op">=</span><span class="fl">1.0</span>, seed<span class="op">=</span><span class="dv">1</span>):</span>
+<span id="cb2-129"><a href="#cb2-129" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(seed)</span>
+<span id="cb2-130"><a href="#cb2-130" aria-hidden="true" tabindex="-1"></a>    scenarios <span class="op">=</span> {<span class="st">"A: H(y)=y"</span>: (<span class="kw">lambda</span> s: s, <span class="kw">lambda</span> y: y),</span>
+<span id="cb2-131"><a href="#cb2-131" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"B: H(y)=exp(y)"</span>: (np.exp, np.log)}</span>
+<span id="cb2-132"><a href="#cb2-132" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> []</span>
+<span id="cb2-133"><a href="#cb2-133" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> name, (H, Hinv) <span class="kw">in</span> scenarios.items():</span>
+<span id="cb2-134"><a href="#cb2-134" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> n <span class="kw">in</span> sample_sizes:</span>
+<span id="cb2-135"><a href="#cb2-135" aria-hidden="true" tabindex="-1"></a>            est <span class="op">=</span> {<span class="st">"CPM"</span>: [], <span class="st">"OLS raw Y"</span>: [], <span class="st">"OLS oracle"</span>: []}</span>
+<span id="cb2-136"><a href="#cb2-136" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(reps):</span>
+<span id="cb2-137"><a href="#cb2-137" aria-hidden="true" tabindex="-1"></a>                x, y <span class="op">=</span> simulate_data(n, beta, H<span class="op">=</span>H, rng<span class="op">=</span>rng)</span>
+<span id="cb2-138"><a href="#cb2-138" aria-hidden="true" tabindex="-1"></a>                est[<span class="st">"CPM"</span>].append(fit_cpm_probit(x, y)[<span class="dv">0</span>])</span>
+<span id="cb2-139"><a href="#cb2-139" aria-hidden="true" tabindex="-1"></a>                est[<span class="st">"OLS raw Y"</span>].append(fit_linear_regression(x, y)[<span class="dv">0</span>][<span class="dv">1</span>])</span>
+<span id="cb2-140"><a href="#cb2-140" aria-hidden="true" tabindex="-1"></a>                est[<span class="st">"OLS oracle"</span>].append(fit_linear_regression(x, Hinv(y))[<span class="dv">0</span>][<span class="dv">1</span>])</span>
+<span id="cb2-141"><a href="#cb2-141" aria-hidden="true" tabindex="-1"></a>            est <span class="op">=</span> {k: np.array(v) <span class="cf">for</span> k, v <span class="kw">in</span> est.items()}</span>
+<span id="cb2-142"><a href="#cb2-142" aria-hidden="true" tabindex="-1"></a>            mse <span class="op">=</span> {k: np.mean((v <span class="op">-</span> beta) <span class="op">**</span> <span class="dv">2</span>) <span class="cf">for</span> k, v <span class="kw">in</span> est.items()}</span>
+<span id="cb2-143"><a href="#cb2-143" aria-hidden="true" tabindex="-1"></a>            rows.append(<span class="bu">dict</span>(scenario<span class="op">=</span>name, n<span class="op">=</span>n,</span>
+<span id="cb2-144"><a href="#cb2-144" aria-hidden="true" tabindex="-1"></a>                             CPM_bias<span class="op">=</span>est[<span class="st">"CPM"</span>].mean() <span class="op">-</span> beta,</span>
+<span id="cb2-145"><a href="#cb2-145" aria-hidden="true" tabindex="-1"></a>                             CPM_sd<span class="op">=</span>est[<span class="st">"CPM"</span>].std(ddof<span class="op">=</span><span class="dv">1</span>),</span>
+<span id="cb2-146"><a href="#cb2-146" aria-hidden="true" tabindex="-1"></a>                             OLSraw_bias<span class="op">=</span>est[<span class="st">"OLS raw Y"</span>].mean() <span class="op">-</span> beta,</span>
+<span id="cb2-147"><a href="#cb2-147" aria-hidden="true" tabindex="-1"></a>                             rel_eff<span class="op">=</span>mse[<span class="st">"OLS oracle"</span>] <span class="op">/</span> mse[<span class="st">"CPM"</span>]))  <span class="co"># paper: MSE ratio</span></span>
+<span id="cb2-148"><a href="#cb2-148" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> rows</span>
+<span id="cb2-149"><a href="#cb2-149" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-150"><a href="#cb2-150" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-151"><a href="#cb2-151" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> print_table(rows):</span>
+<span id="cb2-152"><a href="#cb2-152" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'scenario'</span><span class="sc">:&lt;16}{</span><span class="st">'n'</span><span class="sc">:&gt;5}{</span><span class="st">'CPM bias'</span><span class="sc">:&gt;10}{</span><span class="st">'CPM sd'</span><span class="sc">:&gt;9}{</span><span class="st">'OLS(raw) bias'</span><span class="sc">:&gt;15}{</span><span class="st">'rel. eff.'</span><span class="sc">:&gt;11}</span><span class="ss">"</span>)</span>
+<span id="cb2-153"><a href="#cb2-153" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> r <span class="kw">in</span> rows:</span>
+<span id="cb2-154"><a href="#cb2-154" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>r[<span class="st">'scenario'</span>]<span class="sc">:&lt;16}{</span>r[<span class="st">'n'</span>]<span class="sc">:&gt;5}{</span>r[<span class="st">'CPM_bias'</span>]<span class="sc">:&gt;10.3f}{</span>r[<span class="st">'CPM_sd'</span>]<span class="sc">:&gt;9.3f}</span><span class="ss">"</span></span>
+<span id="cb2-155"><a href="#cb2-155" aria-hidden="true" tabindex="-1"></a>              <span class="ss">f"</span><span class="sc">{</span>r[<span class="st">'OLSraw_bias'</span>]<span class="sc">:&gt;15.3f}{</span>r[<span class="st">'rel_eff'</span>]<span class="sc">:&gt;11.2f}</span><span class="ss">"</span>)</span>
+<span id="cb2-156"><a href="#cb2-156" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-157"><a href="#cb2-157" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb2-158"><a href="#cb2-158" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="va">__name__</span> <span class="op">==</span> <span class="st">"__main__"</span>:</span>
+<span id="cb2-159"><a href="#cb2-159" aria-hidden="true" tabindex="-1"></a>    make_figure4()</span>
+<span id="cb2-160"><a href="#cb2-160" aria-hidden="true" tabindex="-1"></a>    rows <span class="op">=</span> run_study()</span>
+<span id="cb2-161"><a href="#cb2-161" aria-hidden="true" tabindex="-1"></a>    print_table(rows)</span>
+<span id="cb2-162"><a href="#cb2-162" aria-hidden="true" tabindex="-1"></a>    plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>n=10: CPM beta_hat = 1.496   OLS slope = 1.667   (true beta = 1.0)
+n=100: CPM beta_hat = 1.146   OLS slope = 1.104   (true beta = 1.0)
+scenario            n  CPM bias   CPM sd  OLS(raw) bias  rel. eff.
+A: H(y)=y          10     0.846    2.751          0.040       0.06
+A: H(y)=y         100     0.043    0.220          0.015       0.78
+B: H(y)=exp(y)     10     1.162    3.152          1.728       0.04
+B: H(y)=exp(y)    100     0.024    0.221          1.822       0.81</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="ordinal_regression_files/figure-html/cell-3-output-2.png" width="1143" height="643" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
@@ -506,7 +904,6 @@ G\left[P(Y \leq y \mid X)\right]
 Liu, Qi, Bryan E. Shepherd, Chun Li, and Frank E. Harrell Jr. 2017. <span>“Modeling Continuous Response Variables Using Ordinal Regression.”</span> <em>Statistics in Medicine</em> 36 (27): 4316–35. https://doi.org/<a href="https://doi.org/10.1002/sim.7433">https://doi.org/10.1002/sim.7433</a>.
 </div>
 </div>
-</section>
 </section>
 
 </main> <!-- /main -->
