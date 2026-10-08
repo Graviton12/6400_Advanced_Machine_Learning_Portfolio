@@ -535,7 +535,6 @@ We compare each prediction rule with what actually happened to the test househol
 
 * **MSE (mean squared error)** for mean predictions: $\frac{1}{m}\sum (y_j - \hat y_j)^2$. It punishes big misses heavily.
 * **MAE (mean absolute error)** for median predictions: $\frac{1}{m}\sum |y_j - \hat y_j|$. The median is the prediction that minimizes this.
-* **Brier score** for the tail probability: the MSE between the predicted probability and what happened (1 if $y_j > c$, 0 otherwise).
 
 ```{python}
 
