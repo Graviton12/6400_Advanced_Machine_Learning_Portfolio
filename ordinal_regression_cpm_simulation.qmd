@@ -1,0 +1,217 @@
+## Simulation Study From Paper:
+Building the data generation function based on assumptions specified in the paper:
+
+* $X \sim Bernoulli(0.5)$
+* $Y = H(Y^*)$
+* $Y^* = \beta^\top X + \epsilon$
+* $\epsilon \sim N(0,1)$
+
+```{python}
+
+#| code-fold: true
+
+import numpy as np
+from scipy.optimize import minimize
+from scipy.stats import norm
+import matplotlib.pyplot as plt
+
+# ---------------------------------------------------------------------
+# 1. Data-generating process (Section 2.3 of the paper)
+#    X ~ Bernoulli(0.5), Y* = beta*X + eps, eps ~ N(0,1), Y = H(Y*)
+# ---------------------------------------------------------------------
+def simulate_data(n, beta=1.0, H=lambda ystar: ystar, rng=None):
+    # number generator
+    rng = np.random.default_rng() if rng is None else rng
+    # binomial predictor
+    x = rng.binomial(1, 0.5, size=n).astype(float)
+    # creates the error term $\epsilon \sim N(0,1)$. It draws n random numbers from a bell curve with mean 0 and standard deviation 1
+    eps = rng.normal(0.0, 1.0, size=n) 
+    # Y* hidden outcome
+    ystar = beta * x + eps
+    # Y observed outcome
+    y = H(ystar)
+    return x, y
+
+```
+
+Fit the cumulative probability model (CPM) with a probit link
+$$ 
+\Phi^{-1}[ P(Y \leq y | X) ] = \alpha(y) - \beta X \\
+\Phi^{-1}[ P(Y \leq y | X) ] = \Phi(\alpha_i - \beta X ) 
+$$
+```{python}
+
+#| code-fold: true
+
+# ---------------------------------------------------------------------
+# 2. The CPM (probit link), fit by nonparametric maximum likelihood
+#    Probit link: G = Phi^{-1}, so  P(Y <= y_i | x) = Phi(alpha_i - beta*x)
+#    Likelihood term for person i (data sorted by y):
+#       Phi(alpha_i - beta*x_i) - Phi(alpha_{i-1} - beta*x_i)
+#    Person i's outcome sits between cutoff alpha_{i-1} and cutoff alpha_i. 
+#    The probability of landing in that slice is
+#       \Phi(\alpha_i - \beta x_i) - \Phi(\alpha_{i-1} - \beta x_i)
+# ---------------------------------------------------------------------
+
+# This computes \Phi(\text{upper}) - \Phi(\text{lower}) for every person at once (Maximizes the likelihood over $\beta$ and the $n-1$ increasing intercepts)
+def _interval_prob(upper, lower):
+    return np.where(lower > 0,
+                    norm.sf(lower) - norm.sf(upper),
+                    norm.cdf(upper) - norm.cdf(lower))
+ 
+# scoring function the optimizer uses to decide which values of β and the intercepts α are best
+def _neg_loglik(params, x):
+    n = len(x)
+    beta, theta = params[0], params[1:]
+    gaps = np.exp(theta[1:])                      # positive steps -> alpha increasing
+    alpha = np.concatenate([[theta[0]], theta[0] + np.cumsum(gaps)])  # n-1 intercepts
+    eta = beta * x
+    upper = np.concatenate([alpha, [np.inf]]) - eta
+    lower = np.concatenate([[-np.inf], alpha]) - eta
+    p = np.maximum(_interval_prob(upper, lower), 1e-300)
+    ll = np.sum(np.log(p))
+ 
+    # analytic gradient (makes the fit fast even with hundreds of intercepts)
+    phi_u, phi_l = norm.pdf(upper), norm.pdf(lower)
+    d_beta = -np.sum(x * (phi_u - phi_l) / p)
+    g_alpha = phi_u[:-1] / p[:-1] - phi_l[1:] / p[1:]
+    rev = np.cumsum(g_alpha[::-1])[::-1]
+    grad = np.concatenate([[d_beta], [g_alpha.sum()], gaps * rev[1:]])
+    return -ll, -grad
+ 
+ 
+def fit_cpm_probit(x, y):
+    """Returns beta_hat, alpha_hat (one per sorted y, last is +inf), sorted y, sorted x."""
+    order = np.argsort(y)
+    xs, ys = x[order], y[order]
+    n = len(ys)
+    a0 = norm.ppf(np.arange(1, n) / n)            # starting values for the intercepts
+    start = np.concatenate([[0.0], [a0[0]], np.log(np.diff(a0))])
+    res = minimize(_neg_loglik, start, args=(xs,), jac=True, method="L-BFGS-B",
+                   options={"maxiter": 5000, "maxfun": 20000})
+    beta_hat, theta = res.x[0], res.x[1:]
+    alpha = np.concatenate([[theta[0]], theta[0] + np.cumsum(np.exp(theta[1:]))])
+    alpha = np.concatenate([alpha, [np.inf]])     # alpha_n = +inf (CDF reaches 1)
+    return beta_hat, alpha, ys, xs
+ 
+ 
+def cpm_cdf_at_observed(beta_hat, alpha, x_value):
+    """Estimated conditional CDF, F(y_i | X = x_value), at the sorted observed y's."""
+    return norm.cdf(alpha - beta_hat * x_value)
+ 
+```
+
+Comparing the nonparametric with the parametric model:
+```{python}
+
+#| code-fold: true
+
+# ---------------------------------------------------------------------
+# 3. The two comparison models from the paper
+# ---------------------------------------------------------------------
+def empirical_cdf(y_group):
+    """Nonparametric: empirical CDF within one subgroup."""
+    ys = np.sort(y_group)
+    return ys, np.arange(1, len(ys) + 1) / len(ys)
+ 
+ 
+def fit_linear_regression(x, y):
+    """Parametric: OLS of y on x, then a normal CDF with the fitted mean and sd."""
+    X = np.column_stack([np.ones_like(x), x])
+    coef, *_ = np.linalg.lstsq(X, y, rcond=None)
+    resid = y - X @ coef
+    sigma = np.sqrt(resid @ resid / (len(y) - 2))
+    return coef, sigma
+ 
+ 
+# ---------------------------------------------------------------------
+# 4. PART 1: reproduce Figure 4
+# ---------------------------------------------------------------------
+def make_figure4(sample_sizes=(10, 100), beta=1.0, seed=2017,
+                 outfile="fig4_n10_n100.png"):
+    rng = np.random.default_rng(seed)
+    fig, axes = plt.subplots(len(sample_sizes), 3, figsize=(12, 3.4 * len(sample_sizes)),
+                             sharey=True)
+    titles = ["Nonparametric", "Semiparametric (CPM)", "Parametric"]
+    colors = {0: "black", 1: "gray"}
+ 
+    for r, n in enumerate(sample_sizes):
+        x, y = simulate_data(n, beta, rng=rng)
+        grid = np.linspace(y.min() - 1, y.max() + 1, 500)
+        beta_hat, alpha, ys, xs = fit_cpm_probit(x, y)
+        coef, sigma = fit_linear_regression(x, y)
+ 
+        for c in range(3):
+            ax = axes[r, c]
+            for xv in (0, 1):
+                # true CDF (dotted): Phi(y - beta*x)
+                ax.plot(grid, norm.cdf(grid - beta * xv), ":", color=colors[xv], lw=1)
+                if c == 0:      # nonparametric: step function per subgroup
+                    gy, gF = empirical_cdf(y[x == xv])
+                    ax.step(np.r_[grid[0], gy, grid[-1]], np.r_[0, gF, 1],
+                            where="post", color=colors[xv], label=f"est CDF for X={xv}")
+                elif c == 1:    # CPM: step function, jumps at ALL observed y
+                    F = cpm_cdf_at_observed(beta_hat, alpha, xv)
+                    ax.step(np.r_[grid[0], ys, grid[-1]], np.r_[0, F, 1],
+                            where="post", color=colors[xv], label=f"est CDF for X={xv}")
+                else:           # parametric: smooth normal CDF
+                    ax.plot(grid, norm.cdf((grid - (coef[0] + coef[1] * xv)) / sigma),
+                            color=colors[xv], label=f"est CDF for X={xv}")
+            if r == 0:
+                ax.set_title(titles[c])
+            if c == 0:
+                ax.set_ylabel(f"n = {n}\nP(Y <= y | X)")
+            if r == len(sample_sizes) - 1:
+                ax.set_xlabel("Y")
+            if r == 0 and c == 0:
+                ax.legend(fontsize=7, loc="upper left")
+        print(f"n={n}: CPM beta_hat = {beta_hat:.3f}   OLS slope = {coef[1]:.3f}   (true beta = {beta})")
+ 
+    fig.tight_layout()
+    fig.savefig(outfile, dpi=150)
+    return fig
+ 
+ 
+# ---------------------------------------------------------------------
+# 5. PART 2: repeated-sampling study (in the spirit of Section 3.1)
+#    Compare estimators of beta over many simulated datasets.
+#    Scenario A: H(y) = y          (no transformation needed)
+#    Scenario B: H(y) = exp(y)     (outcome is skewed; log(Y) would be the right transform)
+#    Estimators: CPM (probit), OLS on raw Y, OLS on the *true* transform H^{-1}(Y) ("oracle")
+# ---------------------------------------------------------------------
+def run_study(sample_sizes=(10, 100), reps=300, beta=1.0, seed=1):
+    rng = np.random.default_rng(seed)
+    scenarios = {"A: H(y)=y": (lambda s: s, lambda y: y),
+                 "B: H(y)=exp(y)": (np.exp, np.log)}
+    rows = []
+    for name, (H, Hinv) in scenarios.items():
+        for n in sample_sizes:
+            est = {"CPM": [], "OLS raw Y": [], "OLS oracle": []}
+            for _ in range(reps):
+                x, y = simulate_data(n, beta, H=H, rng=rng)
+                est["CPM"].append(fit_cpm_probit(x, y)[0])
+                est["OLS raw Y"].append(fit_linear_regression(x, y)[0][1])
+                est["OLS oracle"].append(fit_linear_regression(x, Hinv(y))[0][1])
+            est = {k: np.array(v) for k, v in est.items()}
+            mse = {k: np.mean((v - beta) ** 2) for k, v in est.items()}
+            rows.append(dict(scenario=name, n=n,
+                             CPM_bias=est["CPM"].mean() - beta,
+                             CPM_sd=est["CPM"].std(ddof=1),
+                             OLSraw_bias=est["OLS raw Y"].mean() - beta,
+                             rel_eff=mse["OLS oracle"] / mse["CPM"]))  # paper: MSE ratio
+    return rows
+ 
+ 
+def print_table(rows):
+    print(f"{'scenario':<16}{'n':>5}{'CPM bias':>10}{'CPM sd':>9}{'OLS(raw) bias':>15}{'rel. eff.':>11}")
+    for r in rows:
+        print(f"{r['scenario']:<16}{r['n']:>5}{r['CPM_bias']:>10.3f}{r['CPM_sd']:>9.3f}"
+              f"{r['OLSraw_bias']:>15.3f}{r['rel_eff']:>11.2f}")
+ 
+ 
+if __name__ == "__main__":
+    make_figure4()
+    rows = run_study()
+    print_table(rows)
+    plt.show()
+```

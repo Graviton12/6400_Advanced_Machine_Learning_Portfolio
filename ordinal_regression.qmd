@@ -214,220 +214,347 @@ Recall that the link function is $G = F_\epsilon^{-1}$. This means choosing a li
     * With the logit link, $\beta$ is a log-odds ratio. With the cloglog link, $\beta$ is a log-hazard ratio.
 * **The transformation $\alpha(y)$ is left unspecified, but the link $G$ is not.**
 
-## Simulation Study:
-Building the data generation function based on assumptions specified in the paper:
+## Model Demonstration in Code - Single Dataset Evaluation of the CPM:
+**Goal:** build one simulated dataset, fit the ordinal regression cumulative probability model (CPM) on part of it, and then measure how well it predicts the part it has never seen.
 
-* $X \sim Bernoulli(0.5)$
-* $Y = H(Y^*)$
-* $Y^* = \beta^\top X + \epsilon$
-* $\epsilon \sim N(0,1)$
+::: {.callout-note title="Vocabulary Note"}
+* **Training set** - the portion of the data the model ;earns from.
+* **Test set** - the portion of the data set that the model is not trained on. We use it afterward to test the model see how the model does on new observations it has not seen before. This is called **out-of-sample performance**.
+* **Prediction rule** - a specific threshold/cutoff derived from a model to classify datapoints. It turns predictor values $X$ into a prediction. A linear regression has one prediction rule which is a fitted line. The CPM has several prediction rules, because it estimates the whole conditional distribution: we can read off a mean, a median, a probability, etc.
+:::
+
+### Step 1: The Data-Generating Process
+
+Because we simulate the data, we get to be "the master of the universe": we pick the true relationship, and later we can check how close the model gets to it. This is the same structure as the paper's linear transformation model:
+
+$$
+Y^* = \beta^\top X + \epsilon, \qquad \epsilon \sim N(0,1), \qquad Y = H(Y^*) = \exp(Y^*)
+$$
+
+* **Three predictors:**
+    * $X_1 \sim \text{Bernoulli}(0.5)$: a binary variable, the household head has a bachelor's degree
+        - X₁ = 1 is yes with probability of p = 0.5
+        - X₁ = 0 is no with probability of p = 0.5
+    * $X_2, X_3 \sim N(0,1)$: two continuous variables, $X_2$ is the local unemployment rate and $X_3$ is the household head's years of work experience respectively
+* **Outcome:** 
+    * $Y$ is a skewed, positive variable for the annual household income, measured in units of $50,000.
+* **True coefficients:** $\beta = (1.0,\,-0.5,\,0.5)$.
+    * $\beta_1 = 1.0$: having a degree pushes income **up**.
+    * $\beta_2 = -0.5$: a **higher** local unemployment rate pushes income **down**.
+    * $\beta_3 = 0.5$: **more** work experience pushes income **up**.
+* **Why $H(y)=\exp(y)$?** It makes the outcome $Y$ right-skewed, just like real income. A plain linear regression on $Y$ would be a poor fit because the *correct transformation* is $\log(Y)$, a very common choice for income. The CPM is never told this; it has to discover the transformation from the data.
+
+Because we know the truth, we can write down the *exact* answers that any model is trying to estimate. Since $Y = \exp(\beta^\top X + \epsilon)$:
+
+| Quantity | True value |
+|:---------|:-----------|
+| Median of $Y \mid X$ | $\exp(\beta^\top X)$ |
+| Mean of $Y \mid X$ | $\exp(\beta^\top X + \tfrac{1}{2})$ (a log-normal mean, with $\sigma=1$) |
+| $P(Y > c \mid X)$ | $1 - \Phi\left(\log c - \beta^\top X\right)$ |
+
+: True conditional summaries under this data-generating process {#tbl-truth}
 
 ```{python}
 
-#| code-fold: true
+#| label: step1-dgp
 
 import numpy as np
 from scipy.optimize import minimize
-from scipy.stats import norm
+from scipy.stats import norm, kstest
 import matplotlib.pyplot as plt
 
-# ---------------------------------------------------------------------
-# 1. Data-generating process (Section 2.3 of the paper)
-#    X ~ Bernoulli(0.5), Y* = beta*X + eps, eps ~ N(0,1), Y = H(Y*)
-# ---------------------------------------------------------------------
-def simulate_data(n, beta=1.0, H=lambda ystar: ystar, rng=None):
-    # number generator
+TRUE_BETA = np.array([1.0, -0.5, 0.5])  # true coefficients of the data-generating process
+
+def simulate_data(n, beta=TRUE_BETA, rng=None):
+    """Simulate n households: returns the predictor matrix X (n x 3) and outcome y (n,)."""
     rng = np.random.default_rng() if rng is None else rng
-    # binomial predictor
-    x = rng.binomial(1, 0.5, size=n).astype(float)
-    # creates the error term $\epsilon \sim N(0,1)$. It draws n random numbers from a bell curve with mean 0 and standard deviation 1
-    eps = rng.normal(0.0, 1.0, size=n) 
-    # Y* hidden outcome
-    ystar = beta * x + eps
-    # Y observed outcome
-    y = H(ystar)
-    return x, y
+    x1 = rng.binomial(1, 0.5, size=n).astype(float)    # bachelor's degree: 1 = yes, 0 = no
+    x2 = rng.normal(0, 1, size=n)                      # local unemployment rate 
+    x3 = rng.normal(0, 1, size=n)                      # years of work experience 
+    X = np.column_stack([x1, x2, x3])                  # one row per household, one column per predictor (income)
+    eps = rng.normal(0, 1, size=n)                     # random error, N(0,1)
+    ystar = X @ beta + eps                             # hidden Y* = beta'X + error
+    y = np.exp(ystar)                                  # observed Y = H(Y*) = exp(Y*)
+    return X, y
+
+rng = np.random.default_rng(2026)   # fixed seed so the results are reproducible
+X, y = simulate_data(600, rng=rng)  # runs the data-generating process where n = 600 households
+
+print(f"y: min={y.min():.2f}  median={np.median(y):.2f}  mean={y.mean():.2f}  max={y.max():.2f}")
 
 ```
 
-Fit the cumulative probability model (CPM) with a probit link
-$$ 
-\Phi^{-1}[ P(Y \leq y | X) ] = \alpha(y) - \beta X \\
-\Phi^{-1}[ P(Y \leq y | X) ] = \Phi(\alpha_i - \beta X ) 
-$$
+Notice that the mean is noticeably larger than the median and the maximum is far out in the tail. That is what right-skew looks like.
+* Smallest household income: 0.03 × $50,000 = $1,500 
+* Mean income: 3.64 × $50,000 = $182,000
+* Median income: 1.56 × $50,000 = $78,000
+* Largest household income: 37.98 × $50,000 ≈ $1.9 million
+
+Refer to the Diagram below. The left panel show the distribution of the household income data. The right panel shows $\log(y)$, which is exactly the hidden $Y^*$ (since $Y = \exp(Y^*)$). On that scale the distribution is a symmetric bell shape. That symmetric scale is what the CPM has to uncover on its own.
+
 ```{python}
 
+#| label: fig-skew
+#| fig-cap: "Left: income is right-skewed, so the mean (dashed) is pulled above the median (dotted). Right: on the log scale the distribution is roughly symmetric."
 #| code-fold: true
 
-# ---------------------------------------------------------------------
-# 2. The CPM (probit link), fit by nonparametric maximum likelihood
-#    Probit link: G = Phi^{-1}, so  P(Y <= y_i | x) = Phi(alpha_i - beta*x)
-#    Likelihood term for person i (data sorted by y):
-#       Phi(alpha_i - beta*x_i) - Phi(alpha_{i-1} - beta*x_i)
-#    Person i's outcome sits between cutoff alpha_{i-1} and cutoff alpha_i. 
-#    The probability of landing in that slice is
-#       \Phi(\alpha_i - \beta x_i) - \Phi(\alpha_{i-1} - \beta x_i)
-# ---------------------------------------------------------------------
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
 
-# This computes \Phi(\text{upper}) - \Phi(\text{lower}) for every person at once (Maximizes the likelihood over $\beta$ and the $n-1$ increasing intercepts)
+axes[0].hist(y, bins=40, edgecolor="white")
+axes[0].axvline(np.median(y), color="k", ls=":",  lw=2, label=f"median = {np.median(y):.2f}")
+axes[0].axvline(y.mean(),     color="r", ls="--", lw=2, label=f"mean = {y.mean():.2f}")
+axes[0].set_xlabel("y (income, in $50,000 units)")
+axes[0].set_ylabel("number of households for bin size 40")
+axes[0].set_title("Income (right-skewed)")
+axes[0].legend()
+
+axes[1].hist(np.log(y), bins=40, edgecolor="white")
+axes[1].axvline(np.median(np.log(y)), color="k", ls=":",  lw=2, label="median")
+axes[1].axvline(np.log(y).mean(),     color="r", ls="--", lw=2, label="mean")
+axes[1].set_xlabel("log(y)")
+axes[1].set_title("log(income) (roughly symmetric)")
+axes[1].legend()
+
+fig.tight_layout()
+plt.show()
+```
+
+### Step 2: Train/Test Split
+
+If we judged the model on the same data it learned from, it could look great simply because it memorized quirks of that sample. So we randomly set aside 30% of the observations as a test set. The model never sees them during fitting.
+
+```{python}
+
+#| label: step2-split
+
+idx = rng.permutation(len(y))       # shuffle the row numbers 0..599 before splitting the data
+n_train = int(0.7 * len(y))         # 420 rows for training (70% for training, 30% for splitting)
+train_idx, test_idx = idx[:n_train], idx[n_train:]
+
+X_train, y_train = X[train_idx], y[train_idx]
+X_test,  y_test  = X[test_idx],  y[test_idx]
+
+print(f"training rows: {len(y_train)}   test rows: {len(y_test)}")
+```
+
+### Step 3: Fit the CPM on the Training Set
+
+We use the probit link. Recall, the **link function** is a translator between probabilities and the linear translation the model is built on. The **probit link** is the version of that translation that **assumes normally distributed errors**. which matches our true $N(0,1)$ errors:
+
+$$
+P(Y \le y \mid X) = \Phi\left(\alpha(y) - \beta^\top X\right)
+$$
+
+::: {.callout-note title="Review of the Probit Link"}
+* The **probit link** is Φ⁻¹, the **inverse of the standard normal CDF.**
+    - $Φ$ (the normal CDF) takes any number z and returns the probability that a standard normal value is at or below z.
+    - $Φ⁻¹$ (probit) goes the other way: it takes a probability and returns the z-score that corresponds to it.
+* Probit stretches probabilities, which are trapped between 0 and 1, onto the whole number line, so they can match the formula. The model says:
+    - $Φ⁻¹[P(Y ≤ y | X)] = α(y) − βᵀX$
+* and applying Φ to both sides gives the form:
+    - $P(Y ≤ y | X) = Φ(α(y) − βᵀX)$
+:::
+
+**What the model has to estimate**
+
+* $\beta$: now a vector of **3** numbers instead of a single number.
+* $\alpha_1 < \alpha_2 < \dots < \alpha_{n-1}$: one intercept for every observed training outcome (the paper's nonparametric $\alpha(y)$). The last one, $\alpha_n$, is fixed at $+\infty$ so the CDF reaches 1 at the largest observed $y$.
+
+**Determining maximum likelihood.** Imagine sorting the households by $Y$. Household $i$'s outcome sits in the slice between cutoffs $\alpha_{i-1}$ and $\alpha_i$, so under the model their data has probability:
+
+$$
+\Phi(\alpha_i - \beta^\top x_i) - \Phi(\alpha_{i-1} - \beta^\top x_i).
+$$
+
+The **likelihood** multiplies these probabilities over all households. We search for the $\beta$ and $\alpha$ values that make the observed data as probable as possible (maximum likelihood).
+
+**To fit the model we need:**
+
+- 1. **Create an optimizer.** The optimizer (a searching algorithm) tries many candidate values for β and the α's and keeps improving until it finds the ones that make the training data most probable. The α's are cutoffs tied to the sorted incomes, so they must go up: α₁ < α₂ < α₃ < ... to be a valid CDF. But the optimizer doesn't know that rule. It treats every number as free and might try something like α₂ = −3 right after α₁ = 2. 
+- 2. **Keeping the intercepts increasing.** The optimizer is free to try any numbers, but the $\alpha$'s must be ordered. Don't let the optimizer choose the α's directly. Let it choose:
+    * θ₀, any number, which becomes the first α;
+    * θ₁, θ₂, ..., any numbers, which become the gaps between consecutive α's.
+    * The code turns each θ into positive gaps $e^{\theta_1}, e^{\theta_2}, \dots$, no matter what number goes in. The α's are then rebuilt by adding up gaps: $\alpha_j = \theta_0 + \sum e^{\theta_m}$.
+        - α₁ = θ₀
+        - α₂ = θ₀ + e^θ₁
+        - α₃ = θ₀ + e^θ₁ + e^θ₂
+- 3. **An analytic gradient.** The gradient tells the optimizer which direction improves the likelihood. Giving it the exact formula (instead of letting it guess numerically) makes fitting hundreds of intercepts very fast.
+- 4. **A stable probability formula** Each household's likelihood contribution is Φ(upper) − Φ(lower), the probability of landing in a thin slice. When both values are far out in the upper tail, Φ is essentially 1 for both, and the computer can only store a limited number of digits. For example, Φ(10) and Φ(11) both round to exactly 1.0, so their difference comes out as 0. Then the log of that is log(0) = −∞, which breaks the search. Use the survival function, sf(z) = 1 − Φ(z), the probability of being above z.
+
+```{python}
+
+#| label: step3-fit
+#| code-fold: true
+
 def _interval_prob(upper, lower):
+    """Phi(upper) - Phi(lower), computed in a numerically stable way."""
     return np.where(lower > 0,
                     norm.sf(lower) - norm.sf(upper),
                     norm.cdf(upper) - norm.cdf(lower))
- 
-# scoring function the optimizer uses to decide which values of β and the intercepts α are best
-def _neg_loglik(params, x):
-    n = len(x)
-    beta, theta = params[0], params[1:]
-    gaps = np.exp(theta[1:])                      # positive steps -> alpha increasing
-    alpha = np.concatenate([[theta[0]], theta[0] + np.cumsum(gaps)])  # n-1 intercepts
-    eta = beta * x
-    upper = np.concatenate([alpha, [np.inf]]) - eta
-    lower = np.concatenate([[-np.inf], alpha]) - eta
-    p = np.maximum(_interval_prob(upper, lower), 1e-300)
-    ll = np.sum(np.log(p))
- 
-    # analytic gradient (makes the fit fast even with hundreds of intercepts)
+
+def _unpack(params, p):
+    """Split the optimizer's vector into beta and the increasing alphas."""
+    beta = params[:p]
+    theta = params[p:]
+    gaps = np.exp(theta[1:])                                           # positive gaps
+    alpha = np.concatenate([[theta[0]], theta[0] + np.cumsum(gaps)])   # increasing alphas
+    return beta, gaps, alpha
+
+def _neg_loglik(params, X):
+    """Negative log-likelihood and its gradient (X must be sorted by y)."""
+    n, p = X.shape
+    beta, gaps, alpha = _unpack(params, p)
+    eta = X @ beta                                   # beta'x for every person
+    upper = np.append(alpha, np.inf) - eta           # alpha_i - beta'x_i
+    lower = np.insert(alpha, 0, -np.inf) - eta       # alpha_{i-1} - beta'x_i
+    prob = np.maximum(_interval_prob(upper, lower), 1e-300)
+    loglik = np.sum(np.log(prob))
+
     phi_u, phi_l = norm.pdf(upper), norm.pdf(lower)
-    d_beta = -np.sum(x * (phi_u - phi_l) / p)
-    g_alpha = phi_u[:-1] / p[:-1] - phi_l[1:] / p[1:]
+    d_beta = X.T @ ((phi_l - phi_u) / prob)                         # slope of loglik wrt beta
+    g_alpha = phi_u[:-1] / prob[:-1] - phi_l[1:] / prob[1:]         # slope wrt each alpha
     rev = np.cumsum(g_alpha[::-1])[::-1]
-    grad = np.concatenate([[d_beta], [g_alpha.sum()], gaps * rev[1:]])
-    return -ll, -grad
- 
- 
-def fit_cpm_probit(x, y):
-    """Returns beta_hat, alpha_hat (one per sorted y, last is +inf), sorted y, sorted x."""
-    order = np.argsort(y)
-    xs, ys = x[order], y[order]
-    n = len(ys)
-    a0 = norm.ppf(np.arange(1, n) / n)            # starting values for the intercepts
-    start = np.concatenate([[0.0], [a0[0]], np.log(np.diff(a0))])
-    res = minimize(_neg_loglik, start, args=(xs,), jac=True, method="L-BFGS-B",
-                   options={"maxiter": 5000, "maxfun": 20000})
-    beta_hat, theta = res.x[0], res.x[1:]
-    alpha = np.concatenate([[theta[0]], theta[0] + np.cumsum(np.exp(theta[1:]))])
-    alpha = np.concatenate([alpha, [np.inf]])     # alpha_n = +inf (CDF reaches 1)
-    return beta_hat, alpha, ys, xs
- 
- 
-def cpm_cdf_at_observed(beta_hat, alpha, x_value):
-    """Estimated conditional CDF, F(y_i | X = x_value), at the sorted observed y's."""
-    return norm.cdf(alpha - beta_hat * x_value)
- 
+    grad = np.concatenate([d_beta, [g_alpha.sum()], gaps * rev[1:]])  # chain rule back to theta
+    return -loglik, -grad
+
+def fit_cpm_probit(X, y):
+    """Fit a probit CPM. Returns a dictionary describing the fitted model."""
+    order = np.argsort(y)                       # the CPM only uses the ORDER of y
+    Xs, ys = X[order], y[order]
+    n, p = Xs.shape
+    a0 = norm.ppf(np.arange(1, n) / n)          # sensible starting values for the alphas
+    start = np.concatenate([np.zeros(p), [a0[0]], np.log(np.diff(a0))])
+    res = minimize(_neg_loglik, start, args=(Xs,), jac=True, method="L-BFGS-B",
+                   options={"maxiter": 10000, "maxfun": 50000})
+    beta, gaps, alpha = _unpack(res.x, p)
+    alpha = np.append(alpha, np.inf)            # alpha_n = +infinity
+    return {"beta": beta, "alpha": alpha, "y": ys, "converged": res.success}
+
+cpm = fit_cpm_probit(X_train, y_train)
+
+print("converged:", cpm["converged"])
+print("true beta:     ", TRUE_BETA)
+print("estimated beta:", np.round(cpm["beta"], 3))
 ```
 
-Comparing the nonparametric with the parametric model:
+The estimated $\hat\beta$ should land near the true values. They won't match exactly, because 420 observations carry random noise.
+
+**Did the CPM discover the log transformation?** Under this data-generating process, $\alpha(y) = H^{-1}(y) = \log(y)$ exactly. The CPM was never told this. If it works, the estimated step function $\hat\alpha(y)$ should trace out $\log(y)$:
+
 ```{python}
 
+#| label: fig-alpha
+#| fig-cap: "The CPM's estimated transformation closely follows the true transformation log(y)."
+
+ys = cpm["y"][:-1]            # drop the last point (alpha is +infinity there)
+alpha_hat = cpm["alpha"][:-1]
+
+fig, ax = plt.subplots(figsize=(5, 4))
+ax.step(ys, alpha_hat, where="post", label=r"estimated $\hat\alpha(y)$")
+ax.plot(ys, np.log(ys), "k:", label=r"true $\log(y)$")
+ax.set_xscale("log")
+ax.set_xlabel("y (log scale)")
+ax.set_ylabel(r"$\alpha(y)$")
+ax.legend()
+plt.show()
+```
+
+### Step 4: Prediction Rules from the Fitted CDF
+
+A CPM doesn't output one number. For any household's with predictors $x$, it outputs an entire estimated CDF over the training outcomes $y_1 < y_2 < \dots$:
+
+$$
+\hat F(y_i \mid x) = \Phi\left(\hat\alpha_i - \hat\beta^\top x\right)
+$$
+
+From that one curve we can read off several prediction rules:
+
+| Prediction rule | How it is computed from $\hat F(\cdot \mid x)$ |
+|:----------------|:----------------------------------------------|
+| **Conditional mean** | The CDF jumps by $\hat f_i = \hat F(y_i) - \hat F(y_{i-1})$ at each $y_i$. That is the probability of $y_i$. The mean is $\sum_i y_i \hat f_i$. |
+| **Conditional median** | The $y$ where $\hat F$ crosses 0.5. |
+| **Tail probability** | $\hat P(Y > c \mid x) = 1 - \hat F(c \mid x)$ for a cutoff $c$. |
+
+```{python}
+
+#| label: step4-predict
 #| code-fold: true
 
-# ---------------------------------------------------------------------
-# 3. The two comparison models from the paper
-# ---------------------------------------------------------------------
-def empirical_cdf(y_group):
-    """Nonparametric: empirical CDF within one subgroup."""
-    ys = np.sort(y_group)
-    return ys, np.arange(1, len(ys) + 1) / len(ys)
- 
- 
-def fit_linear_regression(x, y):
-    """Parametric: OLS of y on x, then a normal CDF with the fitted mean and sd."""
-    X = np.column_stack([np.ones_like(x), x])
-    coef, *_ = np.linalg.lstsq(X, y, rcond=None)
-    resid = y - X @ coef
-    sigma = np.sqrt(resid @ resid / (len(y) - 2))
-    return coef, sigma
- 
- 
-# ---------------------------------------------------------------------
-# 4. PART 1: reproduce Figure 4
-# ---------------------------------------------------------------------
-def make_figure4(sample_sizes=(10, 100), beta=1.0, seed=2017,
-                 outfile="fig4_n10_n100.png"):
-    rng = np.random.default_rng(seed)
-    fig, axes = plt.subplots(len(sample_sizes), 3, figsize=(12, 3.4 * len(sample_sizes)),
-                             sharey=True)
-    titles = ["Nonparametric", "Semiparametric (CPM)", "Parametric"]
-    colors = {0: "black", 1: "gray"}
- 
-    for r, n in enumerate(sample_sizes):
-        x, y = simulate_data(n, beta, rng=rng)
-        grid = np.linspace(y.min() - 1, y.max() + 1, 500)
-        beta_hat, alpha, ys, xs = fit_cpm_probit(x, y)
-        coef, sigma = fit_linear_regression(x, y)
- 
-        for c in range(3):
-            ax = axes[r, c]
-            for xv in (0, 1):
-                # true CDF (dotted): Phi(y - beta*x)
-                ax.plot(grid, norm.cdf(grid - beta * xv), ":", color=colors[xv], lw=1)
-                if c == 0:      # nonparametric: step function per subgroup
-                    gy, gF = empirical_cdf(y[x == xv])
-                    ax.step(np.r_[grid[0], gy, grid[-1]], np.r_[0, gF, 1],
-                            where="post", color=colors[xv], label=f"est CDF for X={xv}")
-                elif c == 1:    # CPM: step function, jumps at ALL observed y
-                    F = cpm_cdf_at_observed(beta_hat, alpha, xv)
-                    ax.step(np.r_[grid[0], ys, grid[-1]], np.r_[0, F, 1],
-                            where="post", color=colors[xv], label=f"est CDF for X={xv}")
-                else:           # parametric: smooth normal CDF
-                    ax.plot(grid, norm.cdf((grid - (coef[0] + coef[1] * xv)) / sigma),
-                            color=colors[xv], label=f"est CDF for X={xv}")
-            if r == 0:
-                ax.set_title(titles[c])
-            if c == 0:
-                ax.set_ylabel(f"n = {n}\nP(Y <= y | X)")
-            if r == len(sample_sizes) - 1:
-                ax.set_xlabel("Y")
-            if r == 0 and c == 0:
-                ax.legend(fontsize=7, loc="upper left")
-        print(f"n={n}: CPM beta_hat = {beta_hat:.3f}   OLS slope = {coef[1]:.3f}   (true beta = {beta})")
- 
-    fig.tight_layout()
-    fig.savefig(outfile, dpi=150)
-    return fig
- 
- 
-# ---------------------------------------------------------------------
-# 5. PART 2: repeated-sampling study (in the spirit of Section 3.1)
-#    Compare estimators of beta over many simulated datasets.
-#    Scenario A: H(y) = y          (no transformation needed)
-#    Scenario B: H(y) = exp(y)     (outcome is skewed; log(Y) would be the right transform)
-#    Estimators: CPM (probit), OLS on raw Y, OLS on the *true* transform H^{-1}(Y) ("oracle")
-# ---------------------------------------------------------------------
-def run_study(sample_sizes=(10, 100), reps=300, beta=1.0, seed=1):
-    rng = np.random.default_rng(seed)
-    scenarios = {"A: H(y)=y": (lambda s: s, lambda y: y),
-                 "B: H(y)=exp(y)": (np.exp, np.log)}
-    rows = []
-    for name, (H, Hinv) in scenarios.items():
-        for n in sample_sizes:
-            est = {"CPM": [], "OLS raw Y": [], "OLS oracle": []}
-            for _ in range(reps):
-                x, y = simulate_data(n, beta, H=H, rng=rng)
-                est["CPM"].append(fit_cpm_probit(x, y)[0])
-                est["OLS raw Y"].append(fit_linear_regression(x, y)[0][1])
-                est["OLS oracle"].append(fit_linear_regression(x, Hinv(y))[0][1])
-            est = {k: np.array(v) for k, v in est.items()}
-            mse = {k: np.mean((v - beta) ** 2) for k, v in est.items()}
-            rows.append(dict(scenario=name, n=n,
-                             CPM_bias=est["CPM"].mean() - beta,
-                             CPM_sd=est["CPM"].std(ddof=1),
-                             OLSraw_bias=est["OLS raw Y"].mean() - beta,
-                             rel_eff=mse["OLS oracle"] / mse["CPM"]))  # paper: MSE ratio
-    return rows
- 
- 
-def print_table(rows):
-    print(f"{'scenario':<16}{'n':>5}{'CPM bias':>10}{'CPM sd':>9}{'OLS(raw) bias':>15}{'rel. eff.':>11}")
-    for r in rows:
-        print(f"{r['scenario']:<16}{r['n']:>5}{r['CPM_bias']:>10.3f}{r['CPM_sd']:>9.3f}"
-              f"{r['OLSraw_bias']:>15.3f}{r['rel_eff']:>11.2f}")
- 
- 
-if __name__ == "__main__":
-    make_figure4()
-    rows = run_study()
-    print_table(rows)
-    plt.show()
+def predict_cdf(model, X_new):
+    """Row j = estimated CDF of test person j, evaluated at every training y."""
+    eta = X_new @ model["beta"]
+    return norm.cdf(model["alpha"][None, :] - eta[:, None])    # shape (n_new, n_train)
+
+def predict_mean(model, X_new):
+    F = predict_cdf(model, X_new)
+    f = np.diff(F, axis=1, prepend=0.0)         # probability at each training y
+    return f @ model["y"]                       # sum of y_i * f_i
+
+def predict_quantile(model, X_new, q=0.5):
+    F = predict_cdf(model, X_new)
+    return np.array([np.interp(q, row, model["y"]) for row in F])   # interpolated inverse CDF
+
+def cdf_at(model, X_new, y_values):
+    """Estimated F(y | x) at arbitrary y values (one per row), by linear interpolation."""
+    F = predict_cdf(model, X_new)
+    y_values = np.broadcast_to(y_values, (len(X_new),))
+    return np.array([np.interp(yv, model["y"], row, left=0.0, right=1.0)
+                     for row, yv in zip(F, y_values)])
+
+def predict_prob_above(model, X_new, c):
+    return 1.0 - cdf_at(model, X_new, c)
+
+# A cutoff for the tail-probability rule: the 80th percentile of the training outcomes.
+c = np.quantile(y_train, 0.80)
+
+cpm_mean   = predict_mean(cpm, X_test)
+cpm_median = predict_quantile(cpm, X_test, 0.5)
+cpm_prob   = predict_prob_above(cpm, X_test, c)
+
+# The TRUE answers from the table in Step 1 (only possible because we simulated the data).
+eta_true    = X_test @ TRUE_BETA
+true_mean   = np.exp(eta_true + 0.5)
+true_median = np.exp(eta_true)
+true_prob   = 1 - norm.cdf(np.log(c) - eta_true)
+
+print(f"cutoff c = {c:.2f}")
+print("first 5 test people:")
+print("  CPM median :", np.round(cpm_median[:5], 2))
+print("  true median:", np.round(true_median[:5], 2))
 ```
+
+### Step 5: Out-of-Sample Performance
+
+We compare each prediction rule with what actually happened to the test households. Two reference points make the numbers meaningful:
+
+* **Baseline ("ignore $X$"):** predict the same training mean / median / proportion for every household.
+* **Truth:** use the *true* formulas from Step 1. Even perfect knowledge of the data-generating process can't predict the random error $\epsilon$, so this is the best score anyone could expect. The closer the CPM gets to it, the better.
+
+**The error measures**:
+
+* **MSE (mean squared error)** for mean predictions: $\frac{1}{m}\sum (y_j - \hat y_j)^2$. It punishes big misses heavily.
+* **MAE (mean absolute error)** for median predictions: $\frac{1}{m}\sum |y_j - \hat y_j|$. The median is the prediction that minimizes this.
+* **Brier score** for the tail probability: the MSE between the predicted probability and what happened (1 if $y_j > c$, 0 otherwise).
+
+```{python}
+
+#| label: step5-metrics
+
+def evaluate(mean_pred, median_pred):
+    """Score one set of predictions against the test outcomes."""
+    return {"MSE (mean)":    np.mean((y_test - mean_pred) ** 2),
+            "MAE (median)":  np.mean(np.abs(y_test - median_pred))}
+
+results = {
+    "No-X baseline": evaluate(y_train.mean(), np.median(y_train)),
+    "CPM":           evaluate(cpm_mean, cpm_median),
+    "Truth":         evaluate(true_mean, true_median),
+}
+
+print(f"{'model':<16}" + "".join(f"{k:>16}" for k in results["CPM"]))
+for name, r in results.items():
+    print(f"{name:<16}" + "".join(f"{v:>16.3f}" for v in r.values()))
+```
+
+* **CPM vs. baseline:** the CPM should have clearly lower error on all three measures. That is the value of using $X$.
+* **CPM vs. truth:** the gap should be small. The truth's error is mostly irreducible noise (the random $\epsilon$), so a CPM near the truth is doing about as well as possible.
