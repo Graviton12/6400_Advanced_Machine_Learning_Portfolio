@@ -132,7 +132,7 @@ X_n
 \epsilon_n
 \end{bmatrix}
 → 
-Y = \beta^T X + \epsilon_i
+Y^* = \beta^T X + \epsilon_i
 $$
 The cummulative CDF of Y can be defined as:
 $$
@@ -285,6 +285,7 @@ print(f"y: min={y.min():.2f}  median={np.median(y):.2f}  mean={y.mean():.2f}  ma
 ```
 
 Notice that the mean is noticeably larger than the median and the maximum is far out in the tail. That is what right-skew looks like.
+  
 * Smallest household income: 0.03 × $50,000 = $1,500 
 * Mean income: 3.64 × $50,000 = $182,000
 * Median income: 1.56 × $50,000 = $78,000
@@ -328,7 +329,7 @@ If we judged the model on the same data it learned from, it could look great sim
 #| label: step2-split
 
 idx = rng.permutation(len(y))       # shuffle the row numbers 0..599 before splitting the data
-n_train = int(0.7 * len(y))         # 420 rows for training (70% for training, 30% for splitting)
+n_train = int(0.7 * len(y))         # 420 rows for training (70% for training, 30% for testing)
 train_idx, test_idx = idx[:n_train], idx[n_train:]
 
 X_train, y_train = X[train_idx], y[train_idx]

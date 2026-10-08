@@ -524,7 +524,7 @@ X_n
 \epsilon_n
 \end{bmatrix}
 →
-Y = \beta^T X + \epsilon_i
+Y^* = \beta^T X + \epsilon_i
 \]</span> The cummulative CDF of Y can be defined as: <span class="math display">\[
 \begin{aligned}
 &amp; F(y \mid X) = P(Y \leq y \mid X) \\
@@ -799,7 +799,13 @@ Table&nbsp;5.3: True conditional summaries under this data-generating process
 <pre><code>y: min=0.03  median=1.56  mean=3.64  max=37.98</code></pre>
 </div>
 </div>
-<p>Notice that the mean is noticeably larger than the median and the maximum is far out in the tail. That is what right-skew looks like. * Smallest household income: 0.03 × $50,000 = $1,500 * Mean income: 3.64 × $50,000 = $182,000 * Median income: 1.56 × $50,000 = $78,000 * Largest household income: 37.98 × $50,000 ≈ $1.9 million</p>
+<p>Notice that the mean is noticeably larger than the median and the maximum is far out in the tail. That is what right-skew looks like.</p>
+<ul>
+<li>Smallest household income: 0.03 × $50,000 = $1,500</li>
+<li>Mean income: 3.64 × $50,000 = $182,000</li>
+<li>Median income: 1.56 × $50,000 = $78,000</li>
+<li>Largest household income: 37.98 × $50,000 ≈ $1.9 million</li>
+</ul>
 <p>Refer to the Diagram below. The left panel show the distribution of the household income data. The right panel shows <span class="math inline">\(\log(y)\)</span>, which is exactly the hidden <span class="math inline">\(Y^*\)</span> (since <span class="math inline">\(Y = \exp(Y^*)\)</span>). On that scale the distribution is a symmetric bell shape. That symmetric scale is what the CPM has to uncover on its own.</p>
 <div id="cell-fig-skew" class="cell" data-execution_count="2">
 <details class="code-fold">
@@ -843,7 +849,7 @@ Figure&nbsp;5.1: Left: income is right-skewed, so the mean (dashed) is pulled ab
 <p>If we judged the model on the same data it learned from, it could look great simply because it memorized quirks of that sample. So we randomly set aside 30% of the observations as a test set. The model never sees them during fitting.</p>
 <div id="step2-split" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>idx <span class="op">=</span> rng.permutation(<span class="bu">len</span>(y))       <span class="co"># shuffle the row numbers 0..599 before splitting the data</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="bu">int</span>(<span class="fl">0.7</span> <span class="op">*</span> <span class="bu">len</span>(y))         <span class="co"># 420 rows for training (70% for training, 30% for splitting)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>n_train <span class="op">=</span> <span class="bu">int</span>(<span class="fl">0.7</span> <span class="op">*</span> <span class="bu">len</span>(y))         <span class="co"># 420 rows for training (70% for training, 30% for testing)</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>train_idx, test_idx <span class="op">=</span> idx[:n_train], idx[n_train:]</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>X_train, y_train <span class="op">=</span> X[train_idx], y[train_idx]</span>
@@ -1047,7 +1053,7 @@ Figure&nbsp;5.2: The CPM’s estimated transformation closely follows the true t
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> predict_cdf(model, X_new):</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Row j = estimated CDF of test person j, evaluated at every training y."""</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Row j = estimated CDF of test household j, evaluated at every training y."""</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    eta <span class="op">=</span> X_new <span class="op">@</span> model[<span class="st">"beta"</span>]</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> norm.cdf(model[<span class="st">"alpha"</span>][<span class="va">None</span>, :] <span class="op">-</span> eta[:, <span class="va">None</span>])    <span class="co"># shape (n_new, n_train)</span></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
