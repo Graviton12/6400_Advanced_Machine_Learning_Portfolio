@@ -481,7 +481,7 @@ From that one curve we can read off several prediction rules:
 #| code-fold: true
 
 def predict_cdf(model, X_new):
-    """Row j = estimated CDF of test person j, evaluated at every training y."""
+    """Row j = estimated CDF of test household j, evaluated at every training y."""
     eta = X_new @ model["beta"]
     return norm.cdf(model["alpha"][None, :] - eta[:, None])    # shape (n_new, n_train)
 
