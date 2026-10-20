@@ -184,7 +184,7 @@ The straight line sits **above** the data at the youngest and oldest ages, so it
 **The key idea:** The linear spline is a linear model, meaning it is linear in the parameters $\boldsymbol\beta$ even though the relationship between the child's length and age is not a straight line, so it is not linear in $x$. The fitting method from the previous section only needs the model to be a weighted sum with the $\beta$'s as weights. It does not care what the quantities being weighted are. So instead of feeding the model $x$ itself, we can feed it *features* of $x$, called **basis functions** $b_1(x), \dots, b_M(x)$. This is called a **basis expansion**:
 
 $$
-E[Y \mid x] = \beta_0 + \sum_{m=1}^{M} \beta_m\, b_m(x).
+E[Y \mid x] = \sum_{m=0}^{M} \beta_m\, b_m(x), \qquad b_0(x) = 1.
 $$
 A **basis function** allows us to expand our predictor $x$ to some feature space $\Phi(x)$. Instead of using $x$ directly, we choose a set of functions $b_0(x), b_1(x), \dots, b_M(x)$ and build the curve as a weighted sum of them, 
 $$f(x) = \beta_0 + \sum_{m=0}^{M} \beta_m\, b_m(x).$$ 
@@ -271,14 +271,14 @@ Each piece only has to describe the data nearby, so the curve is flexible where 
 
 **One type of basis expansions are Polynomials:** 
 
-Take $b_m(x) = x^m$, so that
+Take $b_d(x) = x^d$, so that
 
 $$
-x \longrightarrow \{1,\ x,\ x^2,\ x^3,\ \dots,\ x^p\}, \qquad m = 0, 1, 2, \dots, p.
+x \longrightarrow \{1,\ x,\ x^2,\ x^3,\ \dots,\ x^p\}, \qquad d = 0, 1, 2, \dots, p.
 $$
 
-1. Pros: smooth curve
-2. Cons: It is a **global function**: every coefficient affects the whole curve (function), so changing one coefficient $\beta$ with change the whole function $f(x)$. (data at one end of the range can change the fit at the other end).
+1. Pros: smooth curve (no discontinuities)
+2. Cons: It is a **global function**: every coefficient affects the whole curve (function), so changing one coefficient $\beta_m$ changes $f(x)$ everywhere, and data at one end of the range can change the fit at the other end. High-degree polynomials also tend to oscillate between data points and to diverge in the tails.
 
 **Another type of basis expansions are Piecewise Polynomials:**
 
@@ -289,15 +289,21 @@ $$
 - etc.
 
 1. Pros: It is a **local function**: local chnages only affect the segemnt they occur in rather than the entire curve (function), so changing one coefficient $\beta$ will chnage change the specifc segment of the curve. 
-2. Cons: There can be discontinuities and jumps in the curve where the knots begin and end. We must choose where these knots begin and end. 
+2. Cons: Nothing forces neighboring peices to meet so there can be discontinuities and jumps in the curve where the knots begin and end. We must choose where these knots begin and end. 
 
 **Another type of basis expansions are Spline:**
 
-1. **Cut** the $x$-axis into pieces at chosen points called **knots**. The knots **control where the slope of the curve is allowed to change**.
-2. **Fit** a simple, low-degree polynomial on each piece.
-3. **Stitch** the pieces together so the joins are smooth.
+A compromise of botb Degree Polynomials and Piecewise Polynomials:
 
-## Piecewise Polynomials and Stitched Splines
+1. Pro: smooth curve (no discontinuities) and a local function since changes in coefficient $\beta$ will chnage change the specifc segment of the curve defined by the knots which are specific pointd which breaks up the x-axis into segments.
+
+1. **Cut** the $x$-axis into segments at chosen points called **knots**. The knots **control where the slope of the curve is allowed to change**.
+2. **Fit** a simple, low-degree polynomial on each piece.
+3. **Stitch** the pieces together so the joins of the curves are smooth.
+
+### Piecewise Polynomials and Stitched Splines
+
+Splines act as stitched piecewise polynomials when fit to the data. The figure below fits the same noisy data in two ways. The columns are the degrees $d = 0, 1, 2, 3$, and the knots (dashed lines) are at $x = 0.25, 0.5, 0.75$.
 
 ```{python}
 
@@ -353,3 +359,33 @@ axes[1, 0].set_ylabel("Stitched: spline\ny")
 plt.tight_layout()
 plt.show()
 ```
+
+In the top row, each piece is fit on its own, so nothing forces neighboring pieces to meet: the orange curves jump at the knots, and the number of parameters grows quickly as $(K+1)(d+1)$. In the bottom row we use the same degree and the same knots, but we require the curve and its first $d-1$ derivatives to match at every knot. The result is connected (and smooth for $d \ge 2$) and needs only $K+d+1$ parameters. For $d = 0$ there is nothing to match, so both rows show the same step function. The rest of this chapter makes the bottom row precise.
+
+## General Definition of Splines
+
+Let $a < \kappa_1 < \cdots < \kappa_K < b$ be $K$ **knots**. They cut $[a, b]$ into $K+1$ intervals. Write $(u)_+ = \max(0, u)$ for the **positive part** of $u$: it equals $u$ when $u > 0$ and $0$ otherwise.
+
+::: {.callout-important title="Definition"}
+A **spline of degree $d$** with knots $\kappa_1, \dots, \kappa_K$ is a function $s$ such that
+
+1. on each of the $K+1$ intervals, $s$ is a polynomial of degree at most $d$, and
+2. $s$ and its derivatives $s', s'', \dots, s^{(d-1)}$ are continuous at every knot.
+:::
+
+The first derivative $s'$ is the slope of the curve, and the second derivative $s''$ is how fast the slope is changing (the curvature). "Continuous" means no jumps, so a continuous $s'$ means no kinks.
+
+| Degree $d$ | Name | Continuous at the knots |
+|---|---|---|
+| 0 | piecewise constant (step function) | nothing required |
+| 1 | linear spline | $s$ (kinks allowed) |
+| 2 | quadratic spline | $s$, $s'$ |
+| 3 | cubic spline | $s$, $s'$, $s''$ |
+
+## Linear Splines
+
+## Cubic Splines
+
+### Natural splines
+
+### Restricted cubic splines

@@ -1,0 +1,769 @@
+# Splines Notes
+
+## Motivating Idea of Splines
+
+### The Linear Model
+Suppose we measure two quantities, such as a child’s age ($x$) and child's length ($y$) on many children. In regression (prediction modeling), we have a function $f$ which takes in an input $x$ and returns an average output at that input. The goal of prediction modeling is to learn $f$ from data, so that for a new child we can predict their length using $f(x)$.
+
+Children of the same age do not all have the same length. We therefore write the observed length as the average length at that age $f(x)$ plus the individual's random deviation from that average, called the **noise**, $\varepsilon$:
+
+$$
+\underbrace{y}_{\text{observed length of a child at age x}} = \underbrace{f(x)}_{\text{true average length of child at age x (unknown)}} + \underbrace{\varepsilon}_{\text{noise}}
+$$
+
+We never observe $f$ directly, so we estimate it from data and write the estimate as $\hat f$. The predicted length of a child at age $x$ is given by:
+
+$$
+\underbrace{\hat y}_{\text{predicted length at age } x}
+=
+\underbrace{\hat f(x)}_{\text{estimate of the average length at age } x}
+$$
+
+The gap between what we observed and what we predicted is the **residual**. It is our estimate of the noise $\varepsilon$:
+
+$$
+\underbrace{\hat\varepsilon}_{\text{residual}}
+=
+\underbrace{y}_{\text{observed}}
+-
+\underbrace{\hat y}_{\text{predicted}}
+$$
+
+The true average $f(x)$ is called the **conditional mean**. It is the expected (average) value of the outcome $Y$, given the predictor value $x$:
+
+$$
+E[Y \mid x] = f(x)
+$$
+
+The simplest choice of $f$ is a straight line:
+
+$$
+f(x) = \beta_0 + \beta_1 x
+$$
+
+With $p$ predictors $x_1,\dots,x_p$ collected in a vector $\mathbf{x}$, the straight line becomes a weighted sum:
+
+$$
+E[Y \mid \mathbf{x}]
+= \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p
+= \sum_{j=0}^{p} x_j\beta_j
+= \mathbf{x}'\boldsymbol\beta,
+$$
+
+where we set $x_0 = 1$ so that the intercept $\beta_0$ fits inside the sum.
+
+The numbers $\beta_j$ are the model's **parameters (coefficients)**, and fitting the model means choosing them using the data. 
+
+- **linear in $\boldsymbol\beta$ (the parameters)** means each $\beta$ is scaled by something or added to something (a linear combination). No $\beta$ is squared, put in an exponent, or multiplied by another $\beta$.
+- **linear in $x$ (the predictor)** means the curve is a straight line when you plot it.
+
+| Model | Linear in $x$? | Linear in $\boldsymbol\beta$? |
+|---|---|---|
+| $\beta_0 + \beta_1 x^2$ | no | yes |
+| $\beta_0 + \beta_1^2 x$ | yes | no |
+| $\beta_0 + \beta_1 x$ | yes | yes |
+
+The model also says how spread out the noise is around the average which is the **conditional variance**. We assume the spread is the same everywhere:
+
+$$
+\text{Var}(Y \mid \mathbf{x}) = \sigma^2 .
+$$
+
+For a single child $i$, the model can be written out in full. This is called the **scalar form**:
+
+$$
+y_i = \beta_0 + \beta_1 x_{i1} + \cdots + \beta_p x_{ip} + \varepsilon_i,
+\qquad \varepsilon_i \overset{\text{iid}}{\sim} \text{Normal}(0,\ \sigma^2).
+$$
+
+With $n$ children we stack everything into vectors which can be represented as matrices:
+
+$$
+Y = X\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
+\boldsymbol\varepsilon \sim \text{Normal}(\mathbf{0}_n,\ \sigma^2 I_n).
+$$
+
+$$
+\underbrace{\begin{bmatrix} y_1 \\ y_2 \\ \vdots \\ y_n \end{bmatrix}}_{Y\ (n\times 1)}
+=
+\underbrace{\begin{bmatrix}
+1 & x_{11} & x_{12} & \cdots & x_{1p} \\
+1 & x_{21} & x_{22} & \cdots & x_{2p} \\
+\vdots & \vdots & \vdots & & \vdots \\
+1 & x_{n1} & x_{n2} & \cdots & x_{np}
+\end{bmatrix}}_{X\ (n\times (p+1))}
+\underbrace{\begin{bmatrix} \beta_0 \\ \beta_1 \\ \vdots \\ \beta_p \end{bmatrix}}_{\boldsymbol\beta\ ((p+1)\times 1)}
++
+\underbrace{\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \vdots \\ \varepsilon_n \end{bmatrix}}_{\boldsymbol\varepsilon\ (n\times 1)}
+$$
+
+$$
+\underbrace{\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \vdots \\ \varepsilon_n \end{bmatrix}}_{\boldsymbol\varepsilon}
+\sim
+\text{Normal}\left(
+\underbrace{\begin{bmatrix} 0 \\ 0 \\ \vdots \\ 0 \end{bmatrix}}_{\mathbf{0}_n},\
+\sigma^2
+\underbrace{\begin{bmatrix}
+1 & 0 & \cdots & 0 \\
+0 & 1 & \cdots & 0 \\
+\vdots & & \ddots & \vdots \\
+0 & 0 & \cdots & 1
+\end{bmatrix}}_{I_n\ (n\times n)}
+\right)
+$$
+
+::: {.callout-note title="Notation"}
+
+* $Y$: $n \times 1$ **outcome vector**; $Y_i$ is the outcome for each observation $i$.
+* $\mathbf{x}$: the **predictor vector** of predictor values for each observation $i$ (with a leading 1 for the intercept). A plain $x$ is a single predictor.
+* $X$: $n \times (p+1)$ **design matrix**; the first column is all ones for the intercept; $X_{ij}$ is the $j$-th predictor value for observation $i$.
+* $\beta_j$: are the model's parameters (coefficients). Fitting the model means choosing them using the data.
+* $\boldsymbol\beta$: $(p+1) \times 1$ **coefficient vector**; $\beta_0$ is the intercept and $\beta_j$ is the coefficient for the $j$-th predictor.
+* $\mathbf{x}'\boldsymbol\beta$: the **dot product** of the predictor vector with the coefficient vector (multiply matching entries and add them up).
+* $\sigma^2$: scalar, the **conditional variance** (how spread out the noise is around the average).
+* $\boldsymbol\varepsilon$: $n \times 1$ **error vector**; one noise term each observation $i$.
+* $\mathbf{0}_n$: vector of all zeros of length $n$.
+* $I_n$: **identity matrix** of size $n$ (ones on the diagonal, zeros elsewhere).
+
+:::
+
+### What Is a Spline, and Why Do We Need One
+
+**The problem: a straight line is too rigid.** The model $f(x) = \beta_0 + \beta_1 x$ says that every extra month of a child's age adds the same $\beta_1$ cm of length, at every age. Real growth is fast in the early months of infancy and slower in the later months, so the true curve bends. A straight line cannot bend, so it will over-predict in some regions and under-predict in others, no matter how much data we collect.
+
+```{python}
+#| label: fig-line-too-rigid
+#| fig-cap: "Left: a straight line fit to curved growth data. Right: the residuals of that fit."
+#| code-fold: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+rng = np.random.default_rng(7)
+n = 150
+age = rng.uniform(0, 36, n)
+
+def f_true(a):
+    return 50 + 12.8 * np.log1p(a)          # true average length (fast early, slower later)
+
+length_cm = f_true(age) + rng.normal(0, 2.5, n)   # observed = true average + noise
+
+# straight-line (least squares) fit and its residuals
+slope, intercept = np.polyfit(age, length_cm, 1)
+resid = length_cm - (intercept + slope * age)
+age_grid = np.linspace(0, 36, 200)
+
+# average residual within age bins (a simple smooth)
+edges = np.linspace(0, 36, 9)
+centers = (edges[:-1] + edges[1:]) / 2
+bin_means = [resid[(age >= lo) & (age < hi)].mean()
+             for lo, hi in zip(edges[:-1], edges[1:])]
+
+fig, ax = plt.subplots(1, 2, figsize=(10, 3.8))
+
+ax[0].scatter(age, length_cm, s=14, color="steelblue", alpha=0.6)
+ax[0].plot(age_grid, intercept + slope * age_grid, color="darkorange", lw=3,
+           label="Straight line")
+ax[0].plot(age_grid, f_true(age_grid), "r--", lw=2, label="True average $f(x)$")
+ax[0].set(xlabel="Age (months)", ylabel="Length (cm)", title="Straight-line fit")
+ax[0].legend(loc="lower right", frameon=False)
+
+ax[1].scatter(age, resid, s=14, color="steelblue", alpha=0.6)
+ax[1].axhline(0, color="black", ls="--")
+ax[1].plot(centers, bin_means, color="purple", lw=3, marker="o",
+           label="Average residual per age bin")
+ax[1].set(xlabel="Age (months)", ylabel=r"Residual $\hat{\varepsilon}$",
+          title="Residuals of the straight line")
+ax[1].legend(loc="lower center", frameon=False)
+
+plt.tight_layout()
+plt.show()
+```
+
+The straight line sits **above** the data at the youngest and oldest ages, so it over-predicts there (negative residuals). In the middle it sits **below** the data, so it under-predicts (positive residuals). If the line were a good model, the residuals would scatter randomly around zero. Instead the purple curve shows a systematic upside-down U pattern. This is the signal that the true relationship bends, and collecting more data will not fix it.
+
+## Basis Expansion
+
+**The key idea:** A spline model is still a linear model: it is linear in the parameters $\boldsymbol\beta$, even though the relationship between a child's length and age is not a straight line (so it is not linear in $x$). The fitting method from the previous section only needs the model to be a weighted sum with the $\beta$'s as weights. It does not care what the quantities being weighted are. So instead of feeding the model $x$ itself, we can feed it *features* of $x$, called **basis functions** $b_0(x), b_1(x), \dots, b_M(x)$, where $b_0(x) = 1$ carries the intercept. This is called a **basis expansion**:
+
+$$
+E[Y \mid x] = \sum_{m=0}^{M} \beta_m\, b_m(x), \qquad b_0(x) = 1.
+$$
+
+A **basis function** is a building block. We expand the predictor $x$ into a vector of features $\Phi(x) = \big(b_0(x), b_1(x), \dots, b_M(x)\big)'$ and build the curve as a weighted sum of them. Each basis function evaluated at the data becomes one column of the design matrix, with entries $X_{im} = b_m(x_i)$. Everything else is unchanged:
+
+$$
+Y = X\boldsymbol\beta + \boldsymbol\varepsilon \quad\longrightarrow\quad Y = \Phi(X)\boldsymbol\beta + \boldsymbol\varepsilon
+$$
+
+This works like building the point $(3,2)$ from the blocks $(1,0)$ and $(0,1)$ as $3(1,0) + 2(0,1)$. The coefficients $\beta_m$ say how much of each block to use. For example, the basis $1, x, x^2$ builds every curve of the form $\beta_0 + \beta_1 x + \beta_2 x^2$.
+
+Replacing $x$ with basis functions $b_0(x), \dots, b_M(x)$ changes only the columns of the design matrix. We write the expanded design matrix as $\Phi$:
+
+$$
+\underbrace{X =  \begin{bmatrix}
+1 & x_1 \\
+1 & x_2 \\
+\vdots & \vdots \\
+1 & x_n
+\end{bmatrix}}_{\text{raw design matrix } (n\times 2)}
+\quad\longrightarrow\quad
+\underbrace{\Phi(X) = \begin{bmatrix}
+b_0(x_1) & b_1(x_1) & \cdots & b_M(x_1) \\
+b_0(x_2) & b_1(x_2) & \cdots & b_M(x_2) \\
+\vdots & \vdots & & \vdots \\
+b_0(x_n) & b_1(x_n) & \cdots & b_M(x_n)
+\end{bmatrix}}_{\Phi\ (n\times (M+1))}
+$$
+
+The entry in row $i$ and column $m$ is $\Phi_{im} = b_m(x_i)$: basis function $m$ evaluated at observation $i$. The model keeps the same form:
+
+$$
+\underbrace{\begin{bmatrix} y_1 \\ y_2 \\ \vdots \\ y_n \end{bmatrix}}_{Y\ (n\times 1)}
+=
+\underbrace{\begin{bmatrix}
+b_0(x_1) & b_1(x_1) & \cdots & b_M(x_1) \\
+b_0(x_2) & b_1(x_2) & \cdots & b_M(x_2) \\
+\vdots & \vdots & & \vdots \\
+b_0(x_n) & b_1(x_n) & \cdots & b_M(x_n)
+\end{bmatrix}}_{\Phi\ (n\times (M+1))}
+\underbrace{\begin{bmatrix} \beta_0 \\ \beta_1 \\ \vdots \\ \beta_M \end{bmatrix}}_{\boldsymbol\beta\ ((M+1)\times 1)}
++
+\underbrace{\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \vdots \\ \varepsilon_n \end{bmatrix}}_{\boldsymbol\varepsilon\ (n\times 1)}
+$$
+
+that is, $Y = \Phi\boldsymbol\beta + \boldsymbol\varepsilon$. Row $i$ multiplies out to
+
+$$
+y_i = \beta_0 b_0(x_i) + \beta_1 b_1(x_i) + \cdots + \beta_M b_M(x_i) + \varepsilon_i,
+$$
+
+which is the weighted sum of basis functions plus noise. The least squares estimate has the same form as before, with $\Phi$ in place of $X$:
+
+$$
+\hat{\boldsymbol\beta} = (\Phi'\Phi)^{-1}\Phi'Y .
+$$
+
+**Dimension check:** $\Phi'$ is $(M+1)\times n$, so $\Phi'\Phi$ is $(M+1)\times(M+1)$, $\Phi'Y$ is $(M+1)\times 1$, and therefore $\hat{\boldsymbol\beta}$ is $(M+1)\times 1$, one coefficient per basis function.
+
+**Example.** Take three children aged $2, 8, 18$ months and the parabola basis $b_0(x) = 1,\ b_1(x) = x,\ b_2(x) = x^2$:
+
+$$
+\begin{bmatrix} y_1 \\ y_2 \\ y_3 \end{bmatrix}
+=
+\begin{bmatrix}
+1 & 2 & 4 \\
+1 & 8 & 64 \\
+1 & 18 & 324
+\end{bmatrix}
+\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \end{bmatrix}
++
+\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \varepsilon_3 \end{bmatrix}
+$$
+
+The curve is a parabola in $x$, but the model is still linear in $\boldsymbol\beta$, so the same fitting formula applies. Only the columns of the design matrix changed.
+
+| Model | Columns of $X$ | Shape in $x$ |
+|---|---|---|
+| Straight line | $1,\ x$ | line |
+| Parabola | $1,\ x,\ x^2$ | parabola |
+| Spline | $1,\ x,\ \dots$ (built from knots) | flexible curve |
+
+### Types of Basis Functions
+
+**One type of basis expansion is the polynomial:**
+
+Take $b_m(x) = x^m$, so that
+
+$$
+x \longrightarrow \{1,\ x,\ x^2,\ x^3,\ \dots,\ x^p\}, \qquad m = 0, 1, 2, \dots, p.
+$$
+
+1. Pro: smooth curve (no jumps or kinks).
+2. Con: it is a **global function**. Every coefficient affects the whole curve, so changing one coefficient $\beta_m$ changes $f(x)$ everywhere, and data at one end of the range can change the fit at the other end. High-degree polynomials also tend to oscillate between data points and to diverge in the tails.
+
+**Another type is the piecewise polynomial:** cut the $x$-axis at points called **knots** and fit a separate polynomial on each piece.
+
+- 0th degree - piecewise constant
+- 1st degree - piecewise linear
+- 2nd degree - piecewise quadratic
+- 3rd degree - piecewise cubic
+- etc.
+
+1. Pro: it is a **local function**. A change in the data (or a coefficient) only affects the piece where it occurs rather than the entire curve.
+2. Con: nothing forces neighboring pieces to meet, so there can be jumps in the curve at the knots. We must also choose where the knots go.
+
+**A third type is the spline:** a compromise between polynomials and piecewise polynomials.
+
+1. Pro: the curve is smooth (no jumps), and it is still a local function: changing a coefficient mainly changes the pieces near the knots involved, not the whole curve.
+
+A spline is built in three steps:
+
+1. **Cut** the $x$-axis into segments at chosen points called knots. The knots are the only places where the curve is allowed to switch from one polynomial to the next.
+2. **Fit** a simple, low-degree polynomial on each piece.
+3. **Stitch** the pieces together so the joins are smooth.
+
+### Piecewise Polynomials and Stitched Splines
+
+The figure below fits the same noisy data in two ways. The columns are the degrees $d = 0, 1, 2, 3$, and the knots (dashed lines) are at $x = 0.25, 0.5, 0.75$.
+
+```{python}
+#| label: fig-piecewise-vs-spline
+#| fig-cap: "Top: a separate polynomial of degree d fit on each of four pieces (jumps at the knots). Bottom: the spline of the same degree, stitched so that s, s', ..., s^(d-1) are continuous."
+#| code-fold: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+rng = np.random.default_rng(7)
+n = 80
+x = np.sort(rng.uniform(0, 1, n))
+y = np.sin(2 * np.pi * x) + rng.normal(0, 0.2, n)
+
+knots = np.array([0.25, 0.5, 0.75])
+edges = np.concatenate([[0], knots, [1]])
+K = len(knots)
+names = {0: "constant", 1: "linear", 2: "quadratic", 3: "cubic"}
+
+def trunc_basis(x, d):
+    cols = [x**j for j in range(d + 1)]
+    cols += [np.where(x > k, (x - k)**d, 0.0) for k in knots]
+    return np.column_stack(cols)
+
+fig, axes = plt.subplots(2, 4, figsize=(13, 6), sharex=True, sharey=True)
+for d in range(4):
+    # Top row: a separate polynomial on each piece
+    ax = axes[0, d]
+    ax.scatter(x, y, s=10, color="steelblue", alpha=0.5)
+    for lo, hi in zip(edges[:-1], edges[1:]):
+        m = (x >= lo) & (x < hi) if hi < 1 else (x >= lo) & (x <= hi)
+        coef = np.polyfit(x[m], y[m], d)
+        g = np.linspace(lo, hi, 60)
+        ax.plot(g, np.polyval(coef, g), color="darkorange", lw=2.5)
+    for k in knots:
+        ax.axvline(k, color="gray", ls="--", lw=1)
+    ax.set_title(f"d = {d} ({names[d]})\n{(K+1)*(d+1)} parameters", fontsize=10)
+
+    # Bottom row: the spline (truncated power basis, least squares)
+    ax = axes[1, d]
+    ax.scatter(x, y, s=10, color="steelblue", alpha=0.5)
+    beta = np.linalg.lstsq(trunc_basis(x, d), y, rcond=None)[0]
+    g = np.linspace(0, 1, 400)
+    ax.plot(g, trunc_basis(g, d) @ beta, color="purple", lw=2.5)
+    for k in knots:
+        ax.axvline(k, color="gray", ls="--", lw=1)
+    ax.set_title(f"{K+d+1} parameters", fontsize=10)
+    ax.set_xlabel("x")
+
+axes[0, 0].set_ylabel("Separate fit on each piece\ny")
+axes[1, 0].set_ylabel("Stitched: spline\ny")
+plt.tight_layout()
+plt.show()
+```
+
+In the top row, each piece is fit on its own, so nothing forces neighboring pieces to meet: the orange curves jump at the knots, and the number of parameters grows quickly as $(K+1)(d+1)$. In the bottom row we use the same degree and the same knots, but we require the curve and its first $d-1$ derivatives to match at every knot. The result is connected (and smooth for $d \ge 2$) and needs only $K+d+1$ parameters. For $d = 0$ there is nothing to match, so both rows show the same step function. The rest of this chapter makes the bottom row precise.
+
+## General Definition of Splines
+
+### Definition
+
+Let $a < \kappa_1 < \cdots < \kappa_K < b$ be $K$ **knots**. They cut $[a, b]$ into $K+1$ intervals. Write $(u)_+ = \max(0, u)$ for the **positive part** of $u$: it equals $u$ when $u > 0$ and $0$ otherwise.
+
+::: {.callout-important title="Definition"}
+A **spline of degree $d$** with knots $\kappa_1, \dots, \kappa_K$ is a function $s$ such that
+
+1. on each of the $K+1$ intervals, $s$ is a polynomial of degree at most $d$, and
+2. $s$ and its derivatives $s', s'', \dots, s^{(d-1)}$ are continuous at every knot.
+:::
+
+The first derivative $s'$ is the slope of the curve, and the second derivative $s''$ is how fast the slope is changing (the curvature). "Continuous" means no jumps, so a continuous $s'$ means no kinks.
+
+| Degree $d$ | Name | Continuous at the knots |
+|---|---|---|
+| 0 | piecewise constant (step function) | nothing required |
+| 1 | linear spline | $s$ (kinks allowed) |
+| 2 | quadratic spline | $s$, $s'$ |
+| 3 | cubic spline | $s$, $s'$, $s''$ |
+
+### Deriving the form of a spline
+
+We now derive what every spline must look like. This single derivation gives the basis functions, the parameter count, and the reason for "$d-1$ derivatives" for every degree at once.
+
+Let $p_0, p_1, \dots, p_K$ be the polynomials on the $K+1$ intervals, so $p_0$ is used for $x < \kappa_1$ and $p_k$ is used for $\kappa_k \le x < \kappa_{k+1}$.
+
+**Step 1: look at the difference across one knot.** Define $r_k(x) = p_k(x) - p_{k-1}(x)$ for $k = 1, \dots, K$. It is a polynomial of degree at most $d$. Condition 2 says the two pieces agree in value and in the first $d-1$ derivatives at $\kappa_k$, which means
+
+$$
+r_k^{(j)}(\kappa_k) = 0, \qquad j = 0, 1, \dots, d-1 .
+$$
+
+**Step 2: expand with Taylor's theorem.** For a polynomial of degree at most $d$, the Taylor expansion about $\kappa_k$ is exact:
+
+$$
+r_k(x) = \sum_{j=0}^{d} \frac{r_k^{(j)}(\kappa_k)}{j!}\,(x-\kappa_k)^j .
+$$
+
+The terms $j = 0, \dots, d-1$ vanish by Step 1, leaving a single term:
+
+$$
+r_k(x) = c_k\,(x-\kappa_k)^d, \qquad c_k = \frac{r_k^{(d)}(\kappa_k)}{d!} .
+$$
+
+**Step 3: add up the differences.** Since $p_k = p_{k-1} + r_k$, repeating this from the left gives $p_k(x) = p_0(x) + \sum_{i=1}^{k} c_i (x-\kappa_i)^d$. On the interval $[\kappa_k, \kappa_{k+1})$, the terms $i \le k$ are "switched on" ($x \ge \kappa_i$) and the terms $i > k$ are off ($x < \kappa_i$). Using the positive part, one formula covers all intervals:
+
+$$
+s(x) = \underbrace{\beta_0 + \beta_1 x + \cdots + \beta_d x^d}_{p_0(x)} \;+\; \sum_{k=1}^{K} \beta_{d+k}\,(x-\kappa_k)_+^{\,d}, \qquad \beta_{d+k} = c_k .
+$$
+
+For $d = 0$, read $(x-\kappa_k)_+^{\,0}$ as $\mathbf{1}\{x > \kappa_k\}$, the indicator that $x$ is past the knot. This is called the **truncated power basis**.
+
+**Step 4: count the parameters.** The formula has $(d+1) + K$ free coefficients. This agrees with counting the constraints directly: the $K+1$ pieces have $(K+1)(d+1)$ coefficients, and each knot imposes $d$ equations (continuity of $s, s', \dots, s^{(d-1)}$), so
+
+$$
+\#\text{parameters} = (K+1)(d+1) - Kd = K + d + 1 .
+$$
+
+Using the basis-expansion notation from earlier, this means $M + 1 = K + d + 1$ basis functions, including the constant $b_0(x) = 1$.
+
+| Spline | $d$ | Parameters |
+|---|---|---|
+| Linear | 1 | $K + 2$ |
+| Cubic | 3 | $K + 4$ |
+
+**Step 5: why $d-1$ derivatives and not $d$?** In Step 2, the coefficient $c_k$ is the size of the jump in the $d$-th derivative at $\kappa_k$, divided by $d!$:
+
+$$
+c_k = \frac{s^{(d)}(\kappa_k^+) - s^{(d)}(\kappa_k^-)}{d!} .
+$$
+
+If we also forced the $d$-th derivative to be continuous, every $c_k$ would be $0$, all pieces would equal $p_0$, and the knots would do nothing. So $d-1$ is the most smoothness that still lets the curve change at a knot.
+
+**Step 6: the converse.** Every function of the form in Step 3 is a spline of degree $d$. On each interval it is a polynomial of degree at most $d$. For the truncated term $h(x) = (x-\kappa)_+^{\,d}$ with $d \ge 1$,
+
+$$
+h^{(j)}(x) = \frac{d!}{(d-j)!}\,(x-\kappa)_+^{\,d-j}, \qquad j = 0, \dots, d-1,
+$$
+
+which is continuous at $\kappa$ because the exponent $d - j \ge 1$ makes both sides tend to $0$. The $d$-th derivative is $h^{(d)}(x) = d!\,\mathbf{1}\{x > \kappa\}$, which jumps from $0$ to $d!$: the only discontinuity allowed.
+
+**Step 7: the functions are a basis.** The coefficients are recovered from $s$ itself: $\beta_0, \dots, \beta_d$ come from the first piece $p_0$, and $\beta_{d+k}$ comes from the jump in $s^{(d)}$ at $\kappa_k$. So different coefficients give different functions, meaning the $K + d + 1$ functions are linearly independent and every spline is a unique weighted sum of them.
+
+### Choosing the knots
+
+The number and the locations of the knots are **hyperparameters**: we choose them, they are not estimated by least squares. More knots give a more flexible curve (lower bias) but more parameters (higher variance). A common default is to place knots at quantiles of the observed $x$ so that every interval contains data.
+
+## Linear Splines
+
+### Definition and model
+
+A **linear spline** is a spline of degree $d = 1$: a continuous curve made of straight-line pieces that can change slope at the knots. Setting $d = 1$ in the general formula gives
+
+$$
+f(x) = \beta_0 + \beta_1 x + \sum_{k=1}^{K} \beta_{1+k}\,(x-\kappa_k)_+ ,
+\qquad (x-\kappa_k)_+ =
+\begin{cases}
+0 & x \le \kappa_k \\
+x - \kappa_k & x > \kappa_k .
+\end{cases}
+$$
+
+The function $(x-\kappa)_+$ is a **hinge**: flat at zero until the knot, then rising with slope 1. The model has $K + 2$ parameters. Its basis functions are $1,\ x,\ (x-\kappa_1)_+,\ \dots,\ (x-\kappa_K)_+$, so the design matrix is
+
+$$
+X =
+\begin{bmatrix}
+1 & x_1 & (x_1-\kappa_1)_+ & \cdots & (x_1-\kappa_K)_+ \\
+1 & x_2 & (x_2-\kappa_1)_+ & \cdots & (x_2-\kappa_K)_+ \\
+\vdots & \vdots & \vdots & & \vdots \\
+1 & x_n & (x_n-\kappa_1)_+ & \cdots & (x_n-\kappa_K)_+
+\end{bmatrix}
+\quad (n \times (K+2)),
+$$
+
+and the model is the same linear model as before, $Y = X\boldsymbol\beta + \boldsymbol\varepsilon$, fit by $\hat{\boldsymbol\beta} = (X'X)^{-1}X'Y$.
+
+### Deriving the hinge from the constraint (one knot)
+
+Start from two separate lines, $p_0(x) = a_0 + b_0 x$ to the left of the knot $\kappa$ and $p_1(x) = a_1 + b_1 x$ to the right. That is $4$ parameters. Requiring the lines to meet at the knot is one equation:
+
+$$
+a_0 + b_0\kappa = a_1 + b_1\kappa \quad\Longrightarrow\quad a_1 - a_0 = (b_0 - b_1)\kappa .
+$$
+
+The difference between the two lines is then
+
+$$
+p_1(x) - p_0(x) = (a_1 - a_0) + (b_1 - b_0)x = (b_1 - b_0)(x - \kappa),
+$$
+
+so $s(x) = a_0 + b_0 x + (b_1 - b_0)(x-\kappa)_+$. Matching with the model gives $\beta_0 = a_0$, $\beta_1 = b_0$ and $\beta_2 = b_1 - b_0$. One constraint reduced $4$ parameters to $3 = K + 2$, and the hinge appeared automatically. This is the $d = 1$ case of Steps 1 to 3 in the general derivation.
+
+### Interpreting the coefficients (derivation)
+
+Take $x$ in the interval $[\kappa_j, \kappa_{j+1})$. The hinges for knots $k \le j$ are on, so $(x-\kappa_k)_+ = x - \kappa_k$ for them, and the hinges for $k > j$ are zero:
+
+$$
+f(x) = \beta_0 + \beta_1 x + \sum_{k=1}^{j}\beta_{1+k}(x - \kappa_k)
+= \underbrace{\Big(\beta_0 - \sum_{k=1}^{j}\beta_{1+k}\kappa_k\Big)}_{\text{intercept } \alpha_j}
++ \underbrace{\Big(\beta_1 + \sum_{k=1}^{j}\beta_{1+k}\Big)}_{\text{slope } m_j}\, x .
+$$
+
+So the slope on interval $j$ is $m_j = \beta_1 + \beta_2 + \cdots + \beta_{1+j}$, which gives
+
+$$
+\beta_{1+j} = m_j - m_{j-1} .
+$$
+
+**Each hinge coefficient is the change in slope at its knot.** For example, with $K = 2$ knots:
+
+| Interval | Slope | Intercept |
+|---|---|---|
+| $x < \kappa_1$ | $\beta_1$ | $\beta_0$ |
+| $\kappa_1 \le x < \kappa_2$ | $\beta_1 + \beta_2$ | $\beta_0 - \beta_2\kappa_1$ |
+| $x \ge \kappa_2$ | $\beta_1 + \beta_2 + \beta_3$ | $\beta_0 - \beta_2\kappa_1 - \beta_3\kappa_2$ |
+
+### Continuity holds by construction (proof)
+
+*Direct argument.* At $x = \kappa$, the hinge $(x-\kappa)_+$ has limit $0$ from the left (it is identically $0$) and limit $\kappa - \kappa = 0$ from the right, and its value there is $0$. So each hinge is continuous, and a weighted sum of continuous functions is continuous.
+
+*Check with the formulas above.* At $\kappa_j$ the left piece gives $\alpha_{j-1} + m_{j-1}\kappa_j$ and the right piece gives $\alpha_j + m_j\kappa_j$. Their difference is
+
+$$
+(\alpha_j - \alpha_{j-1}) + (m_j - m_{j-1})\kappa_j = -\beta_{1+j}\kappa_j + \beta_{1+j}\kappa_j = 0 .
+$$
+
+The hinge is not differentiable at $\kappa$: its left derivative is $0$ and its right derivative is $1$. So $f'$ jumps by $\beta_{1+j}$ at $\kappa_j$, which is exactly the kink and matches $\beta_{1+j} = m_j - m_{j-1}$.
+
+### A worked example you can solve by hand
+
+Take $K = 1$ knot at $\kappa = 3$ and three observations $(x, y) = (1, 2),\ (3, 6),\ (5, 4)$. The design matrix has columns $1,\ x,\ (x-3)_+$:
+
+$$
+\underbrace{\begin{bmatrix} 1 & 1 & 0 \\ 1 & 3 & 0 \\ 1 & 5 & 2 \end{bmatrix}}_{X}
+\underbrace{\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \end{bmatrix}}_{\boldsymbol\beta}
+=
+\underbrace{\begin{bmatrix} 2 \\ 6 \\ 4 \end{bmatrix}}_{Y} .
+$$
+
+The first two rows give $\beta_0 + \beta_1 = 2$ and $\beta_0 + 3\beta_1 = 6$, so $\beta_1 = 2$ and $\beta_0 = 0$. The third row gives $0 + 5(2) + 2\beta_2 = 4$, so $\beta_2 = -3$.
+
+Check against the interpretation: the slope before the knot is $\beta_1 = 2$ (from $(1,2)$ to $(3,6)$, rise $4$ over run $2$), and the slope after is $(4 - 6)/(5 - 3) = -1$. The change in slope is $-1 - 2 = -3 = \beta_2$.
+
+### Fitting a linear spline
+
+The figure fits a linear spline with knots at $6$ and $18$ months to the growth data from earlier. The left panel shows the columns of the design matrix, and the printed slopes are $m_0, m_1, m_2$, computed as cumulative sums of $\beta_1, \beta_2, \beta_3$ exactly as in the table above.
+
+```{python}
+#| label: fig-linear-spline
+#| fig-cap: "Left: the columns of the design matrix for a linear spline with knots at 6 and 18 months. Right: the fitted linear spline (purple) with the true average (red dashed)."
+#| code-fold: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+rng = np.random.default_rng(7)
+n = 150
+age = rng.uniform(0, 36, n)
+f_true = lambda a: 50 + 12.8 * np.log1p(a)
+length_cm = f_true(age) + rng.normal(0, 2.5, n)
+
+kappa = np.array([6.0, 18.0])                       # K = 2 knots
+
+def linear_basis(x, kappa):
+    """Columns: 1, x, (x - kappa_1)_+, ..., (x - kappa_K)_+"""
+    return np.column_stack([np.ones_like(x), x] + [np.maximum(x - k, 0) for k in kappa])
+
+X = linear_basis(age, kappa)                        # n x (K + 2)
+beta_hat = np.linalg.solve(X.T @ X, X.T @ length_cm)   # normal equations
+slopes = np.cumsum(beta_hat[1:])                    # m_j = beta_1 + ... + beta_{1+j}
+
+print("beta_hat:", beta_hat.round(3))
+print("slope on each piece (cm per month):", slopes.round(3))
+
+grid = np.linspace(0, 36, 400)
+G = linear_basis(grid, kappa)
+labels = ["1", "x", r"$(x-6)_+$", r"$(x-18)_+$"]
+
+fig, ax = plt.subplots(1, 2, figsize=(11, 4))
+for j in range(G.shape[1]):
+    ax[0].plot(grid, G[:, j], lw=2.5, label=labels[j])
+ax[0].set(xlabel="Age (months)", title="Columns of the design matrix")
+ax[0].legend(frameon=False)
+
+ax[1].scatter(age, length_cm, s=12, color="steelblue", alpha=0.5)
+ax[1].plot(grid, G @ beta_hat, color="purple", lw=3, label="Linear spline")
+ax[1].plot(grid, f_true(grid), "r--", lw=2, label="True average")
+for k in kappa:
+    ax[1].axvline(k, color="gray", ls="--", lw=1)
+ax[1].set(xlabel="Age (months)", ylabel="Length (cm)", title="Fitted linear spline")
+ax[1].legend(frameon=False, loc="lower right")
+plt.tight_layout()
+plt.show()
+```
+
+The fitted slopes decrease from piece to piece, matching the fast-then-slow growth. In the first interval the curve rises by about $3.6$ cm per month, in the second by about $1.0$, and in the third by about $0.4$.
+
+### Limitation
+
+A linear spline is continuous but has kinks: the slope jumps at every knot. Real growth does not change slope abruptly. To remove the kinks we raise the degree.
+
+## Cubic Splines
+
+### Motivation and definition
+
+A cubic spline is a spline of degree $d = 3$. By the definition, $s$, $s'$ and $s''$ are all continuous at the knots, so the curve has no jumps, no kinks, and no sudden change in curvature. Only the third derivative is allowed to jump. Cubic splines are the most common choice in practice because this is smooth enough that the knots are essentially invisible in the fitted curve.
+
+### Counting the parameters (derivation)
+
+Each of the $K+1$ pieces is a cubic $a_j + b_j x + c_j x^2 + e_j x^3$ with $4$ coefficients, so there are $4(K+1)$ coefficients in total. At each knot $\kappa_k$ the neighboring pieces $p_{k-1}$ and $p_k$ must satisfy three equations:
+
+$$
+p_{k-1}(\kappa_k) = p_k(\kappa_k), \qquad
+p_{k-1}'(\kappa_k) = p_k'(\kappa_k), \qquad
+p_{k-1}''(\kappa_k) = p_k''(\kappa_k).
+$$
+
+That is $3K$ constraints, so
+
+$$
+\#\text{parameters} = 4(K+1) - 3K = K + 4 .
+$$
+
+### Deriving the cubic basis
+
+Apply Steps 1 to 3 of the general derivation with $d = 3$. The difference between neighboring pieces is a cubic $r_k = p_k - p_{k-1}$ with $r_k(\kappa_k) = r_k'(\kappa_k) = r_k''(\kappa_k) = 0$. Its Taylor expansion about $\kappa_k$ is
+
+$$
+r_k(x) = \underbrace{r_k(\kappa_k)}_{0} + \underbrace{r_k'(\kappa_k)}_{0}(x-\kappa_k) + \underbrace{\frac{r_k''(\kappa_k)}{2}}_{0}(x-\kappa_k)^2 + \frac{r_k'''(\kappa_k)}{6}(x-\kappa_k)^3 ,
+$$
+
+so $r_k(x) = c_k (x-\kappa_k)^3$. Adding the differences to the first piece gives the **cubic spline model**:
+
+$$
+f(x) = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \sum_{k=1}^{K} \beta_{3+k}\,(x-\kappa_k)_+^{3} .
+$$
+
+The basis functions are $1,\ x,\ x^2,\ x^3,\ (x-\kappa_1)_+^3,\ \dots,\ (x-\kappa_K)_+^3$, which is $K + 4$ columns in the design matrix. The model is again $Y = X\boldsymbol\beta + \boldsymbol\varepsilon$, fit by $\hat{\boldsymbol\beta} = (X'X)^{-1}X'Y$.
+
+### Verifying the smoothness (derivation)
+
+Let $h(x) = (x-\kappa)_+^3$. Differentiating on each side of $\kappa$ gives
+
+$$
+h'(x) = 3(x-\kappa)_+^2, \qquad
+h''(x) = 6(x-\kappa)_+, \qquad
+h'''(x) = 6\cdot\mathbf{1}\{x > \kappa\} .
+$$
+
+At $x = \kappa$, the functions $h$, $h'$ and $h''$ are $0$ from both sides, so they are continuous. The third derivative $h'''$ jumps from $0$ to $6$. Since every other term of $f$ is a polynomial, $f$, $f'$ and $f''$ are continuous at each knot, and
+
+$$
+f'''(\kappa_k^+) - f'''(\kappa_k^-) = 6\,\beta_{3+k} .
+$$
+
+So $\beta_{3+k}$ is the jump in the third derivative at $\kappa_k$, divided by $6$. This is the cubic version of "the hinge coefficient is the change in slope." Each added term $(x-\kappa_k)_+^3$ starts very gently at its knot, because its value, slope and curvature are all $0$ there, which is why the join is smooth.
+
+The code below checks this numerically. It evaluates $s, s', s'', s'''$ just to the right and just to the left of each knot for an arbitrary choice of $\boldsymbol\beta$, and prints the jumps. They are $0, 0, 0$ and $6\beta_{3+k}$.
+
+```{python}
+#| label: cubic-derivative-check
+#| code-fold: true
+
+import numpy as np
+
+knots = np.array([0.25, 0.5, 0.75])
+beta = np.array([1.0, -2.0, 0.5, 3.0, 4.0, -1.5, 2.0])   # beta_0..beta_3, then one per knot
+
+def s_deriv(x, order):
+    """order-th derivative of s(x) = sum_j beta_j x^j + sum_k beta_{3+k} (x - kappa_k)_+^3"""
+    out = 0.0
+    for j in range(4):                                   # polynomial part
+        if j >= order:
+            coef = np.prod(np.arange(j, j - order, -1)) if order > 0 else 1
+            out = out + beta[j] * coef * x ** (j - order)
+    for k, kap in enumerate(knots):                      # truncated cubic terms
+        u = x - kap
+        if order < 3:
+            coef = np.prod(np.arange(3, 3 - order, -1)) if order > 0 else 1
+            out = out + beta[4 + k] * coef * np.where(u > 0, u ** (3 - order), 0.0)
+        else:                                            # third derivative: 6 * indicator
+            out = out + beta[4 + k] * 6.0 * (u > 0)
+    return out
+
+eps = 1e-9
+for k, kap in enumerate(knots):
+    jumps = [float(s_deriv(kap + eps, o) - s_deriv(kap - eps, o)) for o in range(4)]
+    print(f"knot {kap}: jumps in s, s', s'', s''' = {np.round(jumps, 6)}   (6 * beta = {6 * beta[4 + k]})")
+```
+
+### Linear vs. cubic, and the problem at the edges
+
+The left panel below fits a linear and a cubic spline with the same knots to the growth data. The cubic spline follows the curve without kinks. The right panel shows a weakness. We simulate $40$ fresh data sets from the same truth and fit a cubic spline to each. The fits agree well in the middle and **fan out near the two ends**. In the outer intervals the curve is an unrestricted cubic that is held in place by only a little data on one side, so it is poorly determined and can curve sharply. Outside the data range it grows like $x^3$. The printed standard deviations quantify the fan.
+
+```{python}
+#| label: fig-cubic-spline
+#| fig-cap: "Left: a linear and a cubic spline with the same knots fit to the growth data. Right: 40 cubic-spline fits to fresh simulated data sets; the spread of the curves is largest at the two ends."
+#| code-fold: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+def truncated_basis(x, knots, d):
+    """Columns: 1, x, ..., x^d, (x - kappa_1)_+^d, ..., (x - kappa_K)_+^d"""
+    cols = [x**j for j in range(d + 1)]
+    cols += [np.where(x > k, (x - k)**d, 0.0) for k in knots]
+    return np.column_stack(cols)
+
+def fit_spline(x, y, knots, d):
+    beta = np.linalg.lstsq(truncated_basis(x, knots, d), y, rcond=None)[0]
+    return lambda g: truncated_basis(g, knots, d) @ beta
+
+fig, ax = plt.subplots(1, 2, figsize=(11, 4))
+
+# Left: linear vs cubic spline on the growth data (same knots)
+rng = np.random.default_rng(7)
+age = rng.uniform(0, 36, 150)
+length_cm = 50 + 12.8 * np.log1p(age) + rng.normal(0, 2.5, 150)
+knots_age = [6, 18]
+grid = np.linspace(0, 36, 400)
+
+ax[0].scatter(age, length_cm, s=12, color="steelblue", alpha=0.5)
+ax[0].plot(grid, fit_spline(age, length_cm, knots_age, 1)(grid),
+           color="darkorange", lw=2.5, label="Linear spline (kinks)")
+ax[0].plot(grid, fit_spline(age, length_cm, knots_age, 3)(grid),
+           color="purple", lw=2.5, label="Cubic spline (smooth)")
+for k in knots_age:
+    ax[0].axvline(k, color="gray", ls="--", lw=1)
+ax[0].set(xlabel="Age (months)", ylabel="Length (cm)", title="Same knots, different degree")
+ax[0].legend(frameon=False, loc="lower right")
+
+# Right: variability of the cubic spline across repeated data sets
+rng = np.random.default_rng(1)
+knots_sin = [0.25, 0.5, 0.75]
+g = np.linspace(0, 1, 300)
+fits = []
+for _ in range(40):
+    xs = rng.uniform(0, 1, 40)
+    ys = np.sin(2 * np.pi * xs) + rng.normal(0, 0.3, 40)
+    f = fit_spline(xs, ys, knots_sin, 3)(g)
+    fits.append(f)
+    ax[1].plot(g, f, color="purple", alpha=0.25, lw=1)
+ax[1].plot(g, np.sin(2 * np.pi * g), "r--", lw=2, label="True f(x)")
+ax[1].set(xlabel="x", ylim=(-2.5, 2.5), title="40 cubic-spline fits to fresh data sets")
+ax[1].legend(frameon=False)
+plt.tight_layout()
+plt.show()
+
+sd = np.array(fits).std(axis=0)
+print("standard deviation of the fit at x = 0.02, 0.50, 0.98:",
+      sd[6].round(2), sd[150].round(2), sd[293].round(2))
+```
+
+::: {.callout-note title="Two practical notes"}
+- The truncated power basis is the cleanest basis for **deriving** the math, but its columns are nearly collinear, so $X'X$ is numerically ill-conditioned. Software usually fits the same family of curves with **B-splines**, which span the same space but are numerically stable.
+- The unstable ends are the reason for the next two sections: **natural** and **restricted cubic splines** force the curve to be linear beyond the boundary knots.
+:::
+
+### Natural splines
+
+### Restricted cubic splines

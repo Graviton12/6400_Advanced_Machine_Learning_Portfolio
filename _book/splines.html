@@ -71,7 +71,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./summary.html" rel="next">
+<link href="./splines_notes.html" rel="next">
 <link href="./ordinal_regression.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -261,12 +261,18 @@ window.Quarto = {
  <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Splines</span></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./splines_notes.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Splines Notes</span></span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./summary.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -287,19 +293,19 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./bivariate_norm_dist.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Class-conditional bivariate normal distribution</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Class-conditional bivariate normal distribution</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./cross_validation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Cross Validation</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Cross Validation</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./boostrapping.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Bootstrapping</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Bootstrapping</span></span></a>
   </div>
 </li>
       </ul>
@@ -322,8 +328,15 @@ window.Quarto = {
   <li><a href="#basis-expansion" id="toc-basis-expansion" class="nav-link" data-scroll-target="#basis-expansion"><span class="header-section-number">6.2</span> Basis Expansion</a>
   <ul class="collapse">
   <li><a href="#types-of-basis-functions" id="toc-types-of-basis-functions" class="nav-link" data-scroll-target="#types-of-basis-functions"><span class="header-section-number">6.2.1</span> Types of Basis Functions:</a></li>
+  <li><a href="#piecewise-polynomials-and-stitched-splines" id="toc-piecewise-polynomials-and-stitched-splines" class="nav-link" data-scroll-target="#piecewise-polynomials-and-stitched-splines"><span class="header-section-number">6.2.2</span> Piecewise Polynomials and Stitched Splines</a></li>
   </ul></li>
-  <li><a href="#piecewise-polynomials-and-stitched-splines" id="toc-piecewise-polynomials-and-stitched-splines" class="nav-link" data-scroll-target="#piecewise-polynomials-and-stitched-splines"><span class="header-section-number">6.3</span> Piecewise Polynomials and Stitched Splines</a></li>
+  <li><a href="#general-definition-of-splines" id="toc-general-definition-of-splines" class="nav-link" data-scroll-target="#general-definition-of-splines"><span class="header-section-number">6.3</span> General Definition of Splines</a></li>
+  <li><a href="#linear-splines" id="toc-linear-splines" class="nav-link" data-scroll-target="#linear-splines"><span class="header-section-number">6.4</span> Linear Splines</a></li>
+  <li><a href="#cubic-splines" id="toc-cubic-splines" class="nav-link" data-scroll-target="#cubic-splines"><span class="header-section-number">6.5</span> Cubic Splines</a>
+  <ul class="collapse">
+  <li><a href="#natural-splines" id="toc-natural-splines" class="nav-link" data-scroll-target="#natural-splines"><span class="header-section-number">6.5.1</span> Natural splines</a></li>
+  <li><a href="#restricted-cubic-splines" id="toc-restricted-cubic-splines" class="nav-link" data-scroll-target="#restricted-cubic-splines"><span class="header-section-number">6.5.2</span> Restricted cubic splines</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -551,7 +564,7 @@ Figure&nbsp;6.1: Left: a straight line fit to curved growth data. Right: the res
 <h2 data-number="6.2" class="anchored" data-anchor-id="basis-expansion"><span class="header-section-number">6.2</span> Basis Expansion</h2>
 <p><strong>The key idea:</strong> The linear spline is a linear model, meaning it is linear in the parameters <span class="math inline">\(\boldsymbol\beta\)</span> even though the relationship between the child’s length and age is not a straight line, so it is not linear in <span class="math inline">\(x\)</span>. The fitting method from the previous section only needs the model to be a weighted sum with the <span class="math inline">\(\beta\)</span>’s as weights. It does not care what the quantities being weighted are. So instead of feeding the model <span class="math inline">\(x\)</span> itself, we can feed it <em>features</em> of <span class="math inline">\(x\)</span>, called <strong>basis functions</strong> <span class="math inline">\(b_1(x), \dots, b_M(x)\)</span>. This is called a <strong>basis expansion</strong>:</p>
 <p><span class="math display">\[
-E[Y \mid x] = \beta_0 + \sum_{m=1}^{M} \beta_m\, b_m(x).
+E[Y \mid x] = \sum_{m=0}^{M} \beta_m\, b_m(x), \qquad b_0(x) = 1.
 \]</span> A <strong>basis function</strong> allows us to expand our predictor <span class="math inline">\(x\)</span> to some feature space <span class="math inline">\(\Phi(x)\)</span>. Instead of using <span class="math inline">\(x\)</span> directly, we choose a set of functions <span class="math inline">\(b_0(x), b_1(x), \dots, b_M(x)\)</span> and build the curve as a weighted sum of them, <span class="math display">\[f(x) = \beta_0 + \sum_{m=0}^{M} \beta_m\, b_m(x).\]</span> Each basis function becomes one column of the design matrix <span class="math inline">\(X\)</span>, with entries <span class="math inline">\(X_{im} = b_m(x_i)\)</span>. Everything else is unchanged:</p>
 <p><span class="math display">\[
 Y = X\boldsymbol\beta + \boldsymbol\varepsilon \quad\longrightarrow\quad Y = X\Phi(X) + \boldsymbol\varepsilon
@@ -639,13 +652,13 @@ y_i = \beta_0 b_0(x_i) + \beta_1 b_1(x_i) + \cdots + \beta_M b_M(x_i) + \varepsi
 <section id="types-of-basis-functions" class="level3" data-number="6.2.1">
 <h3 data-number="6.2.1" class="anchored" data-anchor-id="types-of-basis-functions"><span class="header-section-number">6.2.1</span> Types of Basis Functions:</h3>
 <p><strong>One type of basis expansions are Polynomials:</strong></p>
-<p>Take <span class="math inline">\(b_m(x) = x^m\)</span>, so that</p>
+<p>Take <span class="math inline">\(b_d(x) = x^d\)</span>, so that</p>
 <p><span class="math display">\[
-x \longrightarrow \{1,\ x,\ x^2,\ x^3,\ \dots,\ x^p\}, \qquad m = 0, 1, 2, \dots, p.
+x \longrightarrow \{1,\ x,\ x^2,\ x^3,\ \dots,\ x^p\}, \qquad d = 0, 1, 2, \dots, p.
 \]</span></p>
 <ol type="1">
-<li>Pros: smooth curve</li>
-<li>Cons: It is a <strong>global function</strong>: every coefficient affects the whole curve (function), so changing one coefficient <span class="math inline">\(\beta\)</span> with change the whole function <span class="math inline">\(f(x)\)</span>. (data at one end of the range can change the fit at the other end).</li>
+<li>Pros: smooth curve (no discontinuities)</li>
+<li>Cons: It is a <strong>global function</strong>: every coefficient affects the whole curve (function), so changing one coefficient <span class="math inline">\(\beta_m\)</span> changes <span class="math inline">\(f(x)\)</span> everywhere, and data at one end of the range can change the fit at the other end. High-degree polynomials also tend to oscillate between data points and to diverge in the tails.</li>
 </ol>
 <p><strong>Another type of basis expansions are Piecewise Polynomials:</strong></p>
 <ul>
@@ -657,18 +670,20 @@ x \longrightarrow \{1,\ x,\ x^2,\ x^3,\ \dots,\ x^p\}, \qquad m = 0, 1, 2, \dots
 </ul>
 <ol type="1">
 <li>Pros: It is a <strong>local function</strong>: local chnages only affect the segemnt they occur in rather than the entire curve (function), so changing one coefficient <span class="math inline">\(\beta\)</span> will chnage change the specifc segment of the curve.</li>
-<li>Cons: There can be discontinuities and jumps in the curve where the knots begin and end. We must choose where these knots begin and end.</li>
+<li>Cons: Nothing forces neighboring peices to meet so there can be discontinuities and jumps in the curve where the knots begin and end. We must choose where these knots begin and end.</li>
 </ol>
 <p><strong>Another type of basis expansions are Spline:</strong></p>
+<p>A compromise of botb Degree Polynomials and Piecewise Polynomials:</p>
 <ol type="1">
-<li><strong>Cut</strong> the <span class="math inline">\(x\)</span>-axis into pieces at chosen points called <strong>knots</strong>. The knots <strong>control where the slope of the curve is allowed to change</strong>.</li>
-<li><strong>Fit</strong> a simple, low-degree polynomial on each piece.</li>
-<li><strong>Stitch</strong> the pieces together so the joins are smooth.</li>
+<li><p>Pro: smooth curve (no discontinuities) and a local function since changes in coefficient <span class="math inline">\(\beta\)</span> will chnage change the specifc segment of the curve defined by the knots which are specific pointd which breaks up the x-axis into segments.</p></li>
+<li><p><strong>Cut</strong> the <span class="math inline">\(x\)</span>-axis into segments at chosen points called <strong>knots</strong>. The knots <strong>control where the slope of the curve is allowed to change</strong>.</p></li>
+<li><p><strong>Fit</strong> a simple, low-degree polynomial on each piece.</p></li>
+<li><p><strong>Stitch</strong> the pieces together so the joins of the curves are smooth.</p></li>
 </ol>
 </section>
-</section>
-<section id="piecewise-polynomials-and-stitched-splines" class="level2" data-number="6.3">
-<h2 data-number="6.3" class="anchored" data-anchor-id="piecewise-polynomials-and-stitched-splines"><span class="header-section-number">6.3</span> Piecewise Polynomials and Stitched Splines</h2>
+<section id="piecewise-polynomials-and-stitched-splines" class="level3" data-number="6.2.2">
+<h3 data-number="6.2.2" class="anchored" data-anchor-id="piecewise-polynomials-and-stitched-splines"><span class="header-section-number">6.2.2</span> Piecewise Polynomials and Stitched Splines</h3>
+<p>Splines act as stitched piecewise polynomials when fit to the data. The figure below fits the same noisy data in two ways. The columns are the degrees <span class="math inline">\(d = 0, 1, 2, 3\)</span>, and the knots (dashed lines) are at <span class="math inline">\(x = 0.25, 0.5, 0.75\)</span>.</p>
 <div id="cell-fig-piecewise-vs-spline" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
@@ -733,8 +748,75 @@ Figure&nbsp;6.2: Top: a separate polynomial of degree d fit on each of four piec
 </div>
 </div>
 </div>
+<p>In the top row, each piece is fit on its own, so nothing forces neighboring pieces to meet: the orange curves jump at the knots, and the number of parameters grows quickly as <span class="math inline">\((K+1)(d+1)\)</span>. In the bottom row we use the same degree and the same knots, but we require the curve and its first <span class="math inline">\(d-1\)</span> derivatives to match at every knot. The result is connected (and smooth for <span class="math inline">\(d \ge 2\)</span>) and needs only <span class="math inline">\(K+d+1\)</span> parameters. For <span class="math inline">\(d = 0\)</span> there is nothing to match, so both rows show the same step function. The rest of this chapter makes the bottom row precise.</p>
+</section>
+</section>
+<section id="general-definition-of-splines" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="general-definition-of-splines"><span class="header-section-number">6.3</span> General Definition of Splines</h2>
+<p>Let <span class="math inline">\(a &lt; \kappa_1 &lt; \cdots &lt; \kappa_K &lt; b\)</span> be <span class="math inline">\(K\)</span> <strong>knots</strong>. They cut <span class="math inline">\([a, b]\)</span> into <span class="math inline">\(K+1\)</span> intervals. Write <span class="math inline">\((u)_+ = \max(0, u)\)</span> for the <strong>positive part</strong> of <span class="math inline">\(u\)</span>: it equals <span class="math inline">\(u\)</span> when <span class="math inline">\(u &gt; 0\)</span> and <span class="math inline">\(0\)</span> otherwise.</p>
+<div class="callout callout-style-default callout-important callout-titled" title="Definition">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Definition
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A <strong>spline of degree <span class="math inline">\(d\)</span></strong> with knots <span class="math inline">\(\kappa_1, \dots, \kappa_K\)</span> is a function <span class="math inline">\(s\)</span> such that</p>
+<ol type="1">
+<li>on each of the <span class="math inline">\(K+1\)</span> intervals, <span class="math inline">\(s\)</span> is a polynomial of degree at most <span class="math inline">\(d\)</span>, and</li>
+<li><span class="math inline">\(s\)</span> and its derivatives <span class="math inline">\(s', s'', \dots, s^{(d-1)}\)</span> are continuous at every knot.</li>
+</ol>
+</div>
+</div>
+<p>The first derivative <span class="math inline">\(s'\)</span> is the slope of the curve, and the second derivative <span class="math inline">\(s''\)</span> is how fast the slope is changing (the curvature). “Continuous” means no jumps, so a continuous <span class="math inline">\(s'\)</span> means no kinks.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Degree <span class="math inline">\(d\)</span></th>
+<th>Name</th>
+<th>Continuous at the knots</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td>piecewise constant (step function)</td>
+<td>nothing required</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td>linear spline</td>
+<td><span class="math inline">\(s\)</span> (kinks allowed)</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td>quadratic spline</td>
+<td><span class="math inline">\(s\)</span>, <span class="math inline">\(s'\)</span></td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td>cubic spline</td>
+<td><span class="math inline">\(s\)</span>, <span class="math inline">\(s'\)</span>, <span class="math inline">\(s''\)</span></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="linear-splines" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="linear-splines"><span class="header-section-number">6.4</span> Linear Splines</h2>
+</section>
+<section id="cubic-splines" class="level2" data-number="6.5">
+<h2 data-number="6.5" class="anchored" data-anchor-id="cubic-splines"><span class="header-section-number">6.5</span> Cubic Splines</h2>
+<section id="natural-splines" class="level3" data-number="6.5.1">
+<h3 data-number="6.5.1" class="anchored" data-anchor-id="natural-splines"><span class="header-section-number">6.5.1</span> Natural splines</h3>
+</section>
+<section id="restricted-cubic-splines" class="level3" data-number="6.5.2">
+<h3 data-number="6.5.2" class="anchored" data-anchor-id="restricted-cubic-splines"><span class="header-section-number">6.5.2</span> Restricted cubic splines</h3>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
@@ -1145,8 +1227,8 @@ Figure&nbsp;6.2: Top: a separate polynomial of degree d fit on each of four piec
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./summary.html" class="pagination-link" aria-label="Summary">
-        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Summary</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./splines_notes.html" class="pagination-link" aria-label="Splines Notes">
+        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Splines Notes</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
