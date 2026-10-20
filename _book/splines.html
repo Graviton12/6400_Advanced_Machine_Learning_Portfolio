@@ -317,8 +317,6 @@ window.Quarto = {
   <li><a href="#general-introduction-splines" id="toc-general-introduction-splines" class="nav-link active" data-scroll-target="#general-introduction-splines"><span class="header-section-number">6.1</span> General Introduction Splines:</a>
   <ul class="collapse">
   <li><a href="#motivating-idea-of-splines" id="toc-motivating-idea-of-splines" class="nav-link" data-scroll-target="#motivating-idea-of-splines"><span class="header-section-number">6.1.1</span> Motivating Idea of Splines</a></li>
-  <li><a href="#linear-splines" id="toc-linear-splines" class="nav-link" data-scroll-target="#linear-splines"><span class="header-section-number">6.1.2</span> Linear Splines:</a></li>
-  <li><a href="#cubic-splines" id="toc-cubic-splines" class="nav-link" data-scroll-target="#cubic-splines"><span class="header-section-number">6.1.3</span> Cubic Splines:</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -614,17 +612,72 @@ y_i = \beta_0 b_0(x_i) + \beta_1 b_1(x_i) + \cdots + \beta_M b_M(x_i) + \varepsi
 \]</span></p>
 <p>Each piece only has to describe the data nearby, so the curve is flexible where it needs to be, local, and stable, and because it is still a basis expansion, it is still a linear in <span class="math inline">\(\boldsymbol\beta\)</span> even though the curve is a parabola in <span class="math inline">\(x\)</span>.</p>
 </section>
-</section>
-<section id="linear-splines" class="level3" data-number="6.1.2">
-<h3 data-number="6.1.2" class="anchored" data-anchor-id="linear-splines"><span class="header-section-number">6.1.2</span> Linear Splines:</h3>
-</section>
-<section id="cubic-splines" class="level3" data-number="6.1.3">
-<h3 data-number="6.1.3" class="anchored" data-anchor-id="cubic-splines"><span class="header-section-number">6.1.3</span> Cubic Splines:</h3>
-<section id="natural-splines" class="level5" data-number="6.1.3.0.1">
-<h5 data-number="6.1.3.0.1" class="anchored" data-anchor-id="natural-splines"><span class="header-section-number">6.1.3.0.1</span> Natural splines</h5>
-</section>
-<section id="restricted-cubic-splines" class="level5" data-number="6.1.3.0.2">
-<h5 data-number="6.1.3.0.2" class="anchored" data-anchor-id="restricted-cubic-splines"><span class="header-section-number">6.1.3.0.2</span> Restricted cubic splines</h5>
+<section id="piecewise-polynomials-and-stitched-splines" class="level4" data-number="6.1.1.3">
+<h4 data-number="6.1.1.3" class="anchored" data-anchor-id="piecewise-polynomials-and-stitched-splines"><span class="header-section-number">6.1.1.3</span> Piecewise Polynomials and Stitched Splines</h4>
+<div id="cell-fig-piecewise-vs-spline" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">7</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">80</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.sort(rng.uniform(<span class="dv">0</span>, <span class="dv">1</span>, n))</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> np.sin(<span class="dv">2</span> <span class="op">*</span> np.pi <span class="op">*</span> x) <span class="op">+</span> rng.normal(<span class="dv">0</span>, <span class="fl">0.2</span>, n)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>knots <span class="op">=</span> np.array([<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>])</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>edges <span class="op">=</span> np.concatenate([[<span class="dv">0</span>], knots, [<span class="dv">1</span>]])</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>K <span class="op">=</span> <span class="bu">len</span>(knots)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>names <span class="op">=</span> {<span class="dv">0</span>: <span class="st">"constant"</span>, <span class="dv">1</span>: <span class="st">"linear"</span>, <span class="dv">2</span>: <span class="st">"quadratic"</span>, <span class="dv">3</span>: <span class="st">"cubic"</span>}</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> trunc_basis(x, d):</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    cols <span class="op">=</span> [x<span class="op">**</span>j <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(d <span class="op">+</span> <span class="dv">1</span>)]</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    cols <span class="op">+=</span> [np.where(x <span class="op">&gt;</span> k, (x <span class="op">-</span> k)<span class="op">**</span>d, <span class="fl">0.0</span>) <span class="cf">for</span> k <span class="kw">in</span> knots]</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.column_stack(cols)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">4</span>, figsize<span class="op">=</span>(<span class="dv">13</span>, <span class="dv">6</span>), sharex<span class="op">=</span><span class="va">True</span>, sharey<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> d <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">4</span>):</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Top row: a separate polynomial on each piece</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> axes[<span class="dv">0</span>, d]</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    ax.scatter(x, y, s<span class="op">=</span><span class="dv">10</span>, color<span class="op">=</span><span class="st">"steelblue"</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> lo, hi <span class="kw">in</span> <span class="bu">zip</span>(edges[:<span class="op">-</span><span class="dv">1</span>], edges[<span class="dv">1</span>:]):</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        m <span class="op">=</span> (x <span class="op">&gt;=</span> lo) <span class="op">&amp;</span> (x <span class="op">&lt;</span> hi) <span class="cf">if</span> hi <span class="op">&lt;</span> <span class="dv">1</span> <span class="cf">else</span> (x <span class="op">&gt;=</span> lo) <span class="op">&amp;</span> (x <span class="op">&lt;=</span> hi)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>        coef <span class="op">=</span> np.polyfit(x[m], y[m], d)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>        g <span class="op">=</span> np.linspace(lo, hi, <span class="dv">60</span>)</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>        ax.plot(g, np.polyval(coef, g), color<span class="op">=</span><span class="st">"darkorange"</span>, lw<span class="op">=</span><span class="fl">2.5</span>)</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k <span class="kw">in</span> knots:</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        ax.axvline(k, color<span class="op">=</span><span class="st">"gray"</span>, ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"d = </span><span class="sc">{</span>d<span class="sc">}</span><span class="ss"> (</span><span class="sc">{</span>names[d]<span class="sc">}</span><span class="ss">)</span><span class="ch">\n</span><span class="sc">{</span>(K<span class="op">+</span><span class="dv">1</span>)<span class="op">*</span>(d<span class="op">+</span><span class="dv">1</span>)<span class="sc">}</span><span class="ss"> parameters"</span>, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Bottom row: the spline (truncated power basis, least squares)</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> axes[<span class="dv">1</span>, d]</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>    ax.scatter(x, y, s<span class="op">=</span><span class="dv">10</span>, color<span class="op">=</span><span class="st">"steelblue"</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    beta <span class="op">=</span> np.linalg.lstsq(trunc_basis(x, d), y, rcond<span class="op">=</span><span class="va">None</span>)[<span class="dv">0</span>]</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    g <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">400</span>)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>    ax.plot(g, trunc_basis(g, d) <span class="op">@</span> beta, color<span class="op">=</span><span class="st">"purple"</span>, lw<span class="op">=</span><span class="fl">2.5</span>)</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> k <span class="kw">in</span> knots:</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>        ax.axvline(k, color<span class="op">=</span><span class="st">"gray"</span>, ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"</span><span class="sc">{</span>K<span class="op">+</span>d<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> parameters"</span>, fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"x"</span>)</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>, <span class="dv">0</span>].set_ylabel(<span class="st">"Separate fit on each piece</span><span class="ch">\n</span><span class="st">y"</span>)</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>, <span class="dv">0</span>].set_ylabel(<span class="st">"Stitched: spline</span><span class="ch">\n</span><span class="st">y"</span>)</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-piecewise-vs-spline" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-piecewise-vs-spline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="splines_files/figure-html/fig-piecewise-vs-spline-output-1.png" width="1235" height="566" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-piecewise-vs-spline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6.2: Top: a separate polynomial of degree d fit on each of four pieces (jumps at the knots). Bottom: the spline of the same degree, stitched so that s, s’, …, s^(d-1) are continuous.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
 
 
 </section>

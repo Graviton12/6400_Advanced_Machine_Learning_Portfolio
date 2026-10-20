@@ -273,10 +273,59 @@ $$
 
 Each piece only has to describe the data nearby, so the curve is flexible where it needs to be, local, and stable, and because it is still a basis expansion, it is still a linear in $\boldsymbol\beta$ even though the curve is a parabola in $x$.
 
-### Linear Splines:
+#### Piecewise Polynomials and Stitched Splines
 
-### Cubic Splines:
+```{python}
 
-##### Natural splines
+#| label: fig-piecewise-vs-spline
+#| fig-cap: "Top: a separate polynomial of degree d fit on each of four pieces (jumps at the knots). Bottom: the spline of the same degree, stitched so that s, s', ..., s^(d-1) are continuous."
+#| code-fold: True
 
-##### Restricted cubic splines
+import numpy as np
+import matplotlib.pyplot as plt
+
+rng = np.random.default_rng(7)
+n = 80
+x = np.sort(rng.uniform(0, 1, n))
+y = np.sin(2 * np.pi * x) + rng.normal(0, 0.2, n)
+
+knots = np.array([0.25, 0.5, 0.75])
+edges = np.concatenate([[0], knots, [1]])
+K = len(knots)
+names = {0: "constant", 1: "linear", 2: "quadratic", 3: "cubic"}
+
+def trunc_basis(x, d):
+    cols = [x**j for j in range(d + 1)]
+    cols += [np.where(x > k, (x - k)**d, 0.0) for k in knots]
+    return np.column_stack(cols)
+
+fig, axes = plt.subplots(2, 4, figsize=(13, 6), sharex=True, sharey=True)
+for d in range(4):
+    # Top row: a separate polynomial on each piece
+    ax = axes[0, d]
+    ax.scatter(x, y, s=10, color="steelblue", alpha=0.5)
+    for lo, hi in zip(edges[:-1], edges[1:]):
+        m = (x >= lo) & (x < hi) if hi < 1 else (x >= lo) & (x <= hi)
+        coef = np.polyfit(x[m], y[m], d)
+        g = np.linspace(lo, hi, 60)
+        ax.plot(g, np.polyval(coef, g), color="darkorange", lw=2.5)
+    for k in knots:
+        ax.axvline(k, color="gray", ls="--", lw=1)
+    ax.set_title(f"d = {d} ({names[d]})\n{(K+1)*(d+1)} parameters", fontsize=10)
+
+    # Bottom row: the spline (truncated power basis, least squares)
+    ax = axes[1, d]
+    ax.scatter(x, y, s=10, color="steelblue", alpha=0.5)
+    beta = np.linalg.lstsq(trunc_basis(x, d), y, rcond=None)[0]
+    g = np.linspace(0, 1, 400)
+    ax.plot(g, trunc_basis(g, d) @ beta, color="purple", lw=2.5)
+    for k in knots:
+        ax.axvline(k, color="gray", ls="--", lw=1)
+    ax.set_title(f"{K+d+1} parameters", fontsize=10)
+    ax.set_xlabel("x")
+
+axes[0, 0].set_ylabel("Separate fit on each piece\ny")
+axes[1, 0].set_ylabel("Stitched: spline\ny")
+plt.tight_layout()
+plt.show()
+```
