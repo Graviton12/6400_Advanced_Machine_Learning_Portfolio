@@ -120,7 +120,7 @@ $$
 
 #### What Is a Spline, and Why Do We Need One?
 
-**The problem: a straight line is too rigid.** The model $f(x) = \beta_0 + \beta_1 x$ says that every extra month of age adds the same $\beta_1$ cm of length, at every age. Real growth is fast early on and slower later. A straight line cannot bend, so it will over-predict in some regions and under-predict in others, no matter how much data we collect. (A multiple linear regression is not a good fit).
+**The problem: a straight line is too rigid.** The model $f(x) = \beta_0 + \beta_1 x$ says that every extra month of a child's age adds the same $\beta_1$ cm of length, at every age. Real growth however, plateaus where the child may grow more rapidaly during the early motnhs of infancy but for later months of infancy, they grow as a slwoer rate, creating a bending in the curve. A straight line cannot bend, so it will over-predict in some regions and under-predict in others, no matter how much data we collect. (A multiple linear regression is not a good fit).
 
 ```{python}
 
@@ -174,7 +174,7 @@ plt.show()
 
 The straight line sits **above** the data at the youngest and oldest ages, so it over-predicts there (negative residuals). In the middle it sits **below** the data, so it under-predicts (positive residuals). If the line were a good model, the residuals would scatter randomly around zero. Instead the purple curve shows a systematic upside-down U pattern. This is the signal that the true relationship bends, and collecting more data will not fix it.
 
-**The key idea: linear in $\boldsymbol\beta$ does not mean linear in $x$.** The fitting method from the previous section only needs the model to be a weighted sum with the $\beta$'s as weights. It does not care what the quantities being weighted are. So instead of feeding the model $x$ itself, we can feed it *features* of $x$, called **basis functions** $b_1(x), \dots, b_M(x)$. This is called a **basis expansion**:
+**The key idea:** The linear spline is a linear model, meaning it is linear in the parameters $\boldsymbol\beta$ even though the relationship between the child's length and age is not a straight line, so it is not linear in $x$. The fitting method from the previous section only needs the model to be a weighted sum with the $\beta$'s as weights. It does not care what the quantities being weighted are. So instead of feeding the model $x$ itself, we can feed it *features* of $x$, called **basis functions** $b_1(x), \dots, b_M(x)$. This is called a **basis expansion**:
 
 $$
 E[Y \mid x] = \beta_0 + \sum_{m=1}^{M} \beta_m\, b_m(x).
@@ -192,19 +192,32 @@ $$
 | Parabola | $1,\ x,\ x^2$ | parabola |
 | Spline | $1,\ x,\ \dots$ (built from knots) | flexible curve |
 
-**First attempt: polynomials.** Take $b_m(x) = x^m$. This can bend, but it has three drawbacks:
+**What if we used polynomials?** Take $b_m(x) = x^m$. This can bend, but it has three drawbacks:
 
 1. It is **global**: every coefficient affects the whole curve, so data at one end of the range can change the fit at the other end.
 2. High-degree polynomials **oscillate** between data points and **diverge in the tails**.
 3. The columns $x, x^2, x^3, \dots$ are nearly collinear, which makes $X'X$ numerically unstable to invert.
 
-**Second attempt: splines, which cut and stitch.**
+**What if we used splines?**
 
-1. **Cut** the $x$-axis into pieces at chosen points called **knots**.
+1. **Cut** the $x$-axis into pieces at chosen points called **knots**. The knots **control where the slope of the curve is allowed to change**.
 2. **Fit** a simple, low-degree polynomial on each piece.
 3. **Stitch** the pieces together so the joins are smooth.
 
 Each piece only has to describe the data nearby, so the curve is flexible where it needs to be, local, and stable, and because it is still a basis expansion, it is still a linear model in $\boldsymbol\beta$.
+
+::: {.callout-note}
+## Vocabulary you need
+- **Polynomial of degree $d$:** $c_0 + c_1x + \cdots + c_dx^d$. Degree 1 is a line, degree 3 is a cubic.
+- **Knot ($\kappa$):** a chosen $x$-value where one polynomial piece hands off to the next.
+- **Continuous:** the graph has no jumps.
+- **First derivative $s'(x)$:** the slope of the curve at $x$. If it is continuous, the curve has no kinks.
+- **Second derivative $s''(x)$:** how fast the slope is changing (the curvature).
+:::
+
+A **basis function** is a building block. Instead of using $x$ directly, we choose a set of functions $b_0(x), b_1(x), \dots, b_M(x)$ and build the curve as a weighted sum of them, 
+$$f(x) = \sum_{m=0}^{M} \beta_m\, b_m(x).$$ 
+This works like building the point $(3,2)$ from the blocks $(1,0)$ and $(0,1)$ as $3(1,0) + 2(0,1)$. The coefficients $\beta_m$ say how much of each block to use. For example, the basis $1, x, x^2$ builds every curve of the form $\beta_0 + \beta_1 x + \beta_2 x^2$. Each basis function evaluated at the data becomes one column of the design matrix $X$.
 
 ### Linear Splines:
 

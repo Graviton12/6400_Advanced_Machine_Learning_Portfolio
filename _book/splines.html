@@ -452,7 +452,7 @@ Y = X\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
 </section>
 <section id="what-is-a-spline-and-why-do-we-need-one" class="level4" data-number="6.1.1.2">
 <h4 data-number="6.1.1.2" class="anchored" data-anchor-id="what-is-a-spline-and-why-do-we-need-one"><span class="header-section-number">6.1.1.2</span> What Is a Spline, and Why Do We Need One?</h4>
-<p><strong>The problem: a straight line is too rigid.</strong> The model <span class="math inline">\(f(x) = \beta_0 + \beta_1 x\)</span> says that every extra month of age adds the same <span class="math inline">\(\beta_1\)</span> cm of length, at every age. Real growth is fast early on and slower later. A straight line cannot bend, so it will over-predict in some regions and under-predict in others, no matter how much data we collect. (A multiple linear regression is not a good fit).</p>
+<p><strong>The problem: a straight line is too rigid.</strong> The model <span class="math inline">\(f(x) = \beta_0 + \beta_1 x\)</span> says that every extra month of a child’s age adds the same <span class="math inline">\(\beta_1\)</span> cm of length, at every age. Real growth however, plateaus where the child may grow more rapidaly during the early motnhs of infancy but for later months of infancy, they grow as a slwoer rate, creating a bending in the curve. A straight line cannot bend, so it will over-predict in some regions and under-predict in others, no matter how much data we collect. (A multiple linear regression is not a good fit).</p>
 <div id="cell-fig-line-too-rigid" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
@@ -513,7 +513,7 @@ Figure&nbsp;6.1: Left: a straight line fit to curved growth data. Right: the res
 </div>
 </div>
 <p>The straight line sits <strong>above</strong> the data at the youngest and oldest ages, so it over-predicts there (negative residuals). In the middle it sits <strong>below</strong> the data, so it under-predicts (positive residuals). If the line were a good model, the residuals would scatter randomly around zero. Instead the purple curve shows a systematic upside-down U pattern. This is the signal that the true relationship bends, and collecting more data will not fix it.</p>
-<p><strong>The key idea: linear in <span class="math inline">\(\boldsymbol\beta\)</span> does not mean linear in <span class="math inline">\(x\)</span>.</strong> The fitting method from the previous section only needs the model to be a weighted sum with the <span class="math inline">\(\beta\)</span>’s as weights. It does not care what the quantities being weighted are. So instead of feeding the model <span class="math inline">\(x\)</span> itself, we can feed it <em>features</em> of <span class="math inline">\(x\)</span>, called <strong>basis functions</strong> <span class="math inline">\(b_1(x), \dots, b_M(x)\)</span>. This is called a <strong>basis expansion</strong>:</p>
+<p><strong>The key idea:</strong> The linear spline is a linear model, meaning it is linear in the parameters <span class="math inline">\(\boldsymbol\beta\)</span> even though the relationship between the child’s length and age is not a straight line, so it is not linear in <span class="math inline">\(x\)</span>. The fitting method from the previous section only needs the model to be a weighted sum with the <span class="math inline">\(\beta\)</span>’s as weights. It does not care what the quantities being weighted are. So instead of feeding the model <span class="math inline">\(x\)</span> itself, we can feed it <em>features</em> of <span class="math inline">\(x\)</span>, called <strong>basis functions</strong> <span class="math inline">\(b_1(x), \dots, b_M(x)\)</span>. This is called a <strong>basis expansion</strong>:</p>
 <p><span class="math display">\[
 E[Y \mid x] = \beta_0 + \sum_{m=1}^{M} \beta_m\, b_m(x).
 \]</span></p>
@@ -547,19 +547,39 @@ Y = X\boldsymbol\beta + \boldsymbol\varepsilon, \qquad \hat{\boldsymbol\beta} = 
 </tr>
 </tbody>
 </table>
-<p><strong>First attempt: polynomials.</strong> Take <span class="math inline">\(b_m(x) = x^m\)</span>. This can bend, but it has three drawbacks:</p>
+<p><strong>What if we used polynomials?</strong> Take <span class="math inline">\(b_m(x) = x^m\)</span>. This can bend, but it has three drawbacks:</p>
 <ol type="1">
 <li>It is <strong>global</strong>: every coefficient affects the whole curve, so data at one end of the range can change the fit at the other end.</li>
 <li>High-degree polynomials <strong>oscillate</strong> between data points and <strong>diverge in the tails</strong>.</li>
 <li>The columns <span class="math inline">\(x, x^2, x^3, \dots\)</span> are nearly collinear, which makes <span class="math inline">\(X'X\)</span> numerically unstable to invert.</li>
 </ol>
-<p><strong>Second attempt: splines, which cut and stitch.</strong></p>
+<p><strong>What if we used splines?</strong></p>
 <ol type="1">
-<li><strong>Cut</strong> the <span class="math inline">\(x\)</span>-axis into pieces at chosen points called <strong>knots</strong>.</li>
+<li><strong>Cut</strong> the <span class="math inline">\(x\)</span>-axis into pieces at chosen points called <strong>knots</strong>. The knots <strong>control where the slope of the curve is allowed to change</strong>.</li>
 <li><strong>Fit</strong> a simple, low-degree polynomial on each piece.</li>
 <li><strong>Stitch</strong> the pieces together so the joins are smooth.</li>
 </ol>
 <p>Each piece only has to describe the data nearby, so the curve is flexible where it needs to be, local, and stable, and because it is still a basis expansion, it is still a linear model in <span class="math inline">\(\boldsymbol\beta\)</span>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Vocabulary you need
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Polynomial of degree <span class="math inline">\(d\)</span>:</strong> <span class="math inline">\(c_0 + c_1x + \cdots + c_dx^d\)</span>. Degree 1 is a line, degree 3 is a cubic.</li>
+<li><strong>Knot (<span class="math inline">\(\kappa\)</span>):</strong> a chosen <span class="math inline">\(x\)</span>-value where one polynomial piece hands off to the next.</li>
+<li><strong>Continuous:</strong> the graph has no jumps.</li>
+<li><strong>First derivative <span class="math inline">\(s'(x)\)</span>:</strong> the slope of the curve at <span class="math inline">\(x\)</span>. If it is continuous, the curve has no kinks.</li>
+<li><strong>Second derivative <span class="math inline">\(s''(x)\)</span>:</strong> how fast the slope is changing (the curvature).</li>
+</ul>
+</div>
+</div>
+<p>A <strong>basis function</strong> is a building block. Instead of using <span class="math inline">\(x\)</span> directly, we choose a set of functions <span class="math inline">\(b_0(x), b_1(x), \dots, b_M(x)\)</span> and build the curve as a weighted sum of them, <span class="math display">\[f(x) = \sum_{m=0}^{M} \beta_m\, b_m(x).\]</span> This works like building the point <span class="math inline">\((3,2)\)</span> from the blocks <span class="math inline">\((1,0)\)</span> and <span class="math inline">\((0,1)\)</span> as <span class="math inline">\(3(1,0) + 2(0,1)\)</span>. The coefficients <span class="math inline">\(\beta_m\)</span> say how much of each block to use. For example, the basis <span class="math inline">\(1, x, x^2\)</span> builds every curve of the form <span class="math inline">\(\beta_0 + \beta_1 x + \beta_2 x^2\)</span>. Each basis function evaluated at the data becomes one column of the design matrix <span class="math inline">\(X\)</span>.</p>
 </section>
 </section>
 <section id="linear-splines" class="level3" data-number="6.1.2">
