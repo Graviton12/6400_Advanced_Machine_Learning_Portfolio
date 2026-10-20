@@ -314,10 +314,16 @@ window.Quarto = {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#general-introduction-splines" id="toc-general-introduction-splines" class="nav-link active" data-scroll-target="#general-introduction-splines"><span class="header-section-number">6.1</span> General Introduction Splines:</a>
+  <li><a href="#motivating-idea-of-splines" id="toc-motivating-idea-of-splines" class="nav-link active" data-scroll-target="#motivating-idea-of-splines"><span class="header-section-number">6.1</span> Motivating Idea of Splines</a>
   <ul class="collapse">
-  <li><a href="#motivating-idea-of-splines" id="toc-motivating-idea-of-splines" class="nav-link" data-scroll-target="#motivating-idea-of-splines"><span class="header-section-number">6.1.1</span> Motivating Idea of Splines</a></li>
+  <li><a href="#the-linear-model" id="toc-the-linear-model" class="nav-link" data-scroll-target="#the-linear-model"><span class="header-section-number">6.1.1</span> The Linear Model:</a></li>
+  <li><a href="#what-is-a-spline-and-why-do-we-need-one" id="toc-what-is-a-spline-and-why-do-we-need-one" class="nav-link" data-scroll-target="#what-is-a-spline-and-why-do-we-need-one"><span class="header-section-number">6.1.2</span> What Is a Spline, and Why Do We Need One:</a></li>
   </ul></li>
+  <li><a href="#basis-expansion" id="toc-basis-expansion" class="nav-link" data-scroll-target="#basis-expansion"><span class="header-section-number">6.2</span> Basis Expansion</a>
+  <ul class="collapse">
+  <li><a href="#types-of-basis-functions" id="toc-types-of-basis-functions" class="nav-link" data-scroll-target="#types-of-basis-functions"><span class="header-section-number">6.2.1</span> Types of Basis Functions:</a></li>
+  </ul></li>
+  <li><a href="#piecewise-polynomials-and-stitched-splines" id="toc-piecewise-polynomials-and-stitched-splines" class="nav-link" data-scroll-target="#piecewise-polynomials-and-stitched-splines"><span class="header-section-number">6.3</span> Piecewise Polynomials and Stitched Splines</a></li>
   </ul>
 </nav>
     </div>
@@ -343,17 +349,15 @@ window.Quarto = {
 </header>
 
 
-<section id="general-introduction-splines" class="level2" data-number="6.1">
-<h2 data-number="6.1" class="anchored" data-anchor-id="general-introduction-splines"><span class="header-section-number">6.1</span> General Introduction Splines:</h2>
-<section id="motivating-idea-of-splines" class="level3" data-number="6.1.1">
-<h3 data-number="6.1.1" class="anchored" data-anchor-id="motivating-idea-of-splines"><span class="header-section-number">6.1.1</span> Motivating Idea of Splines</h3>
-<section id="the-linear-model" class="level4" data-number="6.1.1.1">
-<h4 data-number="6.1.1.1" class="anchored" data-anchor-id="the-linear-model"><span class="header-section-number">6.1.1.1</span> The Linear Model:</h4>
-<p>Suppose we measure two quantities, such as a child’s age (<span class="math inline">\(x\)</span>) and child’s length (<span class="math inline">\(y\)</span>) on many children. In regression (prediction modeling), we have a function <span class="math inline">\(f\)</span> which takes in an <em>input</em> <span class="math inline">\(x\)</span> and returns an <em>average output at that input</em>. The goal of prediction modeling is to learn <span class="math inline">\(f\)</span> from data, so that for a new child we can predict their length using <span class="math inline">\(f(x)\)</span>.</p>
-<p>Children of the same age do not all have the same length. We therefore write the observed length as the average length at that age <span class="math inline">\(f(x)\)</span> plus the individual’s random deviation from that average, called the <em>noise</em>, <span class="math inline">\(\varepsilon\)</span>:</p>
+<section id="motivating-idea-of-splines" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="motivating-idea-of-splines"><span class="header-section-number">6.1</span> Motivating Idea of Splines</h2>
+<section id="the-linear-model" class="level3" data-number="6.1.1">
+<h3 data-number="6.1.1" class="anchored" data-anchor-id="the-linear-model"><span class="header-section-number">6.1.1</span> The Linear Model:</h3>
+<p>Suppose we measure two quantities, such as a child’s age (<span class="math inline">\(x\)</span>) and child’s length (<span class="math inline">\(y\)</span>) on many children. In regression (prediction modeling), we have a function <span class="math inline">\(f\)</span> which takes in an input <span class="math inline">\(x\)</span> and returns an average output at that input. The goal of prediction modeling is to learn <span class="math inline">\(f\)</span> from data, so that for a new child we can predict their length using <span class="math inline">\(f(x)\)</span>.</p>
+<p>Children of the same age do not all have the same length. We therefore write the observed length as the average length at that age <span class="math inline">\(f(x)\)</span> plus the individual’s random deviation from that average, called the <strong>noise</strong>, <span class="math inline">\(\varepsilon\)</span>:</p>
 <p><span class="math display">\[
 \underbrace{y}_{\text{observed length of a child at age x}} = \underbrace{f(x)}_{\text{true average length of child at age x (unknown)}} + \underbrace{\varepsilon}_{\text{noise}}
-\]</span> We never observe <span class="math inline">\(f\)</span> directly, so we <em>estimate</em> it from data and write the estimate as <span class="math inline">\(\hat f\)</span>. The predicted length of a child at age <span class="math inline">\(x\)</span> is given by:</p>
+\]</span> We never observe <span class="math inline">\(f\)</span> directly, so we estimate it from data and write the estimate as <span class="math inline">\(\hat f\)</span>. The predicted length of a child at age <span class="math inline">\(x\)</span> is given by:</p>
 <p><span class="math display">\[
 \underbrace{\hat y}_{\text{predicted length at age } x}
 =
@@ -382,7 +386,37 @@ E[Y \mid \mathbf{x}]
 = \sum_{j=0}^{p} x_j\beta_j
 = \mathbf{x}\boldsymbol\beta
 \]</span></p>
-<p>The numbers <span class="math inline">\(\beta_j\)</span> are the model’s <strong>parameters (coefficients)</strong>, and fitting the model means choosing them using the data. - <strong>linear in <span class="math inline">\(\boldsymbol\beta\)</span> (the parameters)</strong> means each <span class="math inline">\(\beta\)</span> is scaled by something or added to something (linear cominbation). No <span class="math inline">\(\beta\)</span> is squared, put in an exponent, or multiplied by another <span class="math inline">\(\beta\)</span>. - <strong>linear in <span class="math inline">\(x\)</span> (the predictor)</strong> means the curve is a straight line when you plot it.</p>
+<p>The numbers <span class="math inline">\(\beta_j\)</span> are the model’s <strong>parameters (coefficients)</strong>, and fitting the model means choosing them using the data.</p>
+<ul>
+<li><strong>linear in <span class="math inline">\(\boldsymbol\beta\)</span> (the parameters)</strong> means each <span class="math inline">\(\beta\)</span> is scaled by something or added to something (linear cominbation). No <span class="math inline">\(\beta\)</span> is squared, put in an exponent, or multiplied by another <span class="math inline">\(\beta\)</span>.</li>
+<li><strong>linear in <span class="math inline">\(x\)</span> (the predictor)</strong> means the curve is a straight line when you plot it.</li>
+</ul>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Linear in <span class="math inline">\(x\)</span>?</th>
+<th>Linear in <span class="math inline">\(\boldsymbol\beta\)</span>?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(\beta_0 + \beta_1 x^2\)</span></td>
+<td>no</td>
+<td>yes</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\beta_0 + \beta_1^2 x\)</span></td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\beta_0 + \beta_1 x\)</span></td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table>
 <p>The model also says how spread out the noise is around the average which is the <strong>conditional variance</strong>. We assume the spread is the same everywhere:</p>
 <p><span class="math display">\[
 \text{Var}(Y \mid \mathbf{x}) = \sigma^2 .
@@ -448,8 +482,8 @@ Y = X\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
 </div>
 </div>
 </section>
-<section id="what-is-a-spline-and-why-do-we-need-one" class="level4" data-number="6.1.1.2">
-<h4 data-number="6.1.1.2" class="anchored" data-anchor-id="what-is-a-spline-and-why-do-we-need-one"><span class="header-section-number">6.1.1.2</span> What Is a Spline, and Why Do We Need One?</h4>
+<section id="what-is-a-spline-and-why-do-we-need-one" class="level3" data-number="6.1.2">
+<h3 data-number="6.1.2" class="anchored" data-anchor-id="what-is-a-spline-and-why-do-we-need-one"><span class="header-section-number">6.1.2</span> What Is a Spline, and Why Do We Need One:</h3>
 <p><strong>The problem: a straight line is too rigid.</strong> The model <span class="math inline">\(f(x) = \beta_0 + \beta_1 x\)</span> says that every extra month of a child’s age adds the same <span class="math inline">\(\beta_1\)</span> cm of length, at every age. Real growth however, plateaus where the child may grow more rapidaly during the early motnhs of infancy but for later months of infancy, they grow as a slwoer rate, creating a bending in the curve. A straight line cannot bend, so it will over-predict in some regions and under-predict in others, no matter how much data we collect. (A multiple linear regression is not a good fit).</p>
 <div id="cell-fig-line-too-rigid" class="cell" data-execution_count="1">
 <details class="code-fold">
@@ -511,63 +545,28 @@ Figure&nbsp;6.1: Left: a straight line fit to curved growth data. Right: the res
 </div>
 </div>
 <p>The straight line sits <strong>above</strong> the data at the youngest and oldest ages, so it over-predicts there (negative residuals). In the middle it sits <strong>below</strong> the data, so it under-predicts (positive residuals). If the line were a good model, the residuals would scatter randomly around zero. Instead the purple curve shows a systematic upside-down U pattern. This is the signal that the true relationship bends, and collecting more data will not fix it.</p>
+</section>
+</section>
+<section id="basis-expansion" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="basis-expansion"><span class="header-section-number">6.2</span> Basis Expansion</h2>
 <p><strong>The key idea:</strong> The linear spline is a linear model, meaning it is linear in the parameters <span class="math inline">\(\boldsymbol\beta\)</span> even though the relationship between the child’s length and age is not a straight line, so it is not linear in <span class="math inline">\(x\)</span>. The fitting method from the previous section only needs the model to be a weighted sum with the <span class="math inline">\(\beta\)</span>’s as weights. It does not care what the quantities being weighted are. So instead of feeding the model <span class="math inline">\(x\)</span> itself, we can feed it <em>features</em> of <span class="math inline">\(x\)</span>, called <strong>basis functions</strong> <span class="math inline">\(b_1(x), \dots, b_M(x)\)</span>. This is called a <strong>basis expansion</strong>:</p>
 <p><span class="math display">\[
 E[Y \mid x] = \beta_0 + \sum_{m=1}^{M} \beta_m\, b_m(x).
-\]</span></p>
-<p>Each basis function becomes one column of the design matrix <span class="math inline">\(X\)</span>, with entries <span class="math inline">\(X_{im} = b_m(x_i)\)</span>. Everything else is unchanged:</p>
+\]</span> A <strong>basis function</strong> allows us to expand our predictor <span class="math inline">\(x\)</span> to some feature space <span class="math inline">\(\Phi(x)\)</span>. Instead of using <span class="math inline">\(x\)</span> directly, we choose a set of functions <span class="math inline">\(b_0(x), b_1(x), \dots, b_M(x)\)</span> and build the curve as a weighted sum of them, <span class="math display">\[f(x) = \beta_0 + \sum_{m=0}^{M} \beta_m\, b_m(x).\]</span> Each basis function becomes one column of the design matrix <span class="math inline">\(X\)</span>, with entries <span class="math inline">\(X_{im} = b_m(x_i)\)</span>. Everything else is unchanged:</p>
 <p><span class="math display">\[
-Y = X\boldsymbol\beta + \boldsymbol\varepsilon, \qquad \hat{\boldsymbol\beta} = (X'X)^{-1}X'Y.
+Y = X\boldsymbol\beta + \boldsymbol\varepsilon \quad\longrightarrow\quad Y = X\Phi(X) + \boldsymbol\varepsilon
 \]</span></p>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Model</th>
-<th>Columns of <span class="math inline">\(X\)</span></th>
-<th>Shape in <span class="math inline">\(x\)</span></th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Straight line</td>
-<td><span class="math inline">\(1,\ x\)</span></td>
-<td>line</td>
-</tr>
-<tr class="even">
-<td>Parabola</td>
-<td><span class="math inline">\(1,\ x,\ x^2\)</span></td>
-<td>parabola</td>
-</tr>
-<tr class="odd">
-<td>Spline</td>
-<td><span class="math inline">\(1,\ x,\ \dots\)</span> (built from knots)</td>
-<td>flexible curve</td>
-</tr>
-</tbody>
-</table>
-<p><strong>What if we used polynomials?</strong> Take <span class="math inline">\(b_m(x) = x^m\)</span>. This can bend, but it has three drawbacks:</p>
-<ol type="1">
-<li>It is <strong>global</strong>: every coefficient affects the whole curve, so data at one end of the range can change the fit at the other end.</li>
-<li>High-degree polynomials <strong>oscillate</strong> between data points and <strong>diverge in the tails</strong>.</li>
-<li>The columns <span class="math inline">\(x, x^2, x^3, \dots\)</span> are nearly collinear, which makes <span class="math inline">\(X'X\)</span> numerically unstable to invert.</li>
-</ol>
-<p><strong>What if we used splines?</strong></p>
-<ol type="1">
-<li><strong>Cut</strong> the <span class="math inline">\(x\)</span>-axis into pieces at chosen points called <strong>knots</strong>. The knots <strong>control where the slope of the curve is allowed to change</strong>.</li>
-<li><strong>Fit</strong> a simple, low-degree polynomial on each piece.</li>
-<li><strong>Stitch</strong> the pieces together so the joins are smooth.</li>
-</ol>
-<p>A <strong>basis function</strong> is a building block. Instead of using <span class="math inline">\(x\)</span> directly, we choose a set of functions <span class="math inline">\(b_0(x), b_1(x), \dots, b_M(x)\)</span> and build the curve as a weighted sum of them, <span class="math display">\[f(x) = \sum_{m=0}^{M} \beta_m\, b_m(x).\]</span> This works like building the point <span class="math inline">\((3,2)\)</span> from the blocks <span class="math inline">\((1,0)\)</span> and <span class="math inline">\((0,1)\)</span> as <span class="math inline">\(3(1,0) + 2(0,1)\)</span>. The coefficients <span class="math inline">\(\beta_m\)</span> say how much of each block to use. For example, the basis <span class="math inline">\(1, x, x^2\)</span> builds every curve of the form <span class="math inline">\(\beta_0 + \beta_1 x + \beta_2 x^2\)</span>. Each basis function evaluated at the data becomes one column of the design matrix <span class="math inline">\(X\)</span>.</p>
+<p>This works like building the point <span class="math inline">\((3,2)\)</span> from the blocks <span class="math inline">\((1,0)\)</span> and <span class="math inline">\((0,1)\)</span> as <span class="math inline">\(3(1,0) + 2(0,1)\)</span>. The coefficients <span class="math inline">\(\beta_m\)</span> say how much of each block to use. For example, the basis <span class="math inline">\(1, x, x^2\)</span> builds every curve of the form <span class="math inline">\(\beta_0 + \beta_1 x + \beta_2 x^2\)</span>. Each basis function evaluated at the data becomes one column of the design matrix <span class="math inline">\(X\)</span>.</p>
 <p>Replacing <span class="math inline">\(x\)</span> with basis functions <span class="math inline">\(b_0(x), \dots, b_M(x)\)</span> changes only the columns of the design matrix. We write the expanded design matrix as <span class="math inline">\(\Phi\)</span>:</p>
 <p><span class="math display">\[
-\underbrace{\begin{bmatrix}
+\underbrace{X =  \begin{bmatrix}
 1 &amp; x_1 \\
 1 &amp; x_2 \\
 \vdots &amp; \vdots \\
 1 &amp; x_n
 \end{bmatrix}}_{\text{raw design matrix } (n\times 2)}
 \quad\longrightarrow\quad
-\underbrace{\begin{bmatrix}
+\underbrace{\Phi(X) = \begin{bmatrix}
 b_0(x_1) &amp; b_1(x_1) &amp; \cdots &amp; b_M(x_1) \\
 b_0(x_2) &amp; b_1(x_2) &amp; \cdots &amp; b_M(x_2) \\
 \vdots &amp; \vdots &amp; &amp; \vdots \\
@@ -597,7 +596,7 @@ y_i = \beta_0 b_0(x_i) + \beta_1 b_1(x_i) + \cdots + \beta_M b_M(x_i) + \varepsi
 \hat{\boldsymbol\beta} = (\Phi'\Phi)^{-1}\Phi'Y .
 \]</span></p>
 <p><strong>Dimension check:</strong> <span class="math inline">\(\Phi'\)</span> is <span class="math inline">\((M+1)\times n\)</span>, so <span class="math inline">\(\Phi'\Phi\)</span> is <span class="math inline">\((M+1)\times(M+1)\)</span>, <span class="math inline">\(\Phi'Y\)</span> is <span class="math inline">\((M+1)\times 1\)</span>, and therefore <span class="math inline">\(\hat{\boldsymbol\beta}\)</span> is <span class="math inline">\((M+1)\times 1\)</span>, one coefficient per basis function.</p>
-<p><strong>Example.</strong> The three children with ages <span class="math inline">\(2, 8, 18\)</span> and the parabola basis <span class="math inline">\(b_0 = 1,\ b_1 = x,\ b_2 = x^2\)</span>:</p>
+<p><strong>Example.</strong> The three children with ages <span class="math inline">\(2, 8, 18\)</span> onths respectively and the parabola basis <span class="math inline">\(b_0(x) = 1,\ b_1(x) = x,\ b_2(x) = x^2\)</span>:</p>
 <p><span class="math display">\[
 \begin{bmatrix} y_1 \\ y_2 \\ y_3 \end{bmatrix}
 =
@@ -611,9 +610,65 @@ y_i = \beta_0 b_0(x_i) + \beta_1 b_1(x_i) + \cdots + \beta_M b_M(x_i) + \varepsi
 \begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \varepsilon_3 \end{bmatrix}
 \]</span></p>
 <p>Each piece only has to describe the data nearby, so the curve is flexible where it needs to be, local, and stable, and because it is still a basis expansion, it is still a linear in <span class="math inline">\(\boldsymbol\beta\)</span> even though the curve is a parabola in <span class="math inline">\(x\)</span>.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Columns of <span class="math inline">\(X\)</span></th>
+<th>Shape in <span class="math inline">\(x\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Straight line</td>
+<td><span class="math inline">\(1,\ x\)</span></td>
+<td>line</td>
+</tr>
+<tr class="even">
+<td>Parabola</td>
+<td><span class="math inline">\(1,\ x,\ x^2\)</span></td>
+<td>parabola</td>
+</tr>
+<tr class="odd">
+<td>Spline</td>
+<td><span class="math inline">\(1,\ x,\ \dots\)</span> (built from knots)</td>
+<td>flexible curve</td>
+</tr>
+</tbody>
+</table>
+<section id="types-of-basis-functions" class="level3" data-number="6.2.1">
+<h3 data-number="6.2.1" class="anchored" data-anchor-id="types-of-basis-functions"><span class="header-section-number">6.2.1</span> Types of Basis Functions:</h3>
+<p><strong>One type of basis expansions are Polynomials:</strong></p>
+<p>Take <span class="math inline">\(b_m(x) = x^m\)</span>, so that</p>
+<p><span class="math display">\[
+x \longrightarrow \{1,\ x,\ x^2,\ x^3,\ \dots,\ x^p\}, \qquad m = 0, 1, 2, \dots, p.
+\]</span></p>
+<ol type="1">
+<li>Pros: smooth curve</li>
+<li>Cons: It is a <strong>global function</strong>: every coefficient affects the whole curve (function), so changing one coefficient <span class="math inline">\(\beta\)</span> with change the whole function <span class="math inline">\(f(x)\)</span>. (data at one end of the range can change the fit at the other end).</li>
+</ol>
+<p><strong>Another type of basis expansions are Piecewise Polynomials:</strong></p>
+<ul>
+<li>0th degree - piecewise constant</li>
+<li>1st degree - piecewise linear</li>
+<li>2nd degree - piecewise quadratic</li>
+<li>3rd degree - piecewise cubic</li>
+<li>etc.</li>
+</ul>
+<ol type="1">
+<li>Pros: It is a <strong>local function</strong>: local chnages only affect the segemnt they occur in rather than the entire curve (function), so changing one coefficient <span class="math inline">\(\beta\)</span> will chnage change the specifc segment of the curve.</li>
+<li>Cons: There can be discontinuities and jumps in the curve where the knots begin and end. We must choose where these knots begin and end.</li>
+</ol>
+<p><strong>Another type of basis expansions are Spline:</strong></p>
+<ol type="1">
+<li><strong>Cut</strong> the <span class="math inline">\(x\)</span>-axis into pieces at chosen points called <strong>knots</strong>. The knots <strong>control where the slope of the curve is allowed to change</strong>.</li>
+<li><strong>Fit</strong> a simple, low-degree polynomial on each piece.</li>
+<li><strong>Stitch</strong> the pieces together so the joins are smooth.</li>
+</ol>
 </section>
-<section id="piecewise-polynomials-and-stitched-splines" class="level4" data-number="6.1.1.3">
-<h4 data-number="6.1.1.3" class="anchored" data-anchor-id="piecewise-polynomials-and-stitched-splines"><span class="header-section-number">6.1.1.3</span> Piecewise Polynomials and Stitched Splines</h4>
+</section>
+<section id="piecewise-polynomials-and-stitched-splines" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="piecewise-polynomials-and-stitched-splines"><span class="header-section-number">6.3</span> Piecewise Polynomials and Stitched Splines</h2>
 <div id="cell-fig-piecewise-vs-spline" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
@@ -680,8 +735,6 @@ Figure&nbsp;6.2: Top: a separate polynomial of degree d fit on each of four piec
 </div>
 
 
-</section>
-</section>
 </section>
 
 </main> <!-- /main -->

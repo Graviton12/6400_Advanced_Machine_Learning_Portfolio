@@ -1,18 +1,16 @@
 # Splines
 
-## General Introduction Splines:
+## Motivating Idea of Splines
 
-### Motivating Idea of Splines
+### The Linear Model:
+Suppose we measure two quantities, such as a child’s age ($x$) and child's length ($y$) on many children. In regression (prediction modeling), we have a function $f$ which takes in an input $x$ and returns an average output at that input. The goal of prediction modeling is to learn $f$ from data, so that for a new child we can predict their length using $f(x)$.
 
-#### The Linear Model:
-Suppose we measure two quantities, such as a child’s age ($x$) and child's length ($y$) on many children. In regression (prediction modeling), we have a function $f$ which takes in an *input* $x$ and returns an *average output at that input*. The goal of prediction modeling is to learn $f$ from data, so that for a new child we can predict their length using $f(x)$.
-
-Children of the same age do not all have the same length. We therefore write the observed length as the average length at that age $f(x)$ plus the individual's random deviation from that average, called the *noise*, $\varepsilon$:
+Children of the same age do not all have the same length. We therefore write the observed length as the average length at that age $f(x)$ plus the individual's random deviation from that average, called the **noise**, $\varepsilon$:
 
 $$
 \underbrace{y}_{\text{observed length of a child at age x}} = \underbrace{f(x)}_{\text{true average length of child at age x (unknown)}} + \underbrace{\varepsilon}_{\text{noise}}
 $$
-We never observe $f$ directly, so we *estimate* it from data and write the estimate as $\hat f$. The predicted length of a child at age $x$ is given by:
+We never observe $f$ directly, so we estimate it from data and write the estimate as $\hat f$. The predicted length of a child at age $x$ is given by:
 
 $$
 \underbrace{\hat y}_{\text{predicted length at age } x}
@@ -52,8 +50,15 @@ E[Y \mid \mathbf{x}]
 $$
 
 The numbers $\beta_j$ are the model's **parameters (coefficients)**, and fitting the model means choosing them using the data. 
+
 - **linear in $\boldsymbol\beta$ (the parameters)** means each $\beta$ is scaled by something or added to something (linear cominbation). No $\beta$ is squared, put in an exponent, or multiplied by another $\beta$.
 - **linear in $x$ (the predictor)** means the curve is a straight line when you plot it.
+
+| Model | Linear in $x$? | Linear in $\boldsymbol\beta$? |
+|---|---|---|
+| $\beta_0 + \beta_1 x^2$ | no | yes |
+| $\beta_0 + \beta_1^2 x$ | yes | no |
+| $\beta_0 + \beta_1 x$ | yes | yes |
 
 The model also says how spread out the noise is around the average which is the **conditional variance**. We assume the spread is the same everywhere:
 
@@ -118,7 +123,7 @@ $$
 
 :::
 
-#### What Is a Spline, and Why Do We Need One?
+### What Is a Spline, and Why Do We Need One:
 
 **The problem: a straight line is too rigid.** The model $f(x) = \beta_0 + \beta_1 x$ says that every extra month of a child's age adds the same $\beta_1$ cm of length, at every age. Real growth however, plateaus where the child may grow more rapidaly during the early motnhs of infancy but for later months of infancy, they grow as a slwoer rate, creating a bending in the curve. A straight line cannot bend, so it will over-predict in some regions and under-predict in others, no matter how much data we collect. (A multiple linear regression is not a good fit).
 
@@ -174,51 +179,34 @@ plt.show()
 
 The straight line sits **above** the data at the youngest and oldest ages, so it over-predicts there (negative residuals). In the middle it sits **below** the data, so it under-predicts (positive residuals). If the line were a good model, the residuals would scatter randomly around zero. Instead the purple curve shows a systematic upside-down U pattern. This is the signal that the true relationship bends, and collecting more data will not fix it.
 
+## Basis Expansion
+
 **The key idea:** The linear spline is a linear model, meaning it is linear in the parameters $\boldsymbol\beta$ even though the relationship between the child's length and age is not a straight line, so it is not linear in $x$. The fitting method from the previous section only needs the model to be a weighted sum with the $\beta$'s as weights. It does not care what the quantities being weighted are. So instead of feeding the model $x$ itself, we can feed it *features* of $x$, called **basis functions** $b_1(x), \dots, b_M(x)$. This is called a **basis expansion**:
 
 $$
 E[Y \mid x] = \beta_0 + \sum_{m=1}^{M} \beta_m\, b_m(x).
 $$
-
+A **basis function** allows us to expand our predictor $x$ to some feature space $\Phi(x)$. Instead of using $x$ directly, we choose a set of functions $b_0(x), b_1(x), \dots, b_M(x)$ and build the curve as a weighted sum of them, 
+$$f(x) = \beta_0 + \sum_{m=0}^{M} \beta_m\, b_m(x).$$ 
 Each basis function becomes one column of the design matrix $X$, with entries $X_{im} = b_m(x_i)$. Everything else is unchanged:
 
 $$
-Y = X\boldsymbol\beta + \boldsymbol\varepsilon, \qquad \hat{\boldsymbol\beta} = (X'X)^{-1}X'Y.
+Y = X\boldsymbol\beta + \boldsymbol\varepsilon \quad\longrightarrow\quad Y = X\Phi(X) + \boldsymbol\varepsilon
 $$
 
-| Model | Columns of $X$ | Shape in $x$ |
-|---|---|---|
-| Straight line | $1,\ x$ | line |
-| Parabola | $1,\ x,\ x^2$ | parabola |
-| Spline | $1,\ x,\ \dots$ (built from knots) | flexible curve |
-
-**What if we used polynomials?** Take $b_m(x) = x^m$. This can bend, but it has three drawbacks:
-
-1. It is **global**: every coefficient affects the whole curve, so data at one end of the range can change the fit at the other end.
-2. High-degree polynomials **oscillate** between data points and **diverge in the tails**.
-3. The columns $x, x^2, x^3, \dots$ are nearly collinear, which makes $X'X$ numerically unstable to invert.
-
-**What if we used splines?**
-
-1. **Cut** the $x$-axis into pieces at chosen points called **knots**. The knots **control where the slope of the curve is allowed to change**.
-2. **Fit** a simple, low-degree polynomial on each piece.
-3. **Stitch** the pieces together so the joins are smooth.
-
-A **basis function** is a building block. Instead of using $x$ directly, we choose a set of functions $b_0(x), b_1(x), \dots, b_M(x)$ and build the curve as a weighted sum of them, 
-$$f(x) = \sum_{m=0}^{M} \beta_m\, b_m(x).$$ 
 This works like building the point $(3,2)$ from the blocks $(1,0)$ and $(0,1)$ as $3(1,0) + 2(0,1)$. The coefficients $\beta_m$ say how much of each block to use. For example, the basis $1, x, x^2$ builds every curve of the form $\beta_0 + \beta_1 x + \beta_2 x^2$. Each basis function evaluated at the data becomes one column of the design matrix $X$.
 
 Replacing $x$ with basis functions $b_0(x), \dots, b_M(x)$ changes only the columns of the design matrix. We write the expanded design matrix as $\Phi$:
 
 $$
-\underbrace{\begin{bmatrix}
+\underbrace{X =  \begin{bmatrix}
 1 & x_1 \\
 1 & x_2 \\
 \vdots & \vdots \\
 1 & x_n
 \end{bmatrix}}_{\text{raw design matrix } (n\times 2)}
 \quad\longrightarrow\quad
-\underbrace{\begin{bmatrix}
+\underbrace{\Phi(X) = \begin{bmatrix}
 b_0(x_1) & b_1(x_1) & \cdots & b_M(x_1) \\
 b_0(x_2) & b_1(x_2) & \cdots & b_M(x_2) \\
 \vdots & \vdots & & \vdots \\
@@ -256,7 +244,7 @@ $$
 
 **Dimension check:** $\Phi'$ is $(M+1)\times n$, so $\Phi'\Phi$ is $(M+1)\times(M+1)$, $\Phi'Y$ is $(M+1)\times 1$, and therefore $\hat{\boldsymbol\beta}$ is $(M+1)\times 1$, one coefficient per basis function.
 
-**Example.** The three children with ages $2, 8, 18$ and the parabola basis $b_0 = 1,\ b_1 = x,\ b_2 = x^2$:
+**Example.** The three children with ages $2, 8, 18$ onths respectively and the parabola basis $b_0(x) = 1,\ b_1(x) = x,\ b_2(x) = x^2$:
 
 $$
 \begin{bmatrix} y_1 \\ y_2 \\ y_3 \end{bmatrix}
@@ -273,7 +261,43 @@ $$
 
 Each piece only has to describe the data nearby, so the curve is flexible where it needs to be, local, and stable, and because it is still a basis expansion, it is still a linear in $\boldsymbol\beta$ even though the curve is a parabola in $x$.
 
-#### Piecewise Polynomials and Stitched Splines
+| Model | Columns of $X$ | Shape in $x$ |
+|---|---|---|
+| Straight line | $1,\ x$ | line |
+| Parabola | $1,\ x,\ x^2$ | parabola |
+| Spline | $1,\ x,\ \dots$ (built from knots) | flexible curve |
+
+### Types of Basis Functions:
+
+**One type of basis expansions are Polynomials:** 
+
+Take $b_m(x) = x^m$, so that
+
+$$
+x \longrightarrow \{1,\ x,\ x^2,\ x^3,\ \dots,\ x^p\}, \qquad m = 0, 1, 2, \dots, p.
+$$
+
+1. Pros: smooth curve
+2. Cons: It is a **global function**: every coefficient affects the whole curve (function), so changing one coefficient $\beta$ with change the whole function $f(x)$. (data at one end of the range can change the fit at the other end).
+
+**Another type of basis expansions are Piecewise Polynomials:**
+
+- 0th degree - piecewise constant
+- 1st degree - piecewise linear
+- 2nd degree - piecewise quadratic
+- 3rd degree - piecewise cubic
+- etc.
+
+1. Pros: It is a **local function**: local chnages only affect the segemnt they occur in rather than the entire curve (function), so changing one coefficient $\beta$ will chnage change the specifc segment of the curve. 
+2. Cons: There can be discontinuities and jumps in the curve where the knots begin and end. We must choose where these knots begin and end. 
+
+**Another type of basis expansions are Spline:**
+
+1. **Cut** the $x$-axis into pieces at chosen points called **knots**. The knots **control where the slope of the curve is allowed to change**.
+2. **Fit** a simple, low-degree polynomial on each piece.
+3. **Stitch** the pieces together so the joins are smooth.
+
+## Piecewise Polynomials and Stitched Splines
 
 ```{python}
 
