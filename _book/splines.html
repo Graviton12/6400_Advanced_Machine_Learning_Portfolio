@@ -559,27 +559,60 @@ Y = X\boldsymbol\beta + \boldsymbol\varepsilon, \qquad \hat{\boldsymbol\beta} = 
 <li><strong>Fit</strong> a simple, low-degree polynomial on each piece.</li>
 <li><strong>Stitch</strong> the pieces together so the joins are smooth.</li>
 </ol>
-<p>Each piece only has to describe the data nearby, so the curve is flexible where it needs to be, local, and stable, and because it is still a basis expansion, it is still a linear model in <span class="math inline">\(\boldsymbol\beta\)</span>.</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Vocabulary you need
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<ul>
-<li><strong>Polynomial of degree <span class="math inline">\(d\)</span>:</strong> <span class="math inline">\(c_0 + c_1x + \cdots + c_dx^d\)</span>. Degree 1 is a line, degree 3 is a cubic.</li>
-<li><strong>Knot (<span class="math inline">\(\kappa\)</span>):</strong> a chosen <span class="math inline">\(x\)</span>-value where one polynomial piece hands off to the next.</li>
-<li><strong>Continuous:</strong> the graph has no jumps.</li>
-<li><strong>First derivative <span class="math inline">\(s'(x)\)</span>:</strong> the slope of the curve at <span class="math inline">\(x\)</span>. If it is continuous, the curve has no kinks.</li>
-<li><strong>Second derivative <span class="math inline">\(s''(x)\)</span>:</strong> how fast the slope is changing (the curvature).</li>
-</ul>
-</div>
-</div>
 <p>A <strong>basis function</strong> is a building block. Instead of using <span class="math inline">\(x\)</span> directly, we choose a set of functions <span class="math inline">\(b_0(x), b_1(x), \dots, b_M(x)\)</span> and build the curve as a weighted sum of them, <span class="math display">\[f(x) = \sum_{m=0}^{M} \beta_m\, b_m(x).\]</span> This works like building the point <span class="math inline">\((3,2)\)</span> from the blocks <span class="math inline">\((1,0)\)</span> and <span class="math inline">\((0,1)\)</span> as <span class="math inline">\(3(1,0) + 2(0,1)\)</span>. The coefficients <span class="math inline">\(\beta_m\)</span> say how much of each block to use. For example, the basis <span class="math inline">\(1, x, x^2\)</span> builds every curve of the form <span class="math inline">\(\beta_0 + \beta_1 x + \beta_2 x^2\)</span>. Each basis function evaluated at the data becomes one column of the design matrix <span class="math inline">\(X\)</span>.</p>
+<p>Replacing <span class="math inline">\(x\)</span> with basis functions <span class="math inline">\(b_0(x), \dots, b_M(x)\)</span> changes only the columns of the design matrix. We write the expanded design matrix as <span class="math inline">\(\Phi\)</span>:</p>
+<p><span class="math display">\[
+\underbrace{\begin{bmatrix}
+1 &amp; x_1 \\
+1 &amp; x_2 \\
+\vdots &amp; \vdots \\
+1 &amp; x_n
+\end{bmatrix}}_{\text{raw design matrix } (n\times 2)}
+\quad\longrightarrow\quad
+\underbrace{\begin{bmatrix}
+b_0(x_1) &amp; b_1(x_1) &amp; \cdots &amp; b_M(x_1) \\
+b_0(x_2) &amp; b_1(x_2) &amp; \cdots &amp; b_M(x_2) \\
+\vdots &amp; \vdots &amp; &amp; \vdots \\
+b_0(x_n) &amp; b_1(x_n) &amp; \cdots &amp; b_M(x_n)
+\end{bmatrix}}_{\Phi\ (n\times (M+1))}
+\]</span></p>
+<p>The entry in row <span class="math inline">\(i\)</span> and column <span class="math inline">\(m\)</span> is <span class="math inline">\(\Phi_{im} = b_m(x_i)\)</span>: basis function <span class="math inline">\(m\)</span> evaluated at observation <span class="math inline">\(i\)</span>. The model keeps the same form:</p>
+<p><span class="math display">\[
+\underbrace{\begin{bmatrix} y_1 \\ y_2 \\ \vdots \\ y_n \end{bmatrix}}_{Y\ (n\times 1)}
+=
+\underbrace{\begin{bmatrix}
+b_0(x_1) &amp; b_1(x_1) &amp; \cdots &amp; b_M(x_1) \\
+b_0(x_2) &amp; b_1(x_2) &amp; \cdots &amp; b_M(x_2) \\
+\vdots &amp; \vdots &amp; &amp; \vdots \\
+b_0(x_n) &amp; b_1(x_n) &amp; \cdots &amp; b_M(x_n)
+\end{bmatrix}}_{\Phi\ (n\times (M+1))}
+\underbrace{\begin{bmatrix} \beta_0 \\ \beta_1 \\ \vdots \\ \beta_M \end{bmatrix}}_{\boldsymbol\beta\ ((M+1)\times 1)}
++
+\underbrace{\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \vdots \\ \varepsilon_n \end{bmatrix}}_{\boldsymbol\varepsilon\ (n\times 1)}
+\]</span></p>
+<p>that is, <span class="math inline">\(Y = \Phi\boldsymbol\beta + \boldsymbol\varepsilon\)</span>. Row <span class="math inline">\(i\)</span> multiplies out to</p>
+<p><span class="math display">\[
+y_i = \beta_0 b_0(x_i) + \beta_1 b_1(x_i) + \cdots + \beta_M b_M(x_i) + \varepsilon_i,
+\]</span></p>
+<p>which is the weighted sum of basis functions plus noise. The least squares estimate has the same form as before, with <span class="math inline">\(\Phi\)</span> in place of <span class="math inline">\(X\)</span>:</p>
+<p><span class="math display">\[
+\hat{\boldsymbol\beta} = (\Phi'\Phi)^{-1}\Phi'Y .
+\]</span></p>
+<p><strong>Dimension check:</strong> <span class="math inline">\(\Phi'\)</span> is <span class="math inline">\((M+1)\times n\)</span>, so <span class="math inline">\(\Phi'\Phi\)</span> is <span class="math inline">\((M+1)\times(M+1)\)</span>, <span class="math inline">\(\Phi'Y\)</span> is <span class="math inline">\((M+1)\times 1\)</span>, and therefore <span class="math inline">\(\hat{\boldsymbol\beta}\)</span> is <span class="math inline">\((M+1)\times 1\)</span>, one coefficient per basis function.</p>
+<p><strong>Example.</strong> The three children with ages <span class="math inline">\(2, 8, 18\)</span> and the parabola basis <span class="math inline">\(b_0 = 1,\ b_1 = x,\ b_2 = x^2\)</span>:</p>
+<p><span class="math display">\[
+\begin{bmatrix} y_1 \\ y_2 \\ y_3 \end{bmatrix}
+=
+\begin{bmatrix}
+1 &amp; 2 &amp; 4 \\
+1 &amp; 8 &amp; 64 \\
+1 &amp; 18 &amp; 324
+\end{bmatrix}
+\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \end{bmatrix}
++
+\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \varepsilon_3 \end{bmatrix}
+\]</span></p>
+<p>Each piece only has to describe the data nearby, so the curve is flexible where it needs to be, local, and stable, and because it is still a basis expansion, it is still a linear in <span class="math inline">\(\boldsymbol\beta\)</span> even though the curve is a parabola in <span class="math inline">\(x\)</span>.</p>
 </section>
 </section>
 <section id="linear-splines" class="level3" data-number="6.1.2">

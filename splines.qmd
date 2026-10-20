@@ -204,20 +204,74 @@ $$
 2. **Fit** a simple, low-degree polynomial on each piece.
 3. **Stitch** the pieces together so the joins are smooth.
 
-Each piece only has to describe the data nearby, so the curve is flexible where it needs to be, local, and stable, and because it is still a basis expansion, it is still a linear model in $\boldsymbol\beta$.
-
-::: {.callout-note}
-## Vocabulary you need
-- **Polynomial of degree $d$:** $c_0 + c_1x + \cdots + c_dx^d$. Degree 1 is a line, degree 3 is a cubic.
-- **Knot ($\kappa$):** a chosen $x$-value where one polynomial piece hands off to the next.
-- **Continuous:** the graph has no jumps.
-- **First derivative $s'(x)$:** the slope of the curve at $x$. If it is continuous, the curve has no kinks.
-- **Second derivative $s''(x)$:** how fast the slope is changing (the curvature).
-:::
-
 A **basis function** is a building block. Instead of using $x$ directly, we choose a set of functions $b_0(x), b_1(x), \dots, b_M(x)$ and build the curve as a weighted sum of them, 
 $$f(x) = \sum_{m=0}^{M} \beta_m\, b_m(x).$$ 
 This works like building the point $(3,2)$ from the blocks $(1,0)$ and $(0,1)$ as $3(1,0) + 2(0,1)$. The coefficients $\beta_m$ say how much of each block to use. For example, the basis $1, x, x^2$ builds every curve of the form $\beta_0 + \beta_1 x + \beta_2 x^2$. Each basis function evaluated at the data becomes one column of the design matrix $X$.
+
+Replacing $x$ with basis functions $b_0(x), \dots, b_M(x)$ changes only the columns of the design matrix. We write the expanded design matrix as $\Phi$:
+
+$$
+\underbrace{\begin{bmatrix}
+1 & x_1 \\
+1 & x_2 \\
+\vdots & \vdots \\
+1 & x_n
+\end{bmatrix}}_{\text{raw design matrix } (n\times 2)}
+\quad\longrightarrow\quad
+\underbrace{\begin{bmatrix}
+b_0(x_1) & b_1(x_1) & \cdots & b_M(x_1) \\
+b_0(x_2) & b_1(x_2) & \cdots & b_M(x_2) \\
+\vdots & \vdots & & \vdots \\
+b_0(x_n) & b_1(x_n) & \cdots & b_M(x_n)
+\end{bmatrix}}_{\Phi\ (n\times (M+1))}
+$$
+
+The entry in row $i$ and column $m$ is $\Phi_{im} = b_m(x_i)$: basis function $m$ evaluated at observation $i$. The model keeps the same form:
+
+$$
+\underbrace{\begin{bmatrix} y_1 \\ y_2 \\ \vdots \\ y_n \end{bmatrix}}_{Y\ (n\times 1)}
+=
+\underbrace{\begin{bmatrix}
+b_0(x_1) & b_1(x_1) & \cdots & b_M(x_1) \\
+b_0(x_2) & b_1(x_2) & \cdots & b_M(x_2) \\
+\vdots & \vdots & & \vdots \\
+b_0(x_n) & b_1(x_n) & \cdots & b_M(x_n)
+\end{bmatrix}}_{\Phi\ (n\times (M+1))}
+\underbrace{\begin{bmatrix} \beta_0 \\ \beta_1 \\ \vdots \\ \beta_M \end{bmatrix}}_{\boldsymbol\beta\ ((M+1)\times 1)}
++
+\underbrace{\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \vdots \\ \varepsilon_n \end{bmatrix}}_{\boldsymbol\varepsilon\ (n\times 1)}
+$$
+
+that is, $Y = \Phi\boldsymbol\beta + \boldsymbol\varepsilon$. Row $i$ multiplies out to
+
+$$
+y_i = \beta_0 b_0(x_i) + \beta_1 b_1(x_i) + \cdots + \beta_M b_M(x_i) + \varepsilon_i,
+$$
+
+which is the weighted sum of basis functions plus noise. The least squares estimate has the same form as before, with $\Phi$ in place of $X$:
+
+$$
+\hat{\boldsymbol\beta} = (\Phi'\Phi)^{-1}\Phi'Y .
+$$
+
+**Dimension check:** $\Phi'$ is $(M+1)\times n$, so $\Phi'\Phi$ is $(M+1)\times(M+1)$, $\Phi'Y$ is $(M+1)\times 1$, and therefore $\hat{\boldsymbol\beta}$ is $(M+1)\times 1$, one coefficient per basis function.
+
+**Example.** The three children with ages $2, 8, 18$ and the parabola basis $b_0 = 1,\ b_1 = x,\ b_2 = x^2$:
+
+$$
+\begin{bmatrix} y_1 \\ y_2 \\ y_3 \end{bmatrix}
+=
+\begin{bmatrix}
+1 & 2 & 4 \\
+1 & 8 & 64 \\
+1 & 18 & 324
+\end{bmatrix}
+\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \end{bmatrix}
++
+\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \varepsilon_3 \end{bmatrix}
+$$
+
+Each piece only has to describe the data nearby, so the curve is flexible where it needs to be, local, and stable, and because it is still a basis expansion, it is still a linear in $\boldsymbol\beta$ even though the curve is a parabola in $x$.
 
 ### Linear Splines:
 
