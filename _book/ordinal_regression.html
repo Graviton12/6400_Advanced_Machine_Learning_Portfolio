@@ -1113,7 +1113,6 @@ first 5 test people:
 <ul>
 <li><strong>MSE (mean squared error)</strong> for mean predictions: <span class="math inline">\(\frac{1}{m}\sum (y_j - \hat y_j)^2\)</span>. It punishes big misses heavily.</li>
 <li><strong>MAE (mean absolute error)</strong> for median predictions: <span class="math inline">\(\frac{1}{m}\sum |y_j - \hat y_j|\)</span>. The median is the prediction that minimizes this.</li>
-<li><strong>Brier score</strong> for the tail probability: the MSE between the predicted probability and what happened (1 if <span class="math inline">\(y_j &gt; c\)</span>, 0 otherwise).</li>
 </ul>
 <div id="step5-metrics" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> evaluate(mean_pred, median_pred):</span>

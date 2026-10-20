@@ -15,7 +15,12 @@ book:
     - part: "Visualizing Models"
       chapters:
         - visualizing_model_molnar_2022.qmd
-    - ordinal_regression.qmd
+    - part: "Four Models"
+      chapters:
+      - ordinal_regression.qmd
+    - part: "Nonlinearity"
+      chapters:
+      - splines.qmd
     - summary.qmd
     - references.qmd
     - part: "Appendix"

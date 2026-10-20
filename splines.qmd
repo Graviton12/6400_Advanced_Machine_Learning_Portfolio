@@ -1,0 +1,215 @@
+# Splines
+
+## General Introduction Splines:
+
+### Motivating Idea of Splines
+
+#### The Linear Model:
+Suppose we measure two quantities, such as a child’s age ($x$) and child's length ($y$) on many children. In regression (prediction modeling), we have a function $f$ which takes in an *input* $x$ and returns an *average output at that input*. The goal of prediction modeling is to learn $f$ from data, so that for a new child we can predict their length using $f(x)$.
+
+Children of the same age do not all have the same length. We therefore write the observed length as the average length at that age $f(x)$ plus the individual's random deviation from that average, called the *noise*, $\varepsilon$:
+
+$$
+\underbrace{y}_{\text{observed length of a child at age x}} = \underbrace{f(x)}_{\text{true average length of child at age x (unknown)}} + \underbrace{\varepsilon}_{\text{noise}}
+$$
+We never observe $f$ directly, so we *estimate* it from data and write the estimate as $\hat f$. The predicted length of a child at age $x$ is given by:
+
+$$
+\underbrace{\hat y}_{\text{predicted length at age } x}
+=
+\underbrace{\hat f(x)}_{\text{estimate of the average length at age } x}
+$$
+
+The gap between what we observed and what we predicted is the **residual**. It is our estimate of the noise $\varepsilon$:
+
+$$
+\underbrace{\hat\varepsilon}_{\text{residual}}
+=
+\underbrace{y}_{\text{observed}}
+-
+\underbrace{\hat y}_{\text{predicted}}
+$$
+
+The true average $f(x)$ is called the **conditional mean**. It is the expected (average) value of the outcome $Y$, given the predictor value $x$:
+
+$$
+E[Y \mid x] = f(x)
+$$
+
+The simplest choice of $f$ is a straight line:
+
+$$
+f(x) = \beta_0 + \beta_1 x
+$$
+
+With With $p$ number of predictors $x_1,\dots,x_p$ collected in a vector $\mathbf{x}$, the straight line becomes a weighted sum:
+
+$$
+E[Y \mid \mathbf{x}]
+= \beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p
+= \sum_{j=0}^{p} x_j\beta_j
+= \mathbf{x}\boldsymbol\beta
+$$
+
+The numbers $\beta_j$ are the model's **parameters (coefficients)**, and fitting the model means choosing them using the data. 
+- **linear in $\boldsymbol\beta$ (the parameters)** means each $\beta$ is scaled by something or added to something (linear cominbation). No $\beta$ is squared, put in an exponent, or multiplied by another $\beta$.
+- **linear in $x$ (the predictor)** means the curve is a straight line when you plot it.
+
+The model also says how spread out the noise is around the average which is the **conditional variance**. We assume the spread is the same everywhere:
+
+$$
+\text{Var}(Y \mid \mathbf{x}) = \sigma^2 .
+$$
+
+For a single child $i$, the model can be written out in full. This is called the **scalar form**:
+
+$$
+y_i = \beta_0 + \beta_1 x_{i1} + \cdots + \beta_p x_{ip} + \varepsilon_i,
+\qquad \varepsilon_i \overset{\text{iid}}{\sim} \text{Normal}(0,\ \sigma^2).
+$$
+With $n$ children we stack everything into vectors which can be represented as matrices:
+
+$$
+Y = X\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
+\boldsymbol\varepsilon \sim \text{Normal}(\mathbf{0}_n,\ \sigma^2 I_n).
+$$
+
+$$
+\underbrace{\begin{bmatrix} y_1 \\ y_2 \\ \vdots \\ y_n \end{bmatrix}}_{Y\ (n\times 1)}
+=
+\underbrace{\begin{bmatrix}
+1 & x_{11} & x_{12} & \cdots & x_{1p} \\
+1 & x_{21} & x_{22} & \cdots & x_{2p} \\
+\vdots & \vdots & \vdots & & \vdots \\
+1 & x_{n1} & x_{n2} & \cdots & x_{np}
+\end{bmatrix}}_{X\ (n\times (p+1))}
+\underbrace{\begin{bmatrix} \beta_0 \\ \beta_1 \\ \vdots \\ \beta_p \end{bmatrix}}_{\boldsymbol\beta\ ((p+1)\times 1)}
++
+\underbrace{\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \vdots \\ \varepsilon_n \end{bmatrix}}_{\boldsymbol\varepsilon\ (n\times 1)}
+$$
+
+$$
+\underbrace{\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \vdots \\ \varepsilon_n \end{bmatrix}}_{\boldsymbol\varepsilon}
+\sim
+\text{Normal}\left(
+\underbrace{\begin{bmatrix} 0 \\ 0 \\ \vdots \\ 0 \end{bmatrix}}_{\mathbf{0}_n},\
+\sigma^2
+\underbrace{\begin{bmatrix}
+1 & 0 & \cdots & 0 \\
+0 & 1 & \cdots & 0 \\
+\vdots & & \ddots & \vdots \\
+0 & 0 & \cdots & 1
+\end{bmatrix}}_{I_n\ (n\times n)}
+\right)
+$$
+
+::: {.callout-note title="Notation"}
+
+* $Y$: $n \times 1$ **outcome vector**; $Y_i$ is the outcome for each observation $i$.
+* $\mathbf{x}$: the **predictor vector** of predictor values for each observation $i$ (with a leading 1 for the intercept). A plain $x$ is a single predictor.
+* $X$: $n \times (p+1)$ **design matrix**; the first column is all ones for the intercept; $X_{ij}$ is the $j$-th predictor value for observation $i$.
+* $\beta_j$: are the model's parameters (coefficients). Fitting the model means choosing them using the data.
+* $\boldsymbol\beta$: $(p+1) \times 1$ **coefficient vector**; $\beta_0$ is the intercept and $\beta_j$ is the coefficient for the $j$-th predictor.
+* $\mathbf{x}\boldsymbol\beta$: the **dot product** of the predictor vector with the coefficient vector (using matrix multiplication).
+* $\sigma^2$: scalar, the **conditional variance** (how spread out the noise is around the average).
+* $\boldsymbol\varepsilon$: $n \times 1$ **error vector**; one noise term each observation $i$.
+* $\mathbf{0}_n$: vector of all zeros of length $n$.
+* $I_n$: **identity matrix** of size $n$ (ones on the diagonal, zeros elsewhere).
+
+:::
+
+#### What Is a Spline, and Why Do We Need One?
+
+**The problem: a straight line is too rigid.** The model $f(x) = \beta_0 + \beta_1 x$ says that every extra month of age adds the same $\beta_1$ cm of length, at every age. Real growth is fast early on and slower later. A straight line cannot bend, so it will over-predict in some regions and under-predict in others, no matter how much data we collect. (A multiple linear regression is not a good fit).
+
+```{python}
+
+#| label: fig-line-too-rigid
+#| fig-cap: "Left: a straight line fit to curved growth data. Right: the residuals of that fit."
+#| code-fold: true
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+rng = np.random.default_rng(7)
+n = 150
+age = rng.uniform(0, 36, n)
+
+def f_true(a):
+    return 50 + 12.8 * np.log1p(a)          # true average length (fast early, slower later)
+
+length_cm = f_true(age) + rng.normal(0, 2.5, n)   # observed = true average + noise
+
+# straight-line (least squares) fit and its residuals
+slope, intercept = np.polyfit(age, length_cm, 1)
+resid = length_cm - (intercept + slope * age)
+age_grid = np.linspace(0, 36, 200)
+
+# average residual within age bins (a simple smooth)
+edges = np.linspace(0, 36, 9)
+centers = (edges[:-1] + edges[1:]) / 2
+bin_means = [resid[(age >= lo) & (age < hi)].mean()
+             for lo, hi in zip(edges[:-1], edges[1:])]
+
+fig, ax = plt.subplots(1, 2, figsize=(10, 3.8))
+
+ax[0].scatter(age, length_cm, s=14, color="steelblue", alpha=0.6)
+ax[0].plot(age_grid, intercept + slope * age_grid, color="darkorange", lw=3,
+           label="Straight line")
+ax[0].plot(age_grid, f_true(age_grid), "r--", lw=2, label="True average $f(x)$")
+ax[0].set(xlabel="Age (months)", ylabel="Length (cm)", title="Straight-line fit")
+ax[0].legend(loc="lower right", frameon=False)
+
+ax[1].scatter(age, resid, s=14, color="steelblue", alpha=0.6)
+ax[1].axhline(0, color="black", ls="--")
+ax[1].plot(centers, bin_means, color="purple", lw=3, marker="o",
+           label="Average residual per age bin")
+ax[1].set(xlabel="Age (months)", ylabel=r"Residual $\hat{\varepsilon}$",
+          title="Residuals of the straight line")
+ax[1].legend(loc="lower center", frameon=False)
+
+plt.tight_layout()
+plt.show()
+```
+
+The straight line sits **above** the data at the youngest and oldest ages, so it over-predicts there (negative residuals). In the middle it sits **below** the data, so it under-predicts (positive residuals). If the line were a good model, the residuals would scatter randomly around zero. Instead the purple curve shows a systematic upside-down U pattern. This is the signal that the true relationship bends, and collecting more data will not fix it.
+
+**The key idea: linear in $\boldsymbol\beta$ does not mean linear in $x$.** The fitting method from the previous section only needs the model to be a weighted sum with the $\beta$'s as weights. It does not care what the quantities being weighted are. So instead of feeding the model $x$ itself, we can feed it *features* of $x$, called **basis functions** $b_1(x), \dots, b_M(x)$. This is called a **basis expansion**:
+
+$$
+E[Y \mid x] = \beta_0 + \sum_{m=1}^{M} \beta_m\, b_m(x).
+$$
+
+Each basis function becomes one column of the design matrix $X$, with entries $X_{im} = b_m(x_i)$. Everything else is unchanged:
+
+$$
+Y = X\boldsymbol\beta + \boldsymbol\varepsilon, \qquad \hat{\boldsymbol\beta} = (X'X)^{-1}X'Y.
+$$
+
+| Model | Columns of $X$ | Shape in $x$ |
+|---|---|---|
+| Straight line | $1,\ x$ | line |
+| Parabola | $1,\ x,\ x^2$ | parabola |
+| Spline | $1,\ x,\ \dots$ (built from knots) | flexible curve |
+
+**First attempt: polynomials.** Take $b_m(x) = x^m$. This can bend, but it has three drawbacks:
+
+1. It is **global**: every coefficient affects the whole curve, so data at one end of the range can change the fit at the other end.
+2. High-degree polynomials **oscillate** between data points and **diverge in the tails**.
+3. The columns $x, x^2, x^3, \dots$ are nearly collinear, which makes $X'X$ numerically unstable to invert.
+
+**Second attempt: splines, which cut and stitch.**
+
+1. **Cut** the $x$-axis into pieces at chosen points called **knots**.
+2. **Fit** a simple, low-degree polynomial on each piece.
+3. **Stitch** the pieces together so the joins are smooth.
+
+Each piece only has to describe the data nearby, so the curve is flexible where it needs to be, local, and stable, and because it is still a basis expansion, it is still a linear model in $\boldsymbol\beta$.
+
+### Linear Splines:
+
+### Cubic Splines:
+
+##### Natural splines
+
+##### Restricted cubic splines
