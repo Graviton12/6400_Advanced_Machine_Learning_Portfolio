@@ -184,14 +184,17 @@ The straight line sits **above** the data at the youngest and oldest ages, so it
 **The key idea:** The linear spline is a linear model, meaning it is linear in the parameters $\boldsymbol\beta$ even though the relationship between the child's length and age is not a straight line, so it is not linear in $x$. The fitting method from the previous section only needs the model to be a weighted sum with the $\beta$'s as weights. It does not care what the quantities being weighted are. So instead of feeding the model $x$ itself, we can feed it *features* of $x$, called **basis functions** $b_1(x), \dots, b_M(x)$. This is called a **basis expansion**:
 
 $$
-E[Y \mid x] = \sum_{m=0}^{M} \beta_m\, b_m(x), \qquad b_0(x) = 1.
+E[Y \mid x] = \beta_0 + \sum_{m=0}^{M} \beta_m\, b_m(x)
 $$
-A **basis function** allows us to expand our predictor $x$ to some feature space $\Phi(x)$. Instead of using $x$ directly, we choose a set of functions $b_0(x), b_1(x), \dots, b_M(x)$ and build the curve as a weighted sum of them, 
-$$f(x) = \beta_0 + \sum_{m=0}^{M} \beta_m\, b_m(x).$$ 
-Each basis function becomes one column of the design matrix $X$, with entries $X_{im} = b_m(x_i)$. Everything else is unchanged:
 
 $$
-Y = X\boldsymbol\beta + \boldsymbol\varepsilon \quad\longrightarrow\quad Y = X\Phi(X) + \boldsymbol\varepsilon
+E[Y \mid x] = \sum_{m=0}^{M} \beta_m\, b_m(x), \qquad b_0(x) = 1.
+$$
+
+A **basis function** allows us to expand the predictor $x$ into a vector of features $\Phi(x) = \big(b_0(x), b_1(x), \dots, b_M(x)\big)'$ and build the curve as a weighted sum of them. Each basis function evaluated at the data becomes one column of the design matrix, with entries $X_{im} = b_m(x_i)$. Everything else is unchanged:
+
+$$
+Y = X\boldsymbol\beta + \boldsymbol\varepsilon \quad\longrightarrow\quad Y = \Phi(X)\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
 $$
 
 This works like building the point $(3,2)$ from the blocks $(1,0)$ and $(0,1)$ as $3(1,0) + 2(0,1)$. The coefficients $\beta_m$ say how much of each block to use. For example, the basis $1, x, x^2$ builds every curve of the form $\beta_0 + \beta_1 x + \beta_2 x^2$. Each basis function evaluated at the data becomes one column of the design matrix $X$.
@@ -297,6 +300,8 @@ A compromise of botb Degree Polynomials and Piecewise Polynomials:
 
 1. Pro: smooth curve (no discontinuities) and a local function since changes in coefficient $\beta$ will chnage change the specifc segment of the curve defined by the knots which are specific pointd which breaks up the x-axis into segments.
 
+A spline is built in three steps:
+
 1. **Cut** the $x$-axis into segments at chosen points called **knots**. The knots **control where the slope of the curve is allowed to change**.
 2. **Fit** a simple, low-degree polynomial on each piece.
 3. **Stitch** the pieces together so the joins of the curves are smooth.
@@ -364,28 +369,444 @@ In the top row, each piece is fit on its own, so nothing forces neighboring piec
 
 ## General Definition of Splines
 
-Let $a < \kappa_1 < \cdots < \kappa_K < b$ be $K$ **knots**. They cut $[a, b]$ into $K+1$ intervals. Write $(u)_+ = \max(0, u)$ for the **positive part** of $u$: it equals $u$ when $u > 0$ and $0$ otherwise.
+Splines address polynomial instability by fitting piecewise polynomials constrained to join smoothly at selected values of called knots. Each piece is a low-degree polynomial on its own interval; the constraints at the knots enforce continuity and smoothness.
 
-::: {.callout-important title="Definition"}
-A **spline of degree $d$** with knots $\kappa_1, \dots, \kappa_K$ is a function $s$ such that
+::: {.callout-note title="Definition"}
+A **spline** with $K$ **knots** $\kappa_1, \dots, \kappa_K$ is a function $f(x)$ such that
 
-1. on each of the $K+1$ intervals, $s$ is a polynomial of degree at most $d$, and
-2. $s$ and its derivatives $s', s'', \dots, s^{(d-1)}$ are continuous at every knot.
+1. on each of the $K+1$ intervals, $f(\kappa)$ is a polynomial of degree at most $d=1$, and
+2. $f(\kappa)$ and its derivatives $f'(\kappa), f''(\kappa), \dots, f^{(d-1)}(\kappa)$ are continuous at every knot $K$.
 :::
 
-The first derivative $s'$ is the slope of the curve, and the second derivative $s''$ is how fast the slope is changing (the curvature). "Continuous" means no jumps, so a continuous $s'$ means no kinks.
+The first derivative $f'(\kappa)$ is the slope of the curve, where the curve contians **kinks** (non-differentiable corners) at the knots, and the second derivative $f''(\kappa)$ is how fast the slope is changing (the curvature).
 
 | Degree $d$ | Name | Continuous at the knots |
 |---|---|---|
 | 0 | piecewise constant (step function) | nothing required |
-| 1 | linear spline | $s$ (kinks allowed) |
-| 2 | quadratic spline | $s$, $s'$ |
-| 3 | cubic spline | $s$, $s'$, $s''$ |
+| 1 | linear spline | $f(\kappa)$ (contains kinks) |
+| 2 | quadratic spline | $f(\kappa)$, $f'(\kappa)$ |
+| 3 | cubic spline | $f(\kappa)$, $f'(\kappa)$, $f''(\kappa)$ |
 
-## Linear Splines
+## Linear Splines (Piecewise Linear)
+
+::: {.callout-note title="Definition"}
+A **linear spline** is the spline of degree $d = 1$: a function made of straight-line pieces that are joined end to end at the knots. Between knots the curve is a straight line. At each knot the line is allowed to change slope, creating a "sharp corner" or "kink". The curve is continuous everywhere else.
+::: 
+
+For child growth, this lets the curve rise steeply in early infancy and then bend to a gentler slope later, without jumping.
+
+### Mathematical Derivation:
+Let $\kappa_1, \dots, \kappa_K$ be the $K$ knots. The knots cut into $K+1$ intervals
+
+$$
+I_j = (\kappa_{j-1},\ \kappa_j], \qquad j = 1, \dots, K+1 .
+$$
+
+The whole spline is $f(x)$. On each interval it follows its own straight line $f_j(x)$:
+
+$$
+f_j(x) = \alpha_j + \gamma_j\, x, \qquad f(x) = f_j(x) \ \text{ for } x \in I_j ,
+$$
+
+where $\alpha_j$ is the intercept and $\gamma_j$ is the slope of the line used on interval $I_j$. Each $f_j(x)$ is a full straight line that could be drawn for any $x$, but it equals the spline $f(x)$ only on $I_j$.
+
+### Step 1: Impose continuity at the knots:
+
+For $d = 1$, condition 2 of the definition requires only that $f(x)$ itself be continuous at every knot. At knot $\kappa_j$, the line from the left side fo the line $f_j(\kappa_j)$ and the line from the right side of the line $f_{j+1}(\kappa_j)$ must have the same value knot $\kappa_j$:
+
+$$
+f_j(\kappa_j) = f_{j+1}(\kappa_j)
+\quad\Longleftrightarrow\quad
+\alpha_j + \gamma_j\,\kappa_j = \alpha_{j+1} + \gamma_{j+1}\,\kappa_j, \qquad j = 1, \dots, K .
+$$
+
+### Step 2: Determine how the slopes betweeen segments differ:
+
+At a knot, the two lines segments meet. Step 1 told us they must be at the same height at the knot. In step 2, we ar enow interested in seeing how the slopes differ between two line segments. To do this, we first take the difference between the right line segment and the left line segment. This difference is defined by $\delta_j(x)$:
+
+$$
+\delta_j(x) = f_{j+1}(x) - f_j(x)
+= (\alpha_{j+1} - \alpha_j) + (\gamma_{j+1} - \gamma_j)\,x .
+$$
+
+$\delta_j(x)$ is itself a straight line. Continuity at $\kappa_j$ says $f_j(\kappa_j) = f_{j+1}(\kappa_j)$, so
+
+$$
+\delta_j(\kappa_j) = 0 .
+$$
+
+Subtracting $\delta_j(\kappa_j) = 0$ from $\delta_j(x)$ cancels the constant term:
+
+$$
+\delta_j(x) = \delta_j(x) - \delta_j(\kappa_j)
+= (\gamma_{j+1} - \gamma_j)\,(x - \kappa_j).
+$$
+
+A line that is zero at $\kappa_j$ must be a multiple of $(x - \kappa_j)$, and the multiple is the **change in slope**. Give it a name:
+
+$$
+\beta_{j+1} = \gamma_{j+1} - \gamma_j .
+$$
+
+Therefore each line is the previous line plus a slope change that starts at the knot:
+
+$$
+\boxed{\,f_{j+1}(x) = f_j(x) + \beta_{j+1}(x - \kappa_j)\,}
+$$
+
+### Step 3: Applyig step 2 for all knot values (for each interval):
+
+Start with the first interval and name its intercept and slope $\beta_0 = \alpha_1$ and $\beta_1 = \gamma_1$, so that
+
+$$
+f_1(x) = \beta_0 + \beta_1 x .
+$$
+
+Applying Step 2 repeatedly:
+
+$$
+\begin{aligned}
+f_2(x) &= f_1(x) + \beta_2(x - \kappa_1) = \beta_0 + \beta_1 x + \beta_2(x - \kappa_1), \\
+f_3(x) &= f_2(x) + \beta_3(x - \kappa_2) = \beta_0 + \beta_1 x + \beta_2(x - \kappa_1) + \beta_3(x - \kappa_2), \\
+&\ \ \vdots \\
+f_j(x) &= \beta_0 + \beta_1 x + \sum_{k=1}^{j-1} \beta_{k+1}\,(x - \kappa_k).
+\end{aligned}
+$$
+
+Since $f(x) = f_j(x)$ for $x \in I_j$, we have
+
+$$
+f(x) = \beta_0 + \beta_1 x + \sum_{k=1}^{j-1} \beta_{k+1}\,(x - \kappa_k), \qquad x \in I_j .
+$$
+
+### Step 4: Write one formula for all $x$:
+
+The formula in Step 3 includes a different number of terms on each interval. We can write one formula by using the **positive part**
+
+$$
+(u)^+ = \max(0,\, u) =
+\begin{cases}
+u, & u > 0 \\
+0, & u \le 0 .
+\end{cases}
+$$
+
+Take $x \in I_j = (\kappa_{j-1}, \kappa_j]$ and check that $(x - \kappa_k)^+$ switches each term on or off correctly:
+
+- For knots already passed ($k \le j-1$): $x > \kappa_{j-1} \ge \kappa_k$, so $(x - \kappa_k)^+ = x - \kappa_k$. The term is **on**, as in Step 3.
+- For knots not yet reached ($k \ge j$): $x \le \kappa_j \le \kappa_k$, so $(x - \kappa_k)^+ = 0$. The term is **off**.
+
+Because $f(x) = f_j(x)$ on $I_j$, a single formula for $f(x)$ is correct on every interval at once:
+
+$$
+\boxed{\,f(x) = \beta_0 + \beta_1 x + \sum_{k=1}^{K} \beta_{k+1}\,(x - \kappa_k)^+\,}
+$$
+
+The model for the data is therefore
+
+$$
+E[Y \mid x] = \beta_0 + \beta_1 x + \sum_{k=1}^{K} \beta_{k+1}\,(x - \kappa_k)^+, \qquad \text{Var}(Y \mid x) = \sigma^2 .
+$$
+
+For example, with two knots,
+
+$$
+E[Y \mid x] = \beta_0 + \beta_1 x + \beta_2 (x - \kappa_1)^+ + \beta_3 (x - \kappa_2)^+ .
+$$
+
+### Step 5: Read off the basis functions:
+
+Label each term in the boxed formula from Step 4 by the basis functions $b_0(x)=1, b_1(x)=x, b_2(x)=x^2, \cdots$ that multiplies its coefficient:
+
+$$
+f(x) = \beta_0\cdot\underbrace{1}_{b_0(x)} \;+\; \beta_1\cdot\underbrace{x}_{b_1(x)} \;+\; \beta_2\cdot\underbrace{(x-\kappa_1)^+}_{b_2(x)} \;+\; \beta_3\cdot\underbrace{(x-\kappa_2)^+}_{b_3(x)} \;+\; \cdots \;+\; \beta_{K+1}\cdot\underbrace{(x-\kappa_K)^+}_{b_{K+1}(x)}
+$$
+
+The basis functions are:
+
+$$
+b_0(x) = 1, \qquad b_1(x) = x, \qquad b_{k+1}(x) = (x - \kappa_k)^+ \quad (k = 1, \dots, K).
+$$
+
+So $b_0$ is the constant, $b_1$ is the plain straight line, and $b_2, \dots, b_{K+1}$ are one hinge function for each knot. Then $f(x)$ is the basis expansion $E[Y \mid x] = \sum_{m=0}^{M}\beta_m b_m(x)$ with $M = K+1$.
+
+That is $K + 2$ basis functions. This matches the parameter count from the setup: $K+1$ lines with 2 parameters each gives $2(K+1)$, and the $K$ continuity constraints from Step 1 remove $K$ of them, leaving $2(K+1) - K = K + 2$.
+
+The linear spline is therefore a **linear model in $\boldsymbol\beta$**, even though the curve is not a straight line in $x$. The expanded design matrix has one column per basis function:
+
+$$
+\underbrace{\Phi =
+\begin{bmatrix}
+1 & x_1 & (x_1 - \kappa_1)^+ & \cdots & (x_1 - \kappa_K)^+ \\
+1 & x_2 & (x_2 - \kappa_1)^+ & \cdots & (x_2 - \kappa_K)^+ \\
+\vdots & \vdots & \vdots & & \vdots \\
+1 & x_n & (x_n - \kappa_1)^+ & \cdots & (x_n - \kappa_K)^+
+\end{bmatrix}}_{\Phi\ (n \times (K+2))}
+$$
+
+so $\Phi_{i,m} = b_m(x_i)$: column 0 is $b_0$, column 1 is $b_1$, and column $k+1$ is $b_{k+1}$. The model and the least squares estimate keep the same form as before:
+
+$$
+Y = \Phi\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
+\hat{\boldsymbol\beta} = (\Phi'\Phi)^{-1}\Phi'Y .
+$$
+
+$$
+\underbrace{\begin{bmatrix} Y_1 \\ Y_2 \\ \vdots \\ Y_n \end{bmatrix}}_{Y\ (n \times 1)}
+=
+\underbrace{\begin{bmatrix}
+1 & x_1 & (x_1 - \kappa_1)^+ & \cdots & (x_1 - \kappa_K)^+ \\
+1 & x_2 & (x_2 - \kappa_1)^+ & \cdots & (x_2 - \kappa_K)^+ \\
+\vdots & \vdots & \vdots & & \vdots \\
+1 & x_n & (x_n - \kappa_1)^+ & \cdots & (x_n - \kappa_K)^+
+\end{bmatrix}}_{\Phi\ (n \times (K+2))}
+\underbrace{\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \vdots \\ \beta_{K+1} \end{bmatrix}}_{\boldsymbol\beta\ ((K+2) \times 1)}
++
+\underbrace{\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \vdots \\ \varepsilon_n \end{bmatrix}}_{\boldsymbol\varepsilon\ (n \times 1)}
+$$
+
+### Step 6: What the coefficients mean:
+
+The slope of $f_j(x)$ on interval $I_j$ is the sum of the starting slope and all the slope changes passed so far:
+
+$$
+\gamma_j = \beta_1 + \sum_{k=1}^{j-1} \beta_{k+1}, \qquad x \in I_j .
+$$
+
+- $\beta_0$ is the intercept of the first line.
+- $\beta_1$ is the slope on the first interval $I_1$.
+- $\beta_{k+1}$ is the **change in slope at knot $\kappa_k$**: the slope just left of $\kappa_k$ is $\gamma_k$, and just right of it is $\gamma_k + \beta_{k+1} = \gamma_{k+1}$.
 
 ## Cubic Splines
 
-### Natural splines
+::: {.callout-note title="Definition"}
+A **cubic spline** is the spline of degree $d = 3$: a function made of cubic polynomial pieces that are joined at the knots. On each interval the curve is a cubic polynomial, and at each knot the two neighboring pieces must match in three ways:
 
-### Restricted cubic splines
+- the same value at each knot ($f$ is continuous),
+- the same slope change at each knot ($f'$ is continuous),
+- the same curvature at each knot ($f''$ is continuous).
+
+Because the slope is continuous, the curve has no kinks. It bends smoothly through the knots.
+:::
+
+For child growth, this lets the curve bend gradually from fast early growth to slower later growth, without jumps and without sharp corners.
+
+### Mathematical Derivation:
+
+Let $\kappa_1, \dots, \kappa_K$ be the $K$ knots, with endpoints $\kappa_0 = a$ and $\kappa_{K+1} = b$. The knots cut the $x$-axis into $K+1$ intervals
+
+$$
+I_j = (\kappa_{j-1},\ \kappa_j], \qquad j = 1, \dots, K+1 .
+$$
+
+The whole spline is $f(x)$. On each interval it follows its own cubic polynomial $f_j(x)$:
+
+$$
+f_j(x) = \alpha_j + \gamma_j\, x + \eta_j\, x^2 + \zeta_j\, x^3, \qquad f(x) = f_j(x) \ \text{ for } x \in I_j ,
+$$
+
+where $\alpha_j$ is the intercept, $\gamma_j$ is the coefficient of $x$, $\eta_j$ is the coefficient of $x^2$, and $\zeta_j$ is the coefficient of $x^3$ for the cubic used on interval $I_j$. Each $f_j(x)$ is a full cubic curve that could be drawn for any $x$, but it equals the spline $f(x)$ only on $I_j$.
+
+The first and second derivatives of each piece are
+
+$$
+f_j'(x) = \gamma_j + 2\eta_j\, x + 3\zeta_j\, x^2, \qquad f_j''(x) = 2\eta_j + 6\zeta_j\, x .
+$$
+
+### Step 1: Impose continuity of the value, slope, and curvature at the knots:
+
+For $d = 3$, condition 2 of the definition requires that $f(x)$, $f'(x)$, and $f''(x)$ all be continuous at every knot. At knot $\kappa_j$, the cubic from the left side, $f_j$, and the cubic from the right side, $f_{j+1}$, must match in three ways at $\kappa_j$:
+
+$$
+\begin{aligned}
+f_j(\kappa_j) &= f_{j+1}(\kappa_j) &&\text{(same height)}\\
+f_j'(\kappa_j) &= f_{j+1}'(\kappa_j) &&\text{(same slope)}\\
+f_j''(\kappa_j) &= f_{j+1}''(\kappa_j) &&\text{(same curvature)}
+\end{aligned}
+\qquad j = 1, \dots, K .
+$$
+
+Written out with the coefficients, these are
+
+$$
+\begin{aligned}
+\alpha_j + \gamma_j\kappa_j + \eta_j\kappa_j^2 + \zeta_j\kappa_j^3 &= \alpha_{j+1} + \gamma_{j+1}\kappa_j + \eta_{j+1}\kappa_j^2 + \zeta_{j+1}\kappa_j^3, \\
+\gamma_j + 2\eta_j\kappa_j + 3\zeta_j\kappa_j^2 &= \gamma_{j+1} + 2\eta_{j+1}\kappa_j + 3\zeta_{j+1}\kappa_j^2, \\
+2\eta_j + 6\zeta_j\kappa_j &= 2\eta_{j+1} + 6\zeta_{j+1}\kappa_j .
+\end{aligned}
+$$
+
+### Step 2: Determine how the cubic pieces differ between segments:
+
+At a knot, two cubic pieces meet. Step 1 told us they must match in height, slope, and curvature. In Step 2, we ask what is *left* that can differ between them. To find out, take the difference between the right piece and the left piece:
+
+$$
+\delta_j(x) = f_{j+1}(x) - f_j(x)
+= (\alpha_{j+1} - \alpha_j) + (\gamma_{j+1} - \gamma_j)\,x + (\eta_{j+1} - \eta_j)\,x^2 + (\zeta_{j+1} - \zeta_j)\,x^3 .
+$$
+
+$\delta_j(x)$ is itself a cubic polynomial. The three matching rules from Step 1 say that this difference, and its first two derivatives, are all zero at the knot:
+
+$$
+\delta_j(\kappa_j) = 0, \qquad \delta_j'(\kappa_j) = 0, \qquad \delta_j''(\kappa_j) = 0 .
+$$
+
+Any cubic can be re-written in powers of $(x - \kappa_j)$, that is, re-centered at the knot:
+
+$$
+\delta_j(x) = c_0 + c_1\,(x - \kappa_j) + c_2\,(x - \kappa_j)^2 + c_3\,(x - \kappa_j)^3 ,
+$$
+
+where $c_0, c_1, c_2, c_3$ are numbers. Evaluate $\delta_j$ and its derivatives at $x = \kappa_j$. Every term with a factor of $(x - \kappa_j)$ vanishes there, so
+
+$$
+\delta_j(\kappa_j) = c_0, \qquad \delta_j'(\kappa_j) = c_1, \qquad \delta_j''(\kappa_j) = 2c_2 .
+$$
+
+The three matching rules therefore force $c_0 = c_1 = c_2 = 0$, and only the cubic term can survive:
+
+$$
+\delta_j(x) = c_3\,(x - \kappa_j)^3 .
+$$
+
+The number $c_3$ is the change in the $x^3$ coefficient, $\zeta_{j+1} - \zeta_j$, because re-centering does not change the leading coefficient. Give it a name:
+
+$$
+\beta_{j+3} = \zeta_{j+1} - \zeta_j .
+$$
+
+Therefore each cubic is the previous cubic plus a cubed term that starts at the knot:
+
+$$
+\boxed{\,f_{j+1}(x) = f_j(x) + \beta_{j+3}(x - \kappa_j)^3\,}
+$$
+
+Compare with the linear spline: there the new line was the old line plus a slope change times $(x - \kappa_j)$. Here the new cubic is the old cubic plus a change in the cubic coefficient times $(x - \kappa_j)^3$. The extra smoothness constraints are what remove the lower-power terms $(x-\kappa_j)^0$, $(x-\kappa_j)^1$, and $(x-\kappa_j)^2$.
+
+### Step 3: Applying Step 2 for all knot values (for each interval):
+
+Start with the first interval and name its coefficients $\beta_0 = \alpha_1$, $\beta_1 = \gamma_1$, $\beta_2 = \eta_1$, and $\beta_3 = \zeta_1$, so that
+
+$$
+f_1(x) = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 .
+$$
+
+Applying Step 2 repeatedly:
+
+$$
+\begin{aligned}
+f_2(x) &= f_1(x) + \beta_4(x - \kappa_1)^3 = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \beta_4(x - \kappa_1)^3, \\
+f_3(x) &= f_2(x) + \beta_5(x - \kappa_2)^3 = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \beta_4(x - \kappa_1)^3 + \beta_5(x - \kappa_2)^3, \\
+&\ \ \vdots \\
+f_j(x) &= \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \sum_{k=1}^{j-1} \beta_{k+3}\,(x - \kappa_k)^3 .
+\end{aligned}
+$$
+
+Since $f(x) = f_j(x)$ for $x \in I_j$, we have
+
+$$
+f(x) = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \sum_{k=1}^{j-1} \beta_{k+3}\,(x - \kappa_k)^3, \qquad x \in I_j .
+$$
+
+### Step 4: Write one formula for all $x$:
+
+The formula in Step 3 includes a different number of terms on each interval. As in the linear spline, we write one formula by using the **positive part** $(u)^+ = \max(0,\, u)$.
+
+Take $x \in I_j = (\kappa_{j-1}, \kappa_j]$ and check that $\left[(x - \kappa_k)^+\right]^3$ switches each term on or off correctly:
+
+- For knots already passed ($k \le j-1$): $x > \kappa_{j-1} \ge \kappa_k$, so $\left[(x - \kappa_k)^+\right]^3 = (x - \kappa_k)^3$. The term is **on**, as in Step 3.
+- For knots not yet reached ($k \ge j$): $x \le \kappa_j \le \kappa_k$, so $\left[(x - \kappa_k)^+\right]^3 = 0$. The term is **off**.
+
+Because $f(x) = f_j(x)$ on $I_j$, a single formula for $f(x)$ is correct on every interval at once:
+
+$$
+\boxed{\,f(x) = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \sum_{k=1}^{K} \beta_{k+3}\,\left[(x - \kappa_k)^+\right]^3\,}
+$$
+
+The model for the data is therefore
+
+$$
+E[Y \mid x] = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \sum_{k=1}^{K} \beta_{k+3}\,\left[(x - \kappa_k)^+\right]^3, \qquad \text{Var}(Y \mid x) = \sigma^2 .
+$$
+
+### Step 5: Read off the basis functions:
+
+Label each term in the boxed formula from Step 4 by the basis function that multiplies its coefficient:
+
+$$
+f(x) = \beta_0\cdot\underbrace{1}_{b_0(x)} + \beta_1\cdot\underbrace{x}_{b_1(x)} + \beta_2\cdot\underbrace{x^2}_{b_2(x)} + \beta_3\cdot\underbrace{x^3}_{b_3(x)} + \beta_4\cdot\underbrace{\left[(x-\kappa_1)^+\right]^3}_{b_4(x)} + \cdots + \beta_{K+3}\cdot\underbrace{\left[(x-\kappa_K)^+\right]^3}_{b_{K+3}(x)}
+$$
+
+The basis functions are:
+
+$$
+b_0(x) = 1, \quad b_1(x) = x, \quad b_2(x) = x^2, \quad b_3(x) = x^3, \quad b_{k+3}(x) = \left[(x - \kappa_k)^+\right]^3 \quad (k = 1, \dots, K).
+$$
+
+So $b_0$ through $b_3$ build an ordinary cubic polynomial, and $b_4, \dots, b_{K+3}$ are one cubed hinge function for each knot. Then $f(x)$ is the basis expansion $E[Y \mid x] = \sum_{m=0}^{M}\beta_m b_m(x)$ with $M = K+3$.
+
+That is $K + 4$ basis functions. This matches the parameter count: $K+1$ cubics with 4 parameters each gives $4(K+1)$, and the $3K$ constraints from Step 1 (three per knot) remove $3K$ of them, leaving $4(K+1) - 3K = K + 4$. This is the $K + d + 1$ count from the earlier figure with $d = 3$.
+
+The cubic spline is therefore a **linear model in $\boldsymbol\beta$**, even though the curve is not a straight line in $x$. The expanded design matrix has one column per basis function:
+
+$$
+\underbrace{\Phi =
+\begin{bmatrix}
+1 & x_1 & x_1^2 & x_1^3 & \left[(x_1 - \kappa_1)^+\right]^3 & \cdots & \left[(x_1 - \kappa_K)^+\right]^3 \\
+1 & x_2 & x_2^2 & x_2^3 & \left[(x_2 - \kappa_1)^+\right]^3 & \cdots & \left[(x_2 - \kappa_K)^+\right]^3 \\
+\vdots & \vdots & \vdots & \vdots & \vdots & & \vdots \\
+1 & x_n & x_n^2 & x_n^3 & \left[(x_n - \kappa_1)^+\right]^3 & \cdots & \left[(x_n - \kappa_K)^+\right]^3
+\end{bmatrix}}_{\Phi\ (n \times (K+4))}
+$$
+
+so $\Phi_{i,m} = b_m(x_i)$: columns 0 to 3 are $b_0$ to $b_3$, and column $k+3$ is $b_{k+3}$. The model and the least squares estimate keep the same form as before:
+
+$$
+Y = \Phi\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
+\hat{\boldsymbol\beta} = (\Phi'\Phi)^{-1}\Phi'Y .
+$$
+
+$$
+\underbrace{\begin{bmatrix} Y_1 \\ Y_2 \\ \vdots \\ Y_n \end{bmatrix}}_{Y\ (n \times 1)}
+=
+\underbrace{\begin{bmatrix}
+1 & x_1 & x_1^2 & x_1^3 & \left[(x_1 - \kappa_1)^+\right]^3 & \cdots & \left[(x_1 - \kappa_K)^+\right]^3 \\
+1 & x_2 & x_2^2 & x_2^3 & \left[(x_2 - \kappa_1)^+\right]^3 & \cdots & \left[(x_2 - \kappa_K)^+\right]^3 \\
+\vdots & \vdots & \vdots & \vdots & \vdots & & \vdots \\
+1 & x_n & x_n^2 & x_n^3 & \left[(x_n - \kappa_1)^+\right]^3 & \cdots & \left[(x_n - \kappa_K)^+\right]^3
+\end{bmatrix}}_{\Phi\ (n \times (K+4))}
+\underbrace{\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_3 \\ \beta_4 \\ \vdots \\ \beta_{K+3} \end{bmatrix}}_{\boldsymbol\beta\ ((K+4) \times 1)}
++
+\underbrace{\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \vdots \\ \varepsilon_n \end{bmatrix}}_{\boldsymbol\varepsilon\ (n \times 1)}
+$$
+
+### Step 6: What the coefficients mean:
+
+The cubic used on interval $I_j$ starts from the first cubic and picks up one change for each knot passed so far:
+
+$$
+f_j(x) = \underbrace{\beta_0 + \beta_1 x + \beta_2 x^2}_{\text{same as } f_1} + \underbrace{\Big(\beta_3 + \sum_{k=1}^{j-1}\beta_{k+3}\Big)}_{\zeta_j}\, x^3 + \cdots
+$$
+
+and in particular the $x^3$ coefficient of piece $j$ is $\zeta_j = \beta_3 + \sum_{k=1}^{j-1}\beta_{k+3}$.
+
+- $\beta_0, \beta_1, \beta_2, \beta_3$ are the coefficients of the cubic on the first interval $I_1$.
+- $\beta_{k+3}$ is the **change in the cubic coefficient at knot $\kappa_k$**: the coefficient of $x^3$ just left of $\kappa_k$ is $\zeta_k$, and just right of it is $\zeta_k + \beta_{k+3} = \zeta_{k+1}$.
+
+::: {.callout-note title="Linear vs. cubic spline"}
+
+| | Linear spline ($d = 1$) | Cubic spline ($d = 3$) |
+|---|---|---|
+| Piece $f_j(x)$ on $I_j$ | straight line (2 numbers) | cubic (4 numbers) |
+| Rules at each knot | $f$ continuous (1 rule) | $f, f', f''$ continuous (3 rules) |
+| Basis functions | $1,\ x,\ (x-\kappa_k)^+$ | $1,\ x,\ x^2,\ x^3,\ \left[(x-\kappa_k)^+\right]^3$ |
+| What $\beta_{\text{knot}}$ changes | the slope | the $x^3$ coefficient |
+| Appearance at knots | kinks | smooth |
+
+:::
+
+One Major caveat, the tail behaviors of the curve (beyond the knots) are unstable. A cubic grows like $x^3$, so the fitted curve can swing sharply upward or downward in the tails. So we need to use Natural Cubic Slines or Restricted Cubic Splines.
+
+### Natural Cubic Slines
+
+### Restricted Cubic Splines

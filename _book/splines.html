@@ -71,7 +71,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./splines_notes.html" rel="next">
+<link href="./summary.html" rel="next">
 <link href="./ordinal_regression.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -261,18 +261,12 @@ window.Quarto = {
  <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Splines</span></span></a>
   </div>
 </li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./splines_notes.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Splines Notes</span></span></a>
-  </div>
-</li>
       </ul>
   </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./summary.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -293,19 +287,19 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./bivariate_norm_dist.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Class-conditional bivariate normal distribution</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Class-conditional bivariate normal distribution</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./cross_validation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Cross Validation</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Cross Validation</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./boostrapping.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Bootstrapping</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Bootstrapping</span></span></a>
   </div>
 </li>
       </ul>
@@ -331,11 +325,27 @@ window.Quarto = {
   <li><a href="#piecewise-polynomials-and-stitched-splines" id="toc-piecewise-polynomials-and-stitched-splines" class="nav-link" data-scroll-target="#piecewise-polynomials-and-stitched-splines"><span class="header-section-number">6.2.2</span> Piecewise Polynomials and Stitched Splines</a></li>
   </ul></li>
   <li><a href="#general-definition-of-splines" id="toc-general-definition-of-splines" class="nav-link" data-scroll-target="#general-definition-of-splines"><span class="header-section-number">6.3</span> General Definition of Splines</a></li>
-  <li><a href="#linear-splines" id="toc-linear-splines" class="nav-link" data-scroll-target="#linear-splines"><span class="header-section-number">6.4</span> Linear Splines</a></li>
+  <li><a href="#linear-splines-piecewise-linear" id="toc-linear-splines-piecewise-linear" class="nav-link" data-scroll-target="#linear-splines-piecewise-linear"><span class="header-section-number">6.4</span> Linear Splines (Piecewise Linear)</a>
+  <ul class="collapse">
+  <li><a href="#mathematical-derivation" id="toc-mathematical-derivation" class="nav-link" data-scroll-target="#mathematical-derivation"><span class="header-section-number">6.4.1</span> Mathematical Derivation:</a></li>
+  <li><a href="#step-1-impose-continuity-at-the-knots" id="toc-step-1-impose-continuity-at-the-knots" class="nav-link" data-scroll-target="#step-1-impose-continuity-at-the-knots"><span class="header-section-number">6.4.2</span> Step 1: Impose continuity at the knots:</a></li>
+  <li><a href="#step-2-determine-how-the-slopes-betweeen-segments-differ" id="toc-step-2-determine-how-the-slopes-betweeen-segments-differ" class="nav-link" data-scroll-target="#step-2-determine-how-the-slopes-betweeen-segments-differ"><span class="header-section-number">6.4.3</span> Step 2: Determine how the slopes betweeen segments differ:</a></li>
+  <li><a href="#step-3-applyig-step-2-for-all-knot-values-for-each-interval" id="toc-step-3-applyig-step-2-for-all-knot-values-for-each-interval" class="nav-link" data-scroll-target="#step-3-applyig-step-2-for-all-knot-values-for-each-interval"><span class="header-section-number">6.4.4</span> Step 3: Applyig step 2 for all knot values (for each interval):</a></li>
+  <li><a href="#step-4-write-one-formula-for-all-x" id="toc-step-4-write-one-formula-for-all-x" class="nav-link" data-scroll-target="#step-4-write-one-formula-for-all-x"><span class="header-section-number">6.4.5</span> Step 4: Write one formula for all <span class="math inline">\(x\)</span>:</a></li>
+  <li><a href="#step-5-read-off-the-basis-functions" id="toc-step-5-read-off-the-basis-functions" class="nav-link" data-scroll-target="#step-5-read-off-the-basis-functions"><span class="header-section-number">6.4.6</span> Step 5: Read off the basis functions:</a></li>
+  <li><a href="#step-6-what-the-coefficients-mean" id="toc-step-6-what-the-coefficients-mean" class="nav-link" data-scroll-target="#step-6-what-the-coefficients-mean"><span class="header-section-number">6.4.7</span> Step 6: What the coefficients mean:</a></li>
+  </ul></li>
   <li><a href="#cubic-splines" id="toc-cubic-splines" class="nav-link" data-scroll-target="#cubic-splines"><span class="header-section-number">6.5</span> Cubic Splines</a>
   <ul class="collapse">
-  <li><a href="#natural-splines" id="toc-natural-splines" class="nav-link" data-scroll-target="#natural-splines"><span class="header-section-number">6.5.1</span> Natural splines</a></li>
-  <li><a href="#restricted-cubic-splines" id="toc-restricted-cubic-splines" class="nav-link" data-scroll-target="#restricted-cubic-splines"><span class="header-section-number">6.5.2</span> Restricted cubic splines</a></li>
+  <li><a href="#mathematical-derivation-1" id="toc-mathematical-derivation-1" class="nav-link" data-scroll-target="#mathematical-derivation-1"><span class="header-section-number">6.5.1</span> Mathematical Derivation:</a></li>
+  <li><a href="#step-1-impose-continuity-of-the-value-slope-and-curvature-at-the-knots" id="toc-step-1-impose-continuity-of-the-value-slope-and-curvature-at-the-knots" class="nav-link" data-scroll-target="#step-1-impose-continuity-of-the-value-slope-and-curvature-at-the-knots"><span class="header-section-number">6.5.2</span> Step 1: Impose continuity of the value, slope, and curvature at the knots:</a></li>
+  <li><a href="#step-2-determine-how-the-cubic-pieces-differ-between-segments" id="toc-step-2-determine-how-the-cubic-pieces-differ-between-segments" class="nav-link" data-scroll-target="#step-2-determine-how-the-cubic-pieces-differ-between-segments"><span class="header-section-number">6.5.3</span> Step 2: Determine how the cubic pieces differ between segments:</a></li>
+  <li><a href="#step-3-applying-step-2-for-all-knot-values-for-each-interval" id="toc-step-3-applying-step-2-for-all-knot-values-for-each-interval" class="nav-link" data-scroll-target="#step-3-applying-step-2-for-all-knot-values-for-each-interval"><span class="header-section-number">6.5.4</span> Step 3: Applying Step 2 for all knot values (for each interval):</a></li>
+  <li><a href="#step-4-write-one-formula-for-all-x-1" id="toc-step-4-write-one-formula-for-all-x-1" class="nav-link" data-scroll-target="#step-4-write-one-formula-for-all-x-1"><span class="header-section-number">6.5.5</span> Step 4: Write one formula for all <span class="math inline">\(x\)</span>:</a></li>
+  <li><a href="#step-5-read-off-the-basis-functions-1" id="toc-step-5-read-off-the-basis-functions-1" class="nav-link" data-scroll-target="#step-5-read-off-the-basis-functions-1"><span class="header-section-number">6.5.6</span> Step 5: Read off the basis functions:</a></li>
+  <li><a href="#step-6-what-the-coefficients-mean-1" id="toc-step-6-what-the-coefficients-mean-1" class="nav-link" data-scroll-target="#step-6-what-the-coefficients-mean-1"><span class="header-section-number">6.5.7</span> Step 6: What the coefficients mean:</a></li>
+  <li><a href="#natural-cubic-slines" id="toc-natural-cubic-slines" class="nav-link" data-scroll-target="#natural-cubic-slines"><span class="header-section-number">6.5.8</span> Natural Cubic Slines</a></li>
+  <li><a href="#restricted-cubic-splines" id="toc-restricted-cubic-splines" class="nav-link" data-scroll-target="#restricted-cubic-splines"><span class="header-section-number">6.5.9</span> Restricted Cubic Splines</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -564,10 +574,14 @@ Figure&nbsp;6.1: Left: a straight line fit to curved growth data. Right: the res
 <h2 data-number="6.2" class="anchored" data-anchor-id="basis-expansion"><span class="header-section-number">6.2</span> Basis Expansion</h2>
 <p><strong>The key idea:</strong> The linear spline is a linear model, meaning it is linear in the parameters <span class="math inline">\(\boldsymbol\beta\)</span> even though the relationship between the child’s length and age is not a straight line, so it is not linear in <span class="math inline">\(x\)</span>. The fitting method from the previous section only needs the model to be a weighted sum with the <span class="math inline">\(\beta\)</span>’s as weights. It does not care what the quantities being weighted are. So instead of feeding the model <span class="math inline">\(x\)</span> itself, we can feed it <em>features</em> of <span class="math inline">\(x\)</span>, called <strong>basis functions</strong> <span class="math inline">\(b_1(x), \dots, b_M(x)\)</span>. This is called a <strong>basis expansion</strong>:</p>
 <p><span class="math display">\[
-E[Y \mid x] = \sum_{m=0}^{M} \beta_m\, b_m(x), \qquad b_0(x) = 1.
-\]</span> A <strong>basis function</strong> allows us to expand our predictor <span class="math inline">\(x\)</span> to some feature space <span class="math inline">\(\Phi(x)\)</span>. Instead of using <span class="math inline">\(x\)</span> directly, we choose a set of functions <span class="math inline">\(b_0(x), b_1(x), \dots, b_M(x)\)</span> and build the curve as a weighted sum of them, <span class="math display">\[f(x) = \beta_0 + \sum_{m=0}^{M} \beta_m\, b_m(x).\]</span> Each basis function becomes one column of the design matrix <span class="math inline">\(X\)</span>, with entries <span class="math inline">\(X_{im} = b_m(x_i)\)</span>. Everything else is unchanged:</p>
+E[Y \mid x] = \beta_0 + \sum_{m=0}^{M} \beta_m\, b_m(x)
+\]</span></p>
 <p><span class="math display">\[
-Y = X\boldsymbol\beta + \boldsymbol\varepsilon \quad\longrightarrow\quad Y = X\Phi(X) + \boldsymbol\varepsilon
+E[Y \mid x] = \sum_{m=0}^{M} \beta_m\, b_m(x), \qquad b_0(x) = 1.
+\]</span></p>
+<p>A <strong>basis function</strong> allows us to expand the predictor <span class="math inline">\(x\)</span> into a vector of features <span class="math inline">\(\Phi(x) = \big(b_0(x), b_1(x), \dots, b_M(x)\big)'\)</span> and build the curve as a weighted sum of them. Each basis function evaluated at the data becomes one column of the design matrix, with entries <span class="math inline">\(X_{im} = b_m(x_i)\)</span>. Everything else is unchanged:</p>
+<p><span class="math display">\[
+Y = X\boldsymbol\beta + \boldsymbol\varepsilon \quad\longrightarrow\quad Y = \Phi(X)\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
 \]</span></p>
 <p>This works like building the point <span class="math inline">\((3,2)\)</span> from the blocks <span class="math inline">\((1,0)\)</span> and <span class="math inline">\((0,1)\)</span> as <span class="math inline">\(3(1,0) + 2(0,1)\)</span>. The coefficients <span class="math inline">\(\beta_m\)</span> say how much of each block to use. For example, the basis <span class="math inline">\(1, x, x^2\)</span> builds every curve of the form <span class="math inline">\(\beta_0 + \beta_1 x + \beta_2 x^2\)</span>. Each basis function evaluated at the data becomes one column of the design matrix <span class="math inline">\(X\)</span>.</p>
 <p>Replacing <span class="math inline">\(x\)</span> with basis functions <span class="math inline">\(b_0(x), \dots, b_M(x)\)</span> changes only the columns of the design matrix. We write the expanded design matrix as <span class="math inline">\(\Phi\)</span>:</p>
@@ -675,10 +689,13 @@ x \longrightarrow \{1,\ x,\ x^2,\ x^3,\ \dots,\ x^p\}, \qquad d = 0, 1, 2, \dots
 <p><strong>Another type of basis expansions are Spline:</strong></p>
 <p>A compromise of botb Degree Polynomials and Piecewise Polynomials:</p>
 <ol type="1">
-<li><p>Pro: smooth curve (no discontinuities) and a local function since changes in coefficient <span class="math inline">\(\beta\)</span> will chnage change the specifc segment of the curve defined by the knots which are specific pointd which breaks up the x-axis into segments.</p></li>
-<li><p><strong>Cut</strong> the <span class="math inline">\(x\)</span>-axis into segments at chosen points called <strong>knots</strong>. The knots <strong>control where the slope of the curve is allowed to change</strong>.</p></li>
-<li><p><strong>Fit</strong> a simple, low-degree polynomial on each piece.</p></li>
-<li><p><strong>Stitch</strong> the pieces together so the joins of the curves are smooth.</p></li>
+<li>Pro: smooth curve (no discontinuities) and a local function since changes in coefficient <span class="math inline">\(\beta\)</span> will chnage change the specifc segment of the curve defined by the knots which are specific pointd which breaks up the x-axis into segments.</li>
+</ol>
+<p>A spline is built in three steps:</p>
+<ol type="1">
+<li><strong>Cut</strong> the <span class="math inline">\(x\)</span>-axis into segments at chosen points called <strong>knots</strong>. The knots <strong>control where the slope of the curve is allowed to change</strong>.</li>
+<li><strong>Fit</strong> a simple, low-degree polynomial on each piece.</li>
+<li><strong>Stitch</strong> the pieces together so the joins of the curves are smooth.</li>
 </ol>
 </section>
 <section id="piecewise-polynomials-and-stitched-splines" class="level3" data-number="6.2.2">
@@ -753,25 +770,25 @@ Figure&nbsp;6.2: Top: a separate polynomial of degree d fit on each of four piec
 </section>
 <section id="general-definition-of-splines" class="level2" data-number="6.3">
 <h2 data-number="6.3" class="anchored" data-anchor-id="general-definition-of-splines"><span class="header-section-number">6.3</span> General Definition of Splines</h2>
-<p>Let <span class="math inline">\(a &lt; \kappa_1 &lt; \cdots &lt; \kappa_K &lt; b\)</span> be <span class="math inline">\(K\)</span> <strong>knots</strong>. They cut <span class="math inline">\([a, b]\)</span> into <span class="math inline">\(K+1\)</span> intervals. Write <span class="math inline">\((u)_+ = \max(0, u)\)</span> for the <strong>positive part</strong> of <span class="math inline">\(u\)</span>: it equals <span class="math inline">\(u\)</span> when <span class="math inline">\(u &gt; 0\)</span> and <span class="math inline">\(0\)</span> otherwise.</p>
-<div class="callout callout-style-default callout-important callout-titled" title="Definition">
+<p>Splines address polynomial instability by fitting piecewise polynomials constrained to join smoothly at selected values of called knots. Each piece is a low-degree polynomial on its own interval; the constraints at the knots enforce continuity and smoothness.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Definition">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>Definition
+<span class="screen-reader-only">Note</span>Definition
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A <strong>spline of degree <span class="math inline">\(d\)</span></strong> with knots <span class="math inline">\(\kappa_1, \dots, \kappa_K\)</span> is a function <span class="math inline">\(s\)</span> such that</p>
+<p>A <strong>spline</strong> with <span class="math inline">\(K\)</span> <strong>knots</strong> <span class="math inline">\(\kappa_1, \dots, \kappa_K\)</span> is a function <span class="math inline">\(f(x)\)</span> such that</p>
 <ol type="1">
-<li>on each of the <span class="math inline">\(K+1\)</span> intervals, <span class="math inline">\(s\)</span> is a polynomial of degree at most <span class="math inline">\(d\)</span>, and</li>
-<li><span class="math inline">\(s\)</span> and its derivatives <span class="math inline">\(s', s'', \dots, s^{(d-1)}\)</span> are continuous at every knot.</li>
+<li>on each of the <span class="math inline">\(K+1\)</span> intervals, <span class="math inline">\(f(\kappa)\)</span> is a polynomial of degree at most <span class="math inline">\(d=1\)</span>, and</li>
+<li><span class="math inline">\(f(\kappa)\)</span> and its derivatives <span class="math inline">\(f'(\kappa), f''(\kappa), \dots, f^{(d-1)}(\kappa)\)</span> are continuous at every knot <span class="math inline">\(K\)</span>.</li>
 </ol>
 </div>
 </div>
-<p>The first derivative <span class="math inline">\(s'\)</span> is the slope of the curve, and the second derivative <span class="math inline">\(s''\)</span> is how fast the slope is changing (the curvature). “Continuous” means no jumps, so a continuous <span class="math inline">\(s'\)</span> means no kinks.</p>
+<p>The first derivative <span class="math inline">\(f'(\kappa)\)</span> is the slope of the curve, where the curve contians <strong>kinks</strong> (non-differentiable corners) at the knots, and the second derivative <span class="math inline">\(f''(\kappa)\)</span> is how fast the slope is changing (the curvature).</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -789,31 +806,425 @@ Figure&nbsp;6.2: Top: a separate polynomial of degree d fit on each of four piec
 <tr class="even">
 <td>1</td>
 <td>linear spline</td>
-<td><span class="math inline">\(s\)</span> (kinks allowed)</td>
+<td><span class="math inline">\(f(\kappa)\)</span> (contains kinks)</td>
 </tr>
 <tr class="odd">
 <td>2</td>
 <td>quadratic spline</td>
-<td><span class="math inline">\(s\)</span>, <span class="math inline">\(s'\)</span></td>
+<td><span class="math inline">\(f(\kappa)\)</span>, <span class="math inline">\(f'(\kappa)\)</span></td>
 </tr>
 <tr class="even">
 <td>3</td>
 <td>cubic spline</td>
-<td><span class="math inline">\(s\)</span>, <span class="math inline">\(s'\)</span>, <span class="math inline">\(s''\)</span></td>
+<td><span class="math inline">\(f(\kappa)\)</span>, <span class="math inline">\(f'(\kappa)\)</span>, <span class="math inline">\(f''(\kappa)\)</span></td>
 </tr>
 </tbody>
 </table>
 </section>
-<section id="linear-splines" class="level2" data-number="6.4">
-<h2 data-number="6.4" class="anchored" data-anchor-id="linear-splines"><span class="header-section-number">6.4</span> Linear Splines</h2>
+<section id="linear-splines-piecewise-linear" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="linear-splines-piecewise-linear"><span class="header-section-number">6.4</span> Linear Splines (Piecewise Linear)</h2>
+<div class="callout callout-style-default callout-note callout-titled" title="Definition">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Definition
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A <strong>linear spline</strong> is the spline of degree <span class="math inline">\(d = 1\)</span>: a function made of straight-line pieces that are joined end to end at the knots. Between knots the curve is a straight line. At each knot the line is allowed to change slope, creating a “sharp corner” or “kink”. The curve is continuous everywhere else.</p>
+</div>
+</div>
+<p>For child growth, this lets the curve rise steeply in early infancy and then bend to a gentler slope later, without jumping.</p>
+<section id="mathematical-derivation" class="level3" data-number="6.4.1">
+<h3 data-number="6.4.1" class="anchored" data-anchor-id="mathematical-derivation"><span class="header-section-number">6.4.1</span> Mathematical Derivation:</h3>
+<p>Let <span class="math inline">\(\kappa_1, \dots, \kappa_K\)</span> be the <span class="math inline">\(K\)</span> knots. The knots cut into <span class="math inline">\(K+1\)</span> intervals</p>
+<p><span class="math display">\[
+I_j = (\kappa_{j-1},\ \kappa_j], \qquad j = 1, \dots, K+1 .
+\]</span></p>
+<p>The whole spline is <span class="math inline">\(f(x)\)</span>. On each interval it follows its own straight line <span class="math inline">\(f_j(x)\)</span>:</p>
+<p><span class="math display">\[
+f_j(x) = \alpha_j + \gamma_j\, x, \qquad f(x) = f_j(x) \ \text{ for } x \in I_j ,
+\]</span></p>
+<p>where <span class="math inline">\(\alpha_j\)</span> is the intercept and <span class="math inline">\(\gamma_j\)</span> is the slope of the line used on interval <span class="math inline">\(I_j\)</span>. Each <span class="math inline">\(f_j(x)\)</span> is a full straight line that could be drawn for any <span class="math inline">\(x\)</span>, but it equals the spline <span class="math inline">\(f(x)\)</span> only on <span class="math inline">\(I_j\)</span>.</p>
+</section>
+<section id="step-1-impose-continuity-at-the-knots" class="level3" data-number="6.4.2">
+<h3 data-number="6.4.2" class="anchored" data-anchor-id="step-1-impose-continuity-at-the-knots"><span class="header-section-number">6.4.2</span> Step 1: Impose continuity at the knots:</h3>
+<p>For <span class="math inline">\(d = 1\)</span>, condition 2 of the definition requires only that <span class="math inline">\(f(x)\)</span> itself be continuous at every knot. At knot <span class="math inline">\(\kappa_j\)</span>, the line from the left side fo the line <span class="math inline">\(f_j(\kappa_j)\)</span> and the line from the right side of the line <span class="math inline">\(f_{j+1}(\kappa_j)\)</span> must have the same value knot <span class="math inline">\(\kappa_j\)</span>:</p>
+<p><span class="math display">\[
+f_j(\kappa_j) = f_{j+1}(\kappa_j)
+\quad\Longleftrightarrow\quad
+\alpha_j + \gamma_j\,\kappa_j = \alpha_{j+1} + \gamma_{j+1}\,\kappa_j, \qquad j = 1, \dots, K .
+\]</span></p>
+</section>
+<section id="step-2-determine-how-the-slopes-betweeen-segments-differ" class="level3" data-number="6.4.3">
+<h3 data-number="6.4.3" class="anchored" data-anchor-id="step-2-determine-how-the-slopes-betweeen-segments-differ"><span class="header-section-number">6.4.3</span> Step 2: Determine how the slopes betweeen segments differ:</h3>
+<p>At a knot, the two lines segments meet. Step 1 told us they must be at the same height at the knot. In step 2, we ar enow interested in seeing how the slopes differ between two line segments. To do this, we first take the difference between the right line segment and the left line segment. This difference is defined by <span class="math inline">\(\delta_j(x)\)</span>:</p>
+<p><span class="math display">\[
+\delta_j(x) = f_{j+1}(x) - f_j(x)
+= (\alpha_{j+1} - \alpha_j) + (\gamma_{j+1} - \gamma_j)\,x .
+\]</span></p>
+<p><span class="math inline">\(\delta_j(x)\)</span> is itself a straight line. Continuity at <span class="math inline">\(\kappa_j\)</span> says <span class="math inline">\(f_j(\kappa_j) = f_{j+1}(\kappa_j)\)</span>, so</p>
+<p><span class="math display">\[
+\delta_j(\kappa_j) = 0 .
+\]</span></p>
+<p>Subtracting <span class="math inline">\(\delta_j(\kappa_j) = 0\)</span> from <span class="math inline">\(\delta_j(x)\)</span> cancels the constant term:</p>
+<p><span class="math display">\[
+\delta_j(x) = \delta_j(x) - \delta_j(\kappa_j)
+= (\gamma_{j+1} - \gamma_j)\,(x - \kappa_j).
+\]</span></p>
+<p>A line that is zero at <span class="math inline">\(\kappa_j\)</span> must be a multiple of <span class="math inline">\((x - \kappa_j)\)</span>, and the multiple is the <strong>change in slope</strong>. Give it a name:</p>
+<p><span class="math display">\[
+\beta_{j+1} = \gamma_{j+1} - \gamma_j .
+\]</span></p>
+<p>Therefore each line is the previous line plus a slope change that starts at the knot:</p>
+<p><span class="math display">\[
+\boxed{\,f_{j+1}(x) = f_j(x) + \beta_{j+1}(x - \kappa_j)\,}
+\]</span></p>
+</section>
+<section id="step-3-applyig-step-2-for-all-knot-values-for-each-interval" class="level3" data-number="6.4.4">
+<h3 data-number="6.4.4" class="anchored" data-anchor-id="step-3-applyig-step-2-for-all-knot-values-for-each-interval"><span class="header-section-number">6.4.4</span> Step 3: Applyig step 2 for all knot values (for each interval):</h3>
+<p>Start with the first interval and name its intercept and slope <span class="math inline">\(\beta_0 = \alpha_1\)</span> and <span class="math inline">\(\beta_1 = \gamma_1\)</span>, so that</p>
+<p><span class="math display">\[
+f_1(x) = \beta_0 + \beta_1 x .
+\]</span></p>
+<p>Applying Step 2 repeatedly:</p>
+<p><span class="math display">\[
+\begin{aligned}
+f_2(x) &amp;= f_1(x) + \beta_2(x - \kappa_1) = \beta_0 + \beta_1 x + \beta_2(x - \kappa_1), \\
+f_3(x) &amp;= f_2(x) + \beta_3(x - \kappa_2) = \beta_0 + \beta_1 x + \beta_2(x - \kappa_1) + \beta_3(x - \kappa_2), \\
+&amp;\ \ \vdots \\
+f_j(x) &amp;= \beta_0 + \beta_1 x + \sum_{k=1}^{j-1} \beta_{k+1}\,(x - \kappa_k).
+\end{aligned}
+\]</span></p>
+<p>Since <span class="math inline">\(f(x) = f_j(x)\)</span> for <span class="math inline">\(x \in I_j\)</span>, we have</p>
+<p><span class="math display">\[
+f(x) = \beta_0 + \beta_1 x + \sum_{k=1}^{j-1} \beta_{k+1}\,(x - \kappa_k), \qquad x \in I_j .
+\]</span></p>
+</section>
+<section id="step-4-write-one-formula-for-all-x" class="level3" data-number="6.4.5">
+<h3 data-number="6.4.5" class="anchored" data-anchor-id="step-4-write-one-formula-for-all-x"><span class="header-section-number">6.4.5</span> Step 4: Write one formula for all <span class="math inline">\(x\)</span>:</h3>
+<p>The formula in Step 3 includes a different number of terms on each interval. We can write one formula by using the <strong>positive part</strong></p>
+<p><span class="math display">\[
+(u)^+ = \max(0,\, u) =
+\begin{cases}
+u, &amp; u &gt; 0 \\
+0, &amp; u \le 0 .
+\end{cases}
+\]</span></p>
+<p>Take <span class="math inline">\(x \in I_j = (\kappa_{j-1}, \kappa_j]\)</span> and check that <span class="math inline">\((x - \kappa_k)^+\)</span> switches each term on or off correctly:</p>
+<ul>
+<li>For knots already passed (<span class="math inline">\(k \le j-1\)</span>): <span class="math inline">\(x &gt; \kappa_{j-1} \ge \kappa_k\)</span>, so <span class="math inline">\((x - \kappa_k)^+ = x - \kappa_k\)</span>. The term is <strong>on</strong>, as in Step 3.</li>
+<li>For knots not yet reached (<span class="math inline">\(k \ge j\)</span>): <span class="math inline">\(x \le \kappa_j \le \kappa_k\)</span>, so <span class="math inline">\((x - \kappa_k)^+ = 0\)</span>. The term is <strong>off</strong>.</li>
+</ul>
+<p>Because <span class="math inline">\(f(x) = f_j(x)\)</span> on <span class="math inline">\(I_j\)</span>, a single formula for <span class="math inline">\(f(x)\)</span> is correct on every interval at once:</p>
+<p><span class="math display">\[
+\boxed{\,f(x) = \beta_0 + \beta_1 x + \sum_{k=1}^{K} \beta_{k+1}\,(x - \kappa_k)^+\,}
+\]</span></p>
+<p>The model for the data is therefore</p>
+<p><span class="math display">\[
+E[Y \mid x] = \beta_0 + \beta_1 x + \sum_{k=1}^{K} \beta_{k+1}\,(x - \kappa_k)^+, \qquad \text{Var}(Y \mid x) = \sigma^2 .
+\]</span></p>
+<p>For example, with two knots,</p>
+<p><span class="math display">\[
+E[Y \mid x] = \beta_0 + \beta_1 x + \beta_2 (x - \kappa_1)^+ + \beta_3 (x - \kappa_2)^+ .
+\]</span></p>
+</section>
+<section id="step-5-read-off-the-basis-functions" class="level3" data-number="6.4.6">
+<h3 data-number="6.4.6" class="anchored" data-anchor-id="step-5-read-off-the-basis-functions"><span class="header-section-number">6.4.6</span> Step 5: Read off the basis functions:</h3>
+<p>Label each term in the boxed formula from Step 4 by the basis functions <span class="math inline">\(b_0(x)=1, b_1(x)=x, b_2(x)=x^2, \cdots\)</span> that multiplies its coefficient:</p>
+<p><span class="math display">\[
+f(x) = \beta_0\cdot\underbrace{1}_{b_0(x)} \;+\; \beta_1\cdot\underbrace{x}_{b_1(x)} \;+\; \beta_2\cdot\underbrace{(x-\kappa_1)^+}_{b_2(x)} \;+\; \beta_3\cdot\underbrace{(x-\kappa_2)^+}_{b_3(x)} \;+\; \cdots \;+\; \beta_{K+1}\cdot\underbrace{(x-\kappa_K)^+}_{b_{K+1}(x)}
+\]</span></p>
+<p>The basis functions are:</p>
+<p><span class="math display">\[
+b_0(x) = 1, \qquad b_1(x) = x, \qquad b_{k+1}(x) = (x - \kappa_k)^+ \quad (k = 1, \dots, K).
+\]</span></p>
+<p>So <span class="math inline">\(b_0\)</span> is the constant, <span class="math inline">\(b_1\)</span> is the plain straight line, and <span class="math inline">\(b_2, \dots, b_{K+1}\)</span> are one hinge function for each knot. Then <span class="math inline">\(f(x)\)</span> is the basis expansion <span class="math inline">\(E[Y \mid x] = \sum_{m=0}^{M}\beta_m b_m(x)\)</span> with <span class="math inline">\(M = K+1\)</span>.</p>
+<p>That is <span class="math inline">\(K + 2\)</span> basis functions. This matches the parameter count from the setup: <span class="math inline">\(K+1\)</span> lines with 2 parameters each gives <span class="math inline">\(2(K+1)\)</span>, and the <span class="math inline">\(K\)</span> continuity constraints from Step 1 remove <span class="math inline">\(K\)</span> of them, leaving <span class="math inline">\(2(K+1) - K = K + 2\)</span>.</p>
+<p>The linear spline is therefore a <strong>linear model in <span class="math inline">\(\boldsymbol\beta\)</span></strong>, even though the curve is not a straight line in <span class="math inline">\(x\)</span>. The expanded design matrix has one column per basis function:</p>
+<p><span class="math display">\[
+\underbrace{\Phi =
+\begin{bmatrix}
+1 &amp; x_1 &amp; (x_1 - \kappa_1)^+ &amp; \cdots &amp; (x_1 - \kappa_K)^+ \\
+1 &amp; x_2 &amp; (x_2 - \kappa_1)^+ &amp; \cdots &amp; (x_2 - \kappa_K)^+ \\
+\vdots &amp; \vdots &amp; \vdots &amp; &amp; \vdots \\
+1 &amp; x_n &amp; (x_n - \kappa_1)^+ &amp; \cdots &amp; (x_n - \kappa_K)^+
+\end{bmatrix}}_{\Phi\ (n \times (K+2))}
+\]</span></p>
+<p>so <span class="math inline">\(\Phi_{i,m} = b_m(x_i)\)</span>: column 0 is <span class="math inline">\(b_0\)</span>, column 1 is <span class="math inline">\(b_1\)</span>, and column <span class="math inline">\(k+1\)</span> is <span class="math inline">\(b_{k+1}\)</span>. The model and the least squares estimate keep the same form as before:</p>
+<p><span class="math display">\[
+Y = \Phi\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
+\hat{\boldsymbol\beta} = (\Phi'\Phi)^{-1}\Phi'Y .
+\]</span></p>
+<p><span class="math display">\[
+\underbrace{\begin{bmatrix} Y_1 \\ Y_2 \\ \vdots \\ Y_n \end{bmatrix}}_{Y\ (n \times 1)}
+=
+\underbrace{\begin{bmatrix}
+1 &amp; x_1 &amp; (x_1 - \kappa_1)^+ &amp; \cdots &amp; (x_1 - \kappa_K)^+ \\
+1 &amp; x_2 &amp; (x_2 - \kappa_1)^+ &amp; \cdots &amp; (x_2 - \kappa_K)^+ \\
+\vdots &amp; \vdots &amp; \vdots &amp; &amp; \vdots \\
+1 &amp; x_n &amp; (x_n - \kappa_1)^+ &amp; \cdots &amp; (x_n - \kappa_K)^+
+\end{bmatrix}}_{\Phi\ (n \times (K+2))}
+\underbrace{\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \vdots \\ \beta_{K+1} \end{bmatrix}}_{\boldsymbol\beta\ ((K+2) \times 1)}
++
+\underbrace{\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \vdots \\ \varepsilon_n \end{bmatrix}}_{\boldsymbol\varepsilon\ (n \times 1)}
+\]</span></p>
+</section>
+<section id="step-6-what-the-coefficients-mean" class="level3" data-number="6.4.7">
+<h3 data-number="6.4.7" class="anchored" data-anchor-id="step-6-what-the-coefficients-mean"><span class="header-section-number">6.4.7</span> Step 6: What the coefficients mean:</h3>
+<p>The slope of <span class="math inline">\(f_j(x)\)</span> on interval <span class="math inline">\(I_j\)</span> is the sum of the starting slope and all the slope changes passed so far:</p>
+<p><span class="math display">\[
+\gamma_j = \beta_1 + \sum_{k=1}^{j-1} \beta_{k+1}, \qquad x \in I_j .
+\]</span></p>
+<ul>
+<li><span class="math inline">\(\beta_0\)</span> is the intercept of the first line.</li>
+<li><span class="math inline">\(\beta_1\)</span> is the slope on the first interval <span class="math inline">\(I_1\)</span>.</li>
+<li><span class="math inline">\(\beta_{k+1}\)</span> is the <strong>change in slope at knot <span class="math inline">\(\kappa_k\)</span></strong>: the slope just left of <span class="math inline">\(\kappa_k\)</span> is <span class="math inline">\(\gamma_k\)</span>, and just right of it is <span class="math inline">\(\gamma_k + \beta_{k+1} = \gamma_{k+1}\)</span>.</li>
+</ul>
+</section>
 </section>
 <section id="cubic-splines" class="level2" data-number="6.5">
 <h2 data-number="6.5" class="anchored" data-anchor-id="cubic-splines"><span class="header-section-number">6.5</span> Cubic Splines</h2>
-<section id="natural-splines" class="level3" data-number="6.5.1">
-<h3 data-number="6.5.1" class="anchored" data-anchor-id="natural-splines"><span class="header-section-number">6.5.1</span> Natural splines</h3>
+<div class="callout callout-style-default callout-note callout-titled" title="Definition">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Definition
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A <strong>cubic spline</strong> is the spline of degree <span class="math inline">\(d = 3\)</span>: a function made of cubic polynomial pieces that are joined at the knots. On each interval the curve is a cubic polynomial, and at each knot the two neighboring pieces must match in three ways:</p>
+<ul>
+<li>the same value at each knot (<span class="math inline">\(f\)</span> is continuous),</li>
+<li>the same slope change at each knot (<span class="math inline">\(f'\)</span> is continuous),</li>
+<li>the same curvature at each knot (<span class="math inline">\(f''\)</span> is continuous).</li>
+</ul>
+<p>Because the slope is continuous, the curve has no kinks. It bends smoothly through the knots.</p>
+</div>
+</div>
+<p>For child growth, this lets the curve bend gradually from fast early growth to slower later growth, without jumps and without sharp corners.</p>
+<section id="mathematical-derivation-1" class="level3" data-number="6.5.1">
+<h3 data-number="6.5.1" class="anchored" data-anchor-id="mathematical-derivation-1"><span class="header-section-number">6.5.1</span> Mathematical Derivation:</h3>
+<p>Let <span class="math inline">\(\kappa_1, \dots, \kappa_K\)</span> be the <span class="math inline">\(K\)</span> knots, with endpoints <span class="math inline">\(\kappa_0 = a\)</span> and <span class="math inline">\(\kappa_{K+1} = b\)</span>. The knots cut the <span class="math inline">\(x\)</span>-axis into <span class="math inline">\(K+1\)</span> intervals</p>
+<p><span class="math display">\[
+I_j = (\kappa_{j-1},\ \kappa_j], \qquad j = 1, \dots, K+1 .
+\]</span></p>
+<p>The whole spline is <span class="math inline">\(f(x)\)</span>. On each interval it follows its own cubic polynomial <span class="math inline">\(f_j(x)\)</span>:</p>
+<p><span class="math display">\[
+f_j(x) = \alpha_j + \gamma_j\, x + \eta_j\, x^2 + \zeta_j\, x^3, \qquad f(x) = f_j(x) \ \text{ for } x \in I_j ,
+\]</span></p>
+<p>where <span class="math inline">\(\alpha_j\)</span> is the intercept, <span class="math inline">\(\gamma_j\)</span> is the coefficient of <span class="math inline">\(x\)</span>, <span class="math inline">\(\eta_j\)</span> is the coefficient of <span class="math inline">\(x^2\)</span>, and <span class="math inline">\(\zeta_j\)</span> is the coefficient of <span class="math inline">\(x^3\)</span> for the cubic used on interval <span class="math inline">\(I_j\)</span>. Each <span class="math inline">\(f_j(x)\)</span> is a full cubic curve that could be drawn for any <span class="math inline">\(x\)</span>, but it equals the spline <span class="math inline">\(f(x)\)</span> only on <span class="math inline">\(I_j\)</span>.</p>
+<p>The first and second derivatives of each piece are</p>
+<p><span class="math display">\[
+f_j'(x) = \gamma_j + 2\eta_j\, x + 3\zeta_j\, x^2, \qquad f_j''(x) = 2\eta_j + 6\zeta_j\, x .
+\]</span></p>
 </section>
-<section id="restricted-cubic-splines" class="level3" data-number="6.5.2">
-<h3 data-number="6.5.2" class="anchored" data-anchor-id="restricted-cubic-splines"><span class="header-section-number">6.5.2</span> Restricted cubic splines</h3>
+<section id="step-1-impose-continuity-of-the-value-slope-and-curvature-at-the-knots" class="level3" data-number="6.5.2">
+<h3 data-number="6.5.2" class="anchored" data-anchor-id="step-1-impose-continuity-of-the-value-slope-and-curvature-at-the-knots"><span class="header-section-number">6.5.2</span> Step 1: Impose continuity of the value, slope, and curvature at the knots:</h3>
+<p>For <span class="math inline">\(d = 3\)</span>, condition 2 of the definition requires that <span class="math inline">\(f(x)\)</span>, <span class="math inline">\(f'(x)\)</span>, and <span class="math inline">\(f''(x)\)</span> all be continuous at every knot. At knot <span class="math inline">\(\kappa_j\)</span>, the cubic from the left side, <span class="math inline">\(f_j\)</span>, and the cubic from the right side, <span class="math inline">\(f_{j+1}\)</span>, must match in three ways at <span class="math inline">\(\kappa_j\)</span>:</p>
+<p><span class="math display">\[
+\begin{aligned}
+f_j(\kappa_j) &amp;= f_{j+1}(\kappa_j) &amp;&amp;\text{(same height)}\\
+f_j'(\kappa_j) &amp;= f_{j+1}'(\kappa_j) &amp;&amp;\text{(same slope)}\\
+f_j''(\kappa_j) &amp;= f_{j+1}''(\kappa_j) &amp;&amp;\text{(same curvature)}
+\end{aligned}
+\qquad j = 1, \dots, K .
+\]</span></p>
+<p>Written out with the coefficients, these are</p>
+<p><span class="math display">\[
+\begin{aligned}
+\alpha_j + \gamma_j\kappa_j + \eta_j\kappa_j^2 + \zeta_j\kappa_j^3 &amp;= \alpha_{j+1} + \gamma_{j+1}\kappa_j + \eta_{j+1}\kappa_j^2 + \zeta_{j+1}\kappa_j^3, \\
+\gamma_j + 2\eta_j\kappa_j + 3\zeta_j\kappa_j^2 &amp;= \gamma_{j+1} + 2\eta_{j+1}\kappa_j + 3\zeta_{j+1}\kappa_j^2, \\
+2\eta_j + 6\zeta_j\kappa_j &amp;= 2\eta_{j+1} + 6\zeta_{j+1}\kappa_j .
+\end{aligned}
+\]</span></p>
+</section>
+<section id="step-2-determine-how-the-cubic-pieces-differ-between-segments" class="level3" data-number="6.5.3">
+<h3 data-number="6.5.3" class="anchored" data-anchor-id="step-2-determine-how-the-cubic-pieces-differ-between-segments"><span class="header-section-number">6.5.3</span> Step 2: Determine how the cubic pieces differ between segments:</h3>
+<p>At a knot, two cubic pieces meet. Step 1 told us they must match in height, slope, and curvature. In Step 2, we ask what is <em>left</em> that can differ between them. To find out, take the difference between the right piece and the left piece:</p>
+<p><span class="math display">\[
+\delta_j(x) = f_{j+1}(x) - f_j(x)
+= (\alpha_{j+1} - \alpha_j) + (\gamma_{j+1} - \gamma_j)\,x + (\eta_{j+1} - \eta_j)\,x^2 + (\zeta_{j+1} - \zeta_j)\,x^3 .
+\]</span></p>
+<p><span class="math inline">\(\delta_j(x)\)</span> is itself a cubic polynomial. The three matching rules from Step 1 say that this difference, and its first two derivatives, are all zero at the knot:</p>
+<p><span class="math display">\[
+\delta_j(\kappa_j) = 0, \qquad \delta_j'(\kappa_j) = 0, \qquad \delta_j''(\kappa_j) = 0 .
+\]</span></p>
+<p>Any cubic can be re-written in powers of <span class="math inline">\((x - \kappa_j)\)</span>, that is, re-centered at the knot:</p>
+<p><span class="math display">\[
+\delta_j(x) = c_0 + c_1\,(x - \kappa_j) + c_2\,(x - \kappa_j)^2 + c_3\,(x - \kappa_j)^3 ,
+\]</span></p>
+<p>where <span class="math inline">\(c_0, c_1, c_2, c_3\)</span> are numbers. Evaluate <span class="math inline">\(\delta_j\)</span> and its derivatives at <span class="math inline">\(x = \kappa_j\)</span>. Every term with a factor of <span class="math inline">\((x - \kappa_j)\)</span> vanishes there, so</p>
+<p><span class="math display">\[
+\delta_j(\kappa_j) = c_0, \qquad \delta_j'(\kappa_j) = c_1, \qquad \delta_j''(\kappa_j) = 2c_2 .
+\]</span></p>
+<p>The three matching rules therefore force <span class="math inline">\(c_0 = c_1 = c_2 = 0\)</span>, and only the cubic term can survive:</p>
+<p><span class="math display">\[
+\delta_j(x) = c_3\,(x - \kappa_j)^3 .
+\]</span></p>
+<p>The number <span class="math inline">\(c_3\)</span> is the change in the <span class="math inline">\(x^3\)</span> coefficient, <span class="math inline">\(\zeta_{j+1} - \zeta_j\)</span>, because re-centering does not change the leading coefficient. Give it a name:</p>
+<p><span class="math display">\[
+\beta_{j+3} = \zeta_{j+1} - \zeta_j .
+\]</span></p>
+<p>Therefore each cubic is the previous cubic plus a cubed term that starts at the knot:</p>
+<p><span class="math display">\[
+\boxed{\,f_{j+1}(x) = f_j(x) + \beta_{j+3}(x - \kappa_j)^3\,}
+\]</span></p>
+<p>Compare with the linear spline: there the new line was the old line plus a slope change times <span class="math inline">\((x - \kappa_j)\)</span>. Here the new cubic is the old cubic plus a change in the cubic coefficient times <span class="math inline">\((x - \kappa_j)^3\)</span>. The extra smoothness constraints are what remove the lower-power terms <span class="math inline">\((x-\kappa_j)^0\)</span>, <span class="math inline">\((x-\kappa_j)^1\)</span>, and <span class="math inline">\((x-\kappa_j)^2\)</span>.</p>
+</section>
+<section id="step-3-applying-step-2-for-all-knot-values-for-each-interval" class="level3" data-number="6.5.4">
+<h3 data-number="6.5.4" class="anchored" data-anchor-id="step-3-applying-step-2-for-all-knot-values-for-each-interval"><span class="header-section-number">6.5.4</span> Step 3: Applying Step 2 for all knot values (for each interval):</h3>
+<p>Start with the first interval and name its coefficients <span class="math inline">\(\beta_0 = \alpha_1\)</span>, <span class="math inline">\(\beta_1 = \gamma_1\)</span>, <span class="math inline">\(\beta_2 = \eta_1\)</span>, and <span class="math inline">\(\beta_3 = \zeta_1\)</span>, so that</p>
+<p><span class="math display">\[
+f_1(x) = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 .
+\]</span></p>
+<p>Applying Step 2 repeatedly:</p>
+<p><span class="math display">\[
+\begin{aligned}
+f_2(x) &amp;= f_1(x) + \beta_4(x - \kappa_1)^3 = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \beta_4(x - \kappa_1)^3, \\
+f_3(x) &amp;= f_2(x) + \beta_5(x - \kappa_2)^3 = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \beta_4(x - \kappa_1)^3 + \beta_5(x - \kappa_2)^3, \\
+&amp;\ \ \vdots \\
+f_j(x) &amp;= \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \sum_{k=1}^{j-1} \beta_{k+3}\,(x - \kappa_k)^3 .
+\end{aligned}
+\]</span></p>
+<p>Since <span class="math inline">\(f(x) = f_j(x)\)</span> for <span class="math inline">\(x \in I_j\)</span>, we have</p>
+<p><span class="math display">\[
+f(x) = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \sum_{k=1}^{j-1} \beta_{k+3}\,(x - \kappa_k)^3, \qquad x \in I_j .
+\]</span></p>
+</section>
+<section id="step-4-write-one-formula-for-all-x-1" class="level3" data-number="6.5.5">
+<h3 data-number="6.5.5" class="anchored" data-anchor-id="step-4-write-one-formula-for-all-x-1"><span class="header-section-number">6.5.5</span> Step 4: Write one formula for all <span class="math inline">\(x\)</span>:</h3>
+<p>The formula in Step 3 includes a different number of terms on each interval. As in the linear spline, we write one formula by using the <strong>positive part</strong> <span class="math inline">\((u)^+ = \max(0,\, u)\)</span>.</p>
+<p>Take <span class="math inline">\(x \in I_j = (\kappa_{j-1}, \kappa_j]\)</span> and check that <span class="math inline">\(\left[(x - \kappa_k)^+\right]^3\)</span> switches each term on or off correctly:</p>
+<ul>
+<li>For knots already passed (<span class="math inline">\(k \le j-1\)</span>): <span class="math inline">\(x &gt; \kappa_{j-1} \ge \kappa_k\)</span>, so <span class="math inline">\(\left[(x - \kappa_k)^+\right]^3 = (x - \kappa_k)^3\)</span>. The term is <strong>on</strong>, as in Step 3.</li>
+<li>For knots not yet reached (<span class="math inline">\(k \ge j\)</span>): <span class="math inline">\(x \le \kappa_j \le \kappa_k\)</span>, so <span class="math inline">\(\left[(x - \kappa_k)^+\right]^3 = 0\)</span>. The term is <strong>off</strong>.</li>
+</ul>
+<p>Because <span class="math inline">\(f(x) = f_j(x)\)</span> on <span class="math inline">\(I_j\)</span>, a single formula for <span class="math inline">\(f(x)\)</span> is correct on every interval at once:</p>
+<p><span class="math display">\[
+\boxed{\,f(x) = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \sum_{k=1}^{K} \beta_{k+3}\,\left[(x - \kappa_k)^+\right]^3\,}
+\]</span></p>
+<p>The model for the data is therefore</p>
+<p><span class="math display">\[
+E[Y \mid x] = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \sum_{k=1}^{K} \beta_{k+3}\,\left[(x - \kappa_k)^+\right]^3, \qquad \text{Var}(Y \mid x) = \sigma^2 .
+\]</span></p>
+</section>
+<section id="step-5-read-off-the-basis-functions-1" class="level3" data-number="6.5.6">
+<h3 data-number="6.5.6" class="anchored" data-anchor-id="step-5-read-off-the-basis-functions-1"><span class="header-section-number">6.5.6</span> Step 5: Read off the basis functions:</h3>
+<p>Label each term in the boxed formula from Step 4 by the basis function that multiplies its coefficient:</p>
+<p><span class="math display">\[
+f(x) = \beta_0\cdot\underbrace{1}_{b_0(x)} + \beta_1\cdot\underbrace{x}_{b_1(x)} + \beta_2\cdot\underbrace{x^2}_{b_2(x)} + \beta_3\cdot\underbrace{x^3}_{b_3(x)} + \beta_4\cdot\underbrace{\left[(x-\kappa_1)^+\right]^3}_{b_4(x)} + \cdots + \beta_{K+3}\cdot\underbrace{\left[(x-\kappa_K)^+\right]^3}_{b_{K+3}(x)}
+\]</span></p>
+<p>The basis functions are:</p>
+<p><span class="math display">\[
+b_0(x) = 1, \quad b_1(x) = x, \quad b_2(x) = x^2, \quad b_3(x) = x^3, \quad b_{k+3}(x) = \left[(x - \kappa_k)^+\right]^3 \quad (k = 1, \dots, K).
+\]</span></p>
+<p>So <span class="math inline">\(b_0\)</span> through <span class="math inline">\(b_3\)</span> build an ordinary cubic polynomial, and <span class="math inline">\(b_4, \dots, b_{K+3}\)</span> are one cubed hinge function for each knot. Then <span class="math inline">\(f(x)\)</span> is the basis expansion <span class="math inline">\(E[Y \mid x] = \sum_{m=0}^{M}\beta_m b_m(x)\)</span> with <span class="math inline">\(M = K+3\)</span>.</p>
+<p>That is <span class="math inline">\(K + 4\)</span> basis functions. This matches the parameter count: <span class="math inline">\(K+1\)</span> cubics with 4 parameters each gives <span class="math inline">\(4(K+1)\)</span>, and the <span class="math inline">\(3K\)</span> constraints from Step 1 (three per knot) remove <span class="math inline">\(3K\)</span> of them, leaving <span class="math inline">\(4(K+1) - 3K = K + 4\)</span>. This is the <span class="math inline">\(K + d + 1\)</span> count from the earlier figure with <span class="math inline">\(d = 3\)</span>.</p>
+<p>The cubic spline is therefore a <strong>linear model in <span class="math inline">\(\boldsymbol\beta\)</span></strong>, even though the curve is not a straight line in <span class="math inline">\(x\)</span>. The expanded design matrix has one column per basis function:</p>
+<p><span class="math display">\[
+\underbrace{\Phi =
+\begin{bmatrix}
+1 &amp; x_1 &amp; x_1^2 &amp; x_1^3 &amp; \left[(x_1 - \kappa_1)^+\right]^3 &amp; \cdots &amp; \left[(x_1 - \kappa_K)^+\right]^3 \\
+1 &amp; x_2 &amp; x_2^2 &amp; x_2^3 &amp; \left[(x_2 - \kappa_1)^+\right]^3 &amp; \cdots &amp; \left[(x_2 - \kappa_K)^+\right]^3 \\
+\vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; &amp; \vdots \\
+1 &amp; x_n &amp; x_n^2 &amp; x_n^3 &amp; \left[(x_n - \kappa_1)^+\right]^3 &amp; \cdots &amp; \left[(x_n - \kappa_K)^+\right]^3
+\end{bmatrix}}_{\Phi\ (n \times (K+4))}
+\]</span></p>
+<p>so <span class="math inline">\(\Phi_{i,m} = b_m(x_i)\)</span>: columns 0 to 3 are <span class="math inline">\(b_0\)</span> to <span class="math inline">\(b_3\)</span>, and column <span class="math inline">\(k+3\)</span> is <span class="math inline">\(b_{k+3}\)</span>. The model and the least squares estimate keep the same form as before:</p>
+<p><span class="math display">\[
+Y = \Phi\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
+\hat{\boldsymbol\beta} = (\Phi'\Phi)^{-1}\Phi'Y .
+\]</span></p>
+<p><span class="math display">\[
+\underbrace{\begin{bmatrix} Y_1 \\ Y_2 \\ \vdots \\ Y_n \end{bmatrix}}_{Y\ (n \times 1)}
+=
+\underbrace{\begin{bmatrix}
+1 &amp; x_1 &amp; x_1^2 &amp; x_1^3 &amp; \left[(x_1 - \kappa_1)^+\right]^3 &amp; \cdots &amp; \left[(x_1 - \kappa_K)^+\right]^3 \\
+1 &amp; x_2 &amp; x_2^2 &amp; x_2^3 &amp; \left[(x_2 - \kappa_1)^+\right]^3 &amp; \cdots &amp; \left[(x_2 - \kappa_K)^+\right]^3 \\
+\vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; &amp; \vdots \\
+1 &amp; x_n &amp; x_n^2 &amp; x_n^3 &amp; \left[(x_n - \kappa_1)^+\right]^3 &amp; \cdots &amp; \left[(x_n - \kappa_K)^+\right]^3
+\end{bmatrix}}_{\Phi\ (n \times (K+4))}
+\underbrace{\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_3 \\ \beta_4 \\ \vdots \\ \beta_{K+3} \end{bmatrix}}_{\boldsymbol\beta\ ((K+4) \times 1)}
++
+\underbrace{\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \vdots \\ \varepsilon_n \end{bmatrix}}_{\boldsymbol\varepsilon\ (n \times 1)}
+\]</span></p>
+</section>
+<section id="step-6-what-the-coefficients-mean-1" class="level3" data-number="6.5.7">
+<h3 data-number="6.5.7" class="anchored" data-anchor-id="step-6-what-the-coefficients-mean-1"><span class="header-section-number">6.5.7</span> Step 6: What the coefficients mean:</h3>
+<p>The cubic used on interval <span class="math inline">\(I_j\)</span> starts from the first cubic and picks up one change for each knot passed so far:</p>
+<p><span class="math display">\[
+f_j(x) = \underbrace{\beta_0 + \beta_1 x + \beta_2 x^2}_{\text{same as } f_1} + \underbrace{\Big(\beta_3 + \sum_{k=1}^{j-1}\beta_{k+3}\Big)}_{\zeta_j}\, x^3 + \cdots
+\]</span></p>
+<p>and in particular the <span class="math inline">\(x^3\)</span> coefficient of piece <span class="math inline">\(j\)</span> is <span class="math inline">\(\zeta_j = \beta_3 + \sum_{k=1}^{j-1}\beta_{k+3}\)</span>.</p>
+<ul>
+<li><span class="math inline">\(\beta_0, \beta_1, \beta_2, \beta_3\)</span> are the coefficients of the cubic on the first interval <span class="math inline">\(I_1\)</span>.</li>
+<li><span class="math inline">\(\beta_{k+3}\)</span> is the <strong>change in the cubic coefficient at knot <span class="math inline">\(\kappa_k\)</span></strong>: the coefficient of <span class="math inline">\(x^3\)</span> just left of <span class="math inline">\(\kappa_k\)</span> is <span class="math inline">\(\zeta_k\)</span>, and just right of it is <span class="math inline">\(\zeta_k + \beta_{k+3} = \zeta_{k+1}\)</span>.</li>
+</ul>
+<div class="callout callout-style-default callout-note callout-titled" title="Linear vs. cubic spline">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Linear vs.&nbsp;cubic spline
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Linear spline (<span class="math inline">\(d = 1\)</span>)</th>
+<th>Cubic spline (<span class="math inline">\(d = 3\)</span>)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Piece <span class="math inline">\(f_j(x)\)</span> on <span class="math inline">\(I_j\)</span></td>
+<td>straight line (2 numbers)</td>
+<td>cubic (4 numbers)</td>
+</tr>
+<tr class="even">
+<td>Rules at each knot</td>
+<td><span class="math inline">\(f\)</span> continuous (1 rule)</td>
+<td><span class="math inline">\(f, f', f''\)</span> continuous (3 rules)</td>
+</tr>
+<tr class="odd">
+<td>Basis functions</td>
+<td><span class="math inline">\(1,\ x,\ (x-\kappa_k)^+\)</span></td>
+<td><span class="math inline">\(1,\ x,\ x^2,\ x^3,\ \left[(x-\kappa_k)^+\right]^3\)</span></td>
+</tr>
+<tr class="even">
+<td>What <span class="math inline">\(\beta_{\text{knot}}\)</span> changes</td>
+<td>the slope</td>
+<td>the <span class="math inline">\(x^3\)</span> coefficient</td>
+</tr>
+<tr class="odd">
+<td>Appearance at knots</td>
+<td>kinks</td>
+<td>smooth</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>One Major caveat, the tail behaviors of the curve (beyond the knots) are unstable. A cubic grows like <span class="math inline">\(x^3\)</span>, so the fitted curve can swing sharply upward or downward in the tails. So we need to use Natural Cubic Slines or Restricted Cubic Splines.</p>
+</section>
+<section id="natural-cubic-slines" class="level3" data-number="6.5.8">
+<h3 data-number="6.5.8" class="anchored" data-anchor-id="natural-cubic-slines"><span class="header-section-number">6.5.8</span> Natural Cubic Slines</h3>
+</section>
+<section id="restricted-cubic-splines" class="level3" data-number="6.5.9">
+<h3 data-number="6.5.9" class="anchored" data-anchor-id="restricted-cubic-splines"><span class="header-section-number">6.5.9</span> Restricted Cubic Splines</h3>
 
 
 </section>
@@ -1227,8 +1638,8 @@ Figure&nbsp;6.2: Top: a separate polynomial of degree d fit on each of four piec
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./splines_notes.html" class="pagination-link" aria-label="Splines Notes">
-        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Splines Notes</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./summary.html" class="pagination-link" aria-label="Summary">
+        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Summary</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
