@@ -267,7 +267,7 @@ $$
 
 **Dimension check:** $\Phi'$ is $(M+1)\times n$, so $\Phi'\Phi$ is $(M+1)\times(M+1)$, $\Phi'Y$ is $(M+1)\times 1$, and therefore $\hat{\boldsymbol\beta}$ is $(M+1)\times 1$, one coefficient per basis function.
 
-**Example.** The three children with ages $2, 8, 18$ onths respectively and the parabola basis $b_0(x) = 1,\ b_1(x) = x,\ b_2(x) = x^2$:
+**Example.** The three children with ages $2, 8, 18$ months respectively and the parabola basis $b_0(x) = 1,\ b_1(x) = x,\ b_2(x) = x^2$:
 
 $$
 \begin{bmatrix} y_1 \\ y_2 \\ y_3 \end{bmatrix}
@@ -373,9 +373,11 @@ plt.show()
 
 ### Linear Splines:
 
-A linear spline fits a **straight line on each segment** of the $x$-axis and joins the lines at the knots $k_1 < k_2 < \dots < k_K$, so the curve has no jumps.
+A linear spline fits a **straight line on each segment** of the $x$-axis and joins the lines at the knots $K = k_1 <  k_2 <  \dots < k_K$, so the curve has no jumps.
 
-The building block is the **hinge function**
+The hinge function is a way to **switch a the direction straight line on at a chosen point (creating a bend)**. Before the point it does nothing (it equals 0), and after the point it starts rising. It switches the direction of a straight line on at a chosen point $k_K$ (the knot)
+
+The point is the knot $k$. The notation $(x - k)_+$ means "take $x - k$, but if it is negative, use 0 instead." The small $+$ is shorthand for "keep only the positive part." That is the same thing as $\max(0,\ x - k)$, which picks the larger of 0 and $x - k$.
 
 $$
 (x - k)_+ = \max(0,\ x - k) =
@@ -385,7 +387,30 @@ x - k & x > k.
 \end{cases}
 $$
 
-It is zero until $x$ reaches the knot, then it rises with slope 1. Adding one hinge per knot to the usual $1$ and $x$ gives the basis
+It equals 0 until $x$ reaches the knot, and after that it rises with slope 1. Because it starts at 0, it adds a bend to the curve without creating a jump. Adding one hinge per knot to the usual $1$ and $x$ gives the basis
+
+**Worked example with a knot at $k = 6$**
+
+| Age $x$ | $x - 6$ | $(x - 6)_+$ |
+|---|---|---|
+| 2 | $-4$ | 0 |
+| 5 | $-1$ | 0 |
+| 6 | 0 | 0 |
+| 8 | 2 | 2 |
+| 10 | 4 | 4 |
+| 20 | 14 | 14 |
+
+For any age up to 6, the hinge is 0. After 6, it equals how far past the knot you are, so it rises by 1 for every extra month. That is what the piecewise formula says:
+
+$$
+(x - k)_+ =
+\begin{cases}
+0 & x \le k \quad \text{(not past the knot yet)}\\
+x - k & x > k \quad \text{(past the knot: distance beyond it)}
+\end{cases}
+$$
+
+If you picture the graph, it is flat along 0 until $x = 6$, then bends upward as a straight line with slope 1. That bend is the "hinge," like a door hinge.
 
 $$
 x \longrightarrow \{1,\ x,\ (x - k_1)_+,\ (x - k_2)_+,\ \dots,\ (x - k_K)_+\},
@@ -399,6 +424,17 @@ $$
 
 As before, this is linear in $\boldsymbol\beta$, so we fit it with least squares. The design matrix has $K + 2$ columns, one for each basis function.
 
+For our example, knots = [6, 12, 24] has three knots, so $K = 3$. The $K + 2$ comes from counting the columns of the design matrix:
+
+| Columns | How many | In our example ($K = 3$, knots at 6, 12, 24) |
+|---|---|---|
+| intercept, $1$ | 1 | $1$ |
+| age, $x$ | 1 | $x$ |
+| one hinge per knot, $(x - k_j)_+$ | $K$ | $(x-6)_+,\ (x-12)_+,\ (x-24)_+$ |
+| **Total** | $K + 2$ | $3 + 2 = 5$ columns |
+
+The “+ 2” is the intercept and the plain $x$ column, which every linear spline has regardless of knots. The “$K$” part grows with the number of knots we add.
+
 **How to read the coefficients.** The slope on each segment is a running total:
 
 - before the first knot, the slope is $\beta_1$
@@ -411,7 +447,7 @@ So each hinge coefficient $\beta_{j+1}$ is the **change in slope** at knot $k_j$
     - no discontinuities
     - Is a local function since changes in coefficient $\beta$ will change the specifc segment of the curve defined by the knots which are specific points which breaks up the x-axis into segments.
 2. Cons:
-    - not  asmooth curve, has kinks (sharp corners).
+    - not a smooth curve, has kinks (sharp corners).
     - Each hinge equals 0 at its own knot, so the pieces always meet. The slope, however, changes suddenly at each knot, which gives the curve a visible sharp corners. Cubic splines remove these corners.
 
 ```{python}
@@ -420,16 +456,18 @@ So each hinge coefficient $\beta_{j+1}$ is the **change in slope** at knot $k_j$
 #| fig-cap: "Linear spline with knots at 6, 12, and 24 months."
 #| code-fold: true
 
-knots = [6, 12, 24]
+knots = [6, 12, 24] # we specify the location and amount of knots. A list of the ages (in months) where the slope is allowed to change
 
+# create function that takes ages x and a list of knots and returns the design matrix Phi.
 def linear_spline_basis(x, knots):
-    # design matrix with columns 1, x, (x - k1)+, (x - k2)+, ...
-    hinges = [np.maximum(0, x - k) for k in knots]
-    return np.column_stack([np.ones_like(x), x] + hinges)
+    # builds one hinge column per knot, (x - k)_+ = max(0, x - k)
+    # np.maximum replaces every negative value with 0, so the hinge is 0 until the age passes the knot and then grows with slope 1
+    hinges = [np.maximum(0, x - k) for k in knots] 
+    return np.column_stack([np.ones_like(x), x] + hinges) # return the design matrix with columns 1, x, (x - k1)+, (x - k2)+, ...
 
-Phi = linear_spline_basis(age, knots) # n x (K + 2)
-beta_hat = np.linalg.lstsq(Phi, length_cm, rcond=None)[0]
-fit = linear_spline_basis(age_grid, knots) @ beta_hat
+Phi = linear_spline_basis(age, knots) # fits the desgin matrix n x (K + 2) = 150 observations x (K=3 knots + 2) = 150 x 5
+beta_hat = np.linalg.lstsq(Phi, length_cm, rcond=None)[0] #solves the least squares problem to find beta hat and phi beta hat
+fit = linear_spline_basis(age_grid, knots) @ beta_hat # rebuilds the same basis on the smooth, sorted grid of ages and multiplies by beta hat using matrix multiplication
 
 fig, ax = plt.subplots(figsize=(9, 7))
 ax.scatter(age, length_cm, s=14, color="purple", alpha=0.5, label="Data")

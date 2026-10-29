@@ -496,7 +496,7 @@ Y = X\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
 <section id="data-generation-model" class="level2" data-number="7.2">
 <h2 data-number="7.2" class="anchored" data-anchor-id="data-generation-model"><span class="header-section-number">7.2</span> Data Generation Model:</h2>
 <p>Below describes the data generation function for a randomly generated sample of 150 children whose predictor <span class="math inline">\(x\)</span> denoting children age in months.</p>
-<div id="2d1b3d48" class="cell" data-execution_count="1">
+<div id="aa20878f" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -519,7 +519,7 @@ Y = X\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({<span class="st">"age_months"</span>: age, <span class="st">"length_cm"</span>: length_cm})</span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>df.head(<span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="55">
+<div class="cell-output cell-output-display" data-execution_count="8">
 <div>
 
 
@@ -697,7 +697,7 @@ y_i = \beta_0 b_0(x_i) + \beta_1 b_1(x_i) + \cdots + \beta_M b_M(x_i) + \varepsi
 \hat{\boldsymbol\beta} = (\Phi'\Phi)^{-1}\Phi'Y .
 \]</span></p>
 <p><strong>Dimension check:</strong> <span class="math inline">\(\Phi'\)</span> is <span class="math inline">\((M+1)\times n\)</span>, so <span class="math inline">\(\Phi'\Phi\)</span> is <span class="math inline">\((M+1)\times(M+1)\)</span>, <span class="math inline">\(\Phi'Y\)</span> is <span class="math inline">\((M+1)\times 1\)</span>, and therefore <span class="math inline">\(\hat{\boldsymbol\beta}\)</span> is <span class="math inline">\((M+1)\times 1\)</span>, one coefficient per basis function.</p>
-<p><strong>Example.</strong> The three children with ages <span class="math inline">\(2, 8, 18\)</span> onths respectively and the parabola basis <span class="math inline">\(b_0(x) = 1,\ b_1(x) = x,\ b_2(x) = x^2\)</span>:</p>
+<p><strong>Example.</strong> The three children with ages <span class="math inline">\(2, 8, 18\)</span> months respectively and the parabola basis <span class="math inline">\(b_0(x) = 1,\ b_1(x) = x,\ b_2(x) = x^2\)</span>:</p>
 <p><span class="math display">\[
 \begin{bmatrix} y_1 \\ y_2 \\ y_3 \end{bmatrix}
 =
@@ -827,8 +827,9 @@ Figure&nbsp;7.2: Natural polynomials of degree 1, 2, 3, and 6 fit to the child g
 </section>
 <section id="linear-splines" class="level3" data-number="7.5.2">
 <h3 data-number="7.5.2" class="anchored" data-anchor-id="linear-splines"><span class="header-section-number">7.5.2</span> Linear Splines:</h3>
-<p>A linear spline fits a <strong>straight line on each segment</strong> of the <span class="math inline">\(x\)</span>-axis and joins the lines at the knots <span class="math inline">\(k_1 &lt; k_2 &lt; \dots &lt; k_K\)</span>, so the curve has no jumps.</p>
-<p>The building block is the <strong>hinge function</strong></p>
+<p>A linear spline fits a <strong>straight line on each segment</strong> of the <span class="math inline">\(x\)</span>-axis and joins the lines at the knots <span class="math inline">\(K = k_1 &lt;  k_2 &lt;  \dots &lt; k_K\)</span>, so the curve has no jumps.</p>
+<p>The hinge function is a way to <strong>switch a the direction straight line on at a chosen point (creating a bend)</strong>. Before the point it does nothing (it equals 0), and after the point it starts rising. It switches the direction of a straight line on at a chosen point <span class="math inline">\(k_K\)</span> (the knot)</p>
+<p>The point is the knot <span class="math inline">\(k\)</span>. The notation <span class="math inline">\((x - k)_+\)</span> means “take <span class="math inline">\(x - k\)</span>, but if it is negative, use 0 instead.” The small <span class="math inline">\(+\)</span> is shorthand for “keep only the positive part.” That is the same thing as <span class="math inline">\(\max(0,\ x - k)\)</span>, which picks the larger of 0 and <span class="math inline">\(x - k\)</span>.</p>
 <p><span class="math display">\[
 (x - k)_+ = \max(0,\ x - k) =
 \begin{cases}
@@ -836,7 +837,58 @@ Figure&nbsp;7.2: Natural polynomials of degree 1, 2, 3, and 6 fit to the child g
 x - k &amp; x &gt; k.
 \end{cases}
 \]</span></p>
-<p>It is zero until <span class="math inline">\(x\)</span> reaches the knot, then it rises with slope 1. Adding one hinge per knot to the usual <span class="math inline">\(1\)</span> and <span class="math inline">\(x\)</span> gives the basis</p>
+<p>It equals 0 until <span class="math inline">\(x\)</span> reaches the knot, and after that it rises with slope 1. Because it starts at 0, it adds a bend to the curve without creating a jump. Adding one hinge per knot to the usual <span class="math inline">\(1\)</span> and <span class="math inline">\(x\)</span> gives the basis</p>
+<p><strong>Worked example with a knot at <span class="math inline">\(k = 6\)</span></strong></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Age <span class="math inline">\(x\)</span></th>
+<th><span class="math inline">\(x - 6\)</span></th>
+<th><span class="math inline">\((x - 6)_+\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2</td>
+<td><span class="math inline">\(-4\)</span></td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>5</td>
+<td><span class="math inline">\(-1\)</span></td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>6</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td>10</td>
+<td>4</td>
+<td>4</td>
+</tr>
+<tr class="even">
+<td>20</td>
+<td>14</td>
+<td>14</td>
+</tr>
+</tbody>
+</table>
+<p>For any age up to 6, the hinge is 0. After 6, it equals how far past the knot you are, so it rises by 1 for every extra month. That is what the piecewise formula says:</p>
+<p><span class="math display">\[
+(x - k)_+ =
+\begin{cases}
+0 &amp; x \le k \quad \text{(not past the knot yet)}\\
+x - k &amp; x &gt; k \quad \text{(past the knot: distance beyond it)}
+\end{cases}
+\]</span></p>
+<p>If you picture the graph, it is flat along 0 until <span class="math inline">\(x = 6\)</span>, then bends upward as a straight line with slope 1. That bend is the “hinge,” like a door hinge.</p>
 <p><span class="math display">\[
 x \longrightarrow \{1,\ x,\ (x - k_1)_+,\ (x - k_2)_+,\ \dots,\ (x - k_K)_+\},
 \]</span></p>
@@ -845,6 +897,44 @@ x \longrightarrow \{1,\ x,\ (x - k_1)_+,\ (x - k_2)_+,\ \dots,\ (x - k_K)_+\},
 E[Y \mid x] = \beta_0 + \beta_1 x + \beta_2 (x - k_1)_+ + \cdots + \beta_{K+1} (x - k_K)_+ .
 \]</span></p>
 <p>As before, this is linear in <span class="math inline">\(\boldsymbol\beta\)</span>, so we fit it with least squares. The design matrix has <span class="math inline">\(K + 2\)</span> columns, one for each basis function.</p>
+<p>For our example, knots = [6, 12, 24] has three knots, so <span class="math inline">\(K = 3\)</span>. The <span class="math inline">\(K + 2\)</span> comes from counting the columns of the design matrix:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Columns</th>
+<th>How many</th>
+<th>In our example (<span class="math inline">\(K = 3\)</span>, knots at 6, 12, 24)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>intercept, <span class="math inline">\(1\)</span></td>
+<td>1</td>
+<td><span class="math inline">\(1\)</span></td>
+</tr>
+<tr class="even">
+<td>age, <span class="math inline">\(x\)</span></td>
+<td>1</td>
+<td><span class="math inline">\(x\)</span></td>
+</tr>
+<tr class="odd">
+<td>one hinge per knot, <span class="math inline">\((x - k_j)_+\)</span></td>
+<td><span class="math inline">\(K\)</span></td>
+<td><span class="math inline">\((x-6)_+,\ (x-12)_+,\ (x-24)_+\)</span></td>
+</tr>
+<tr class="even">
+<td><strong>Total</strong></td>
+<td><span class="math inline">\(K + 2\)</span></td>
+<td><span class="math inline">\(3 + 2 = 5\)</span> columns</td>
+</tr>
+</tbody>
+</table>
+<p>The “+ 2” is the intercept and the plain <span class="math inline">\(x\)</span> column, which every linear spline has regardless of knots. The “<span class="math inline">\(K\)</span>” part grows with the number of knots we add.</p>
 <p><strong>How to read the coefficients.</strong> The slope on each segment is a running total:</p>
 <ul>
 <li>before the first knot, the slope is <span class="math inline">\(\beta_1\)</span></li>
@@ -860,33 +950,35 @@ E[Y \mid x] = \beta_0 + \beta_1 x + \beta_2 (x - k_1)_+ + \cdots + \beta_{K+1} (
 </ul></li>
 <li>Cons:
 <ul>
-<li>not asmooth curve, has kinks (sharp corners).</li>
+<li>not a smooth curve, has kinks (sharp corners).</li>
 <li>Each hinge equals 0 at its own knot, so the pieces always meet. The slope, however, changes suddenly at each knot, which gives the curve a visible sharp corners. Cubic splines remove these corners.</li>
 </ul></li>
 </ol>
 <div id="cell-fig-linear-spline" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>knots <span class="op">=</span> [<span class="dv">6</span>, <span class="dv">12</span>, <span class="dv">24</span>]</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>knots <span class="op">=</span> [<span class="dv">6</span>, <span class="dv">12</span>, <span class="dv">24</span>] <span class="co"># we specify the location and amount of knots. A list of the ages (in months) where the slope is allowed to change</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> linear_spline_basis(x, knots):</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># design matrix with columns 1, x, (x - k1)+, (x - k2)+, ...</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    hinges <span class="op">=</span> [np.maximum(<span class="dv">0</span>, x <span class="op">-</span> k) <span class="cf">for</span> k <span class="kw">in</span> knots]</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.column_stack([np.ones_like(x), x] <span class="op">+</span> hinges)</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>Phi <span class="op">=</span> linear_spline_basis(age, knots) <span class="co"># n x (K + 2)</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>beta_hat <span class="op">=</span> np.linalg.lstsq(Phi, length_cm, rcond<span class="op">=</span><span class="va">None</span>)[<span class="dv">0</span>]</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>fit <span class="op">=</span> linear_spline_basis(age_grid, knots) <span class="op">@</span> beta_hat</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="dv">7</span>))</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>ax.scatter(age, length_cm, s<span class="op">=</span><span class="dv">14</span>, color<span class="op">=</span><span class="st">"purple"</span>, alpha<span class="op">=</span><span class="fl">0.5</span>, label<span class="op">=</span><span class="st">"Data"</span>)</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>ax.plot(age_grid, f_true(age_grid), <span class="st">"r--"</span>, lw<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">"True $f(x)$"</span>)</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>ax.plot(age_grid, fit, lw<span class="op">=</span><span class="fl">2.5</span>, color<span class="op">=</span><span class="st">"darkgreen"</span>, label<span class="op">=</span><span class="st">"Linear spline"</span>)</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> knots:</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    ax.axvline(k, color<span class="op">=</span><span class="st">"gray"</span>, ls<span class="op">=</span><span class="st">":"</span>, lw<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"Age (months)"</span>, ylabel<span class="op">=</span><span class="st">"Length (cm)"</span>, title<span class="op">=</span><span class="st">"Linear spline fit"</span>)</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>ax.legend(frameon<span class="op">=</span><span class="va">False</span>)</span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># create function that takes ages x and a list of knots and returns the design matrix Phi.</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> linear_spline_basis(x, knots):</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># builds one hinge column per knot, (x - k)_+ = max(0, x - k)</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># np.maximum replaces every negative value with 0, so the hinge is 0 until the age passes the knot and then grows with slope 1</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    hinges <span class="op">=</span> [np.maximum(<span class="dv">0</span>, x <span class="op">-</span> k) <span class="cf">for</span> k <span class="kw">in</span> knots] </span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.column_stack([np.ones_like(x), x] <span class="op">+</span> hinges) <span class="co"># return the design matrix with columns 1, x, (x - k1)+, (x - k2)+, ...</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>Phi <span class="op">=</span> linear_spline_basis(age, knots) <span class="co"># fits the desgin matrix n x (K + 2) = 150 observations x (K=3 knots + 2) = 150 x 5</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>beta_hat <span class="op">=</span> np.linalg.lstsq(Phi, length_cm, rcond<span class="op">=</span><span class="va">None</span>)[<span class="dv">0</span>] <span class="co">#solves the least squares problem to find beta hat and phi beta hat</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>fit <span class="op">=</span> linear_spline_basis(age_grid, knots) <span class="op">@</span> beta_hat <span class="co"># rebuilds the same basis on the smooth, sorted grid of ages and multiplies by beta hat using matrix multiplication</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="dv">7</span>))</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>ax.scatter(age, length_cm, s<span class="op">=</span><span class="dv">14</span>, color<span class="op">=</span><span class="st">"purple"</span>, alpha<span class="op">=</span><span class="fl">0.5</span>, label<span class="op">=</span><span class="st">"Data"</span>)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>ax.plot(age_grid, f_true(age_grid), <span class="st">"r--"</span>, lw<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">"True $f(x)$"</span>)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>ax.plot(age_grid, fit, lw<span class="op">=</span><span class="fl">2.5</span>, color<span class="op">=</span><span class="st">"darkgreen"</span>, label<span class="op">=</span><span class="st">"Linear spline"</span>)</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> knots:</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    ax.axvline(k, color<span class="op">=</span><span class="st">"gray"</span>, ls<span class="op">=</span><span class="st">":"</span>, lw<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"Age (months)"</span>, ylabel<span class="op">=</span><span class="st">"Length (cm)"</span>, title<span class="op">=</span><span class="st">"Linear spline fit"</span>)</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>ax.legend(frameon<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-linear-spline" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -914,33 +1006,33 @@ Figure&nbsp;7.3: Linear spline with knots at 6, 12, and 24 months.
 Table&nbsp;7.1
 </figcaption>
 <div aria-describedby="tbl-slopes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output cell-output-display" data-execution_count="59">
+<div class="cell-output cell-output-display" data-execution_count="12">
 <style type="text/css">
 </style>
 
-<table id="T_dcca9" class="caption-top table table-sm table-striped small">
+<table id="T_c8d38" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th id="T_dcca9_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Segment (months)</th>
-<th id="T_dcca9_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Slope (cm/month)</th>
+<th id="T_c8d38_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Segment (months)</th>
+<th id="T_c8d38_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Slope (cm/month)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_dcca9_row0_col0" class="data row0 col0">0 to 6</td>
-<td id="T_dcca9_row0_col1" class="data row0 col1">3.49</td>
+<td id="T_c8d38_row0_col0" class="data row0 col0">0 to 6</td>
+<td id="T_c8d38_row0_col1" class="data row0 col1">3.49</td>
 </tr>
 <tr class="even">
-<td id="T_dcca9_row1_col0" class="data row1 col0">6 to 12</td>
-<td id="T_dcca9_row1_col1" class="data row1 col1">1.42</td>
+<td id="T_c8d38_row1_col0" class="data row1 col0">6 to 12</td>
+<td id="T_c8d38_row1_col1" class="data row1 col1">1.42</td>
 </tr>
 <tr class="odd">
-<td id="T_dcca9_row2_col0" class="data row2 col0">12 to 24</td>
-<td id="T_dcca9_row2_col1" class="data row2 col1">0.61</td>
+<td id="T_c8d38_row2_col0" class="data row2 col0">12 to 24</td>
+<td id="T_c8d38_row2_col1" class="data row2 col1">0.61</td>
 </tr>
 <tr class="even">
-<td id="T_dcca9_row3_col0" class="data row3 col0">24 to 36</td>
-<td id="T_dcca9_row3_col1" class="data row3 col1">0.39</td>
+<td id="T_c8d38_row3_col0" class="data row3 col0">24 to 36</td>
+<td id="T_c8d38_row3_col1" class="data row3 col1">0.39</td>
 </tr>
 </tbody>
 </table>
