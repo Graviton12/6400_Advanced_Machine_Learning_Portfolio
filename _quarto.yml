@@ -21,6 +21,7 @@ book:
     - part: "Nonlinearity"
       chapters:
       - splines.qmd
+      - explainer.qmd
     - summary.qmd
     - references.qmd
     - part: "Appendix"

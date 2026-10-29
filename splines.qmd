@@ -125,7 +125,7 @@ $$
 
 ### What Is a Spline, and Why Do We Need One:
 
-**The problem: a straight line is too rigid.** The model $f(x) = \beta_0 + \beta_1 x$ says that every extra month of a child's age adds the same $\beta_1$ cm of length, at every age. Real growth however, plateaus where the child may grow more rapidaly during the early motnhs of infancy but for later months of infancy, they grow as a slwoer rate, creating a bending in the curve. A straight line cannot bend, so it will over-predict in some regions and under-predict in others, no matter how much data we collect. (A multiple linear regression is not a good fit).
+**The problem: a straight line is too rigid.** The model $f(x) = \beta_0 + \beta_1 x$ says that every extra month of a child's age adds the same $\beta_1$ cm of length, at every age. Real growth however, plateaus where the child may grow more rapidaly during the early months of infancy but for later months of infancy, they grow as a slwoer rate, creating a bending in the curve. A straight line cannot bend, so it will over-predict in some regions and under-predict in others, no matter how much data we collect. (A multiple linear regression is not a good fit).
 
 ```{python}
 
@@ -272,7 +272,7 @@ Each piece only has to describe the data nearby, so the curve is flexible where 
 
 ### Types of Basis Functions:
 
-**One type of basis expansions are Polynomials:** 
+**Polynomials:** 
 
 Take $b_d(x) = x^d$, so that
 
@@ -283,7 +283,7 @@ $$
 1. Pros: smooth curve (no discontinuities)
 2. Cons: It is a **global function**: every coefficient affects the whole curve (function), so changing one coefficient $\beta_m$ changes $f(x)$ everywhere, and data at one end of the range can change the fit at the other end. High-degree polynomials also tend to oscillate between data points and to diverge in the tails.
 
-**Another type of basis expansions are Piecewise Polynomials:**
+**Piecewise Polynomials:**
 
 - 0th degree - piecewise constant
 - 1st degree - piecewise linear
@@ -291,10 +291,10 @@ $$
 - 3rd degree - piecewise cubic
 - etc.
 
-1. Pros: It is a **local function**: local chnages only affect the segemnt they occur in rather than the entire curve (function), so changing one coefficient $\beta$ will chnage change the specifc segment of the curve. 
+1. Pros: It is a **local function**: local changes only affect the segemnt they occur in rather than the entire curve (function), so changing one coefficient $\beta$ will change the specifc segment of the curve. 
 2. Cons: Nothing forces neighboring peices to meet so there can be discontinuities and jumps in the curve where the knots begin and end. We must choose where these knots begin and end. 
 
-**Another type of basis expansions are Spline:**
+**Splines:**
 
 A compromise of botb Degree Polynomials and Piecewise Polynomials:
 
@@ -374,8 +374,8 @@ Splines address polynomial instability by fitting piecewise polynomials constrai
 ::: {.callout-note title="Definition"}
 A **spline** with $K$ **knots** $\kappa_1, \dots, \kappa_K$ is a function $f(x)$ such that
 
-1. on each of the $K+1$ intervals, $f(\kappa)$ is a polynomial of degree at most $d=1$, and
-2. $f(\kappa)$ and its derivatives $f'(\kappa), f''(\kappa), \dots, f^{(d-1)}(\kappa)$ are continuous at every knot $K$.
+1. on each of the $K+1$ intervals, $f(\kappa)$ is a polynomial of degree $d$, and
+2. $f(\kappa)$ and its derivatives $f'(\kappa), f''(\kappa), \dots, f^{(d-1)}(\kappa)$ are continuous at every knot $\kappa_k$.
 :::
 
 The first derivative $f'(\kappa)$ is the slope of the curve, where the curve contians **kinks** (non-differentiable corners) at the knots, and the second derivative $f''(\kappa)$ is how fast the slope is changing (the curvature).
@@ -391,6 +391,11 @@ The first derivative $f'(\kappa)$ is the slope of the curve, where the curve con
 
 ::: {.callout-note title="Definition"}
 A **linear spline** is the spline of degree $d = 1$: a function made of straight-line pieces that are joined end to end at the knots. Between knots the curve is a straight line. At each knot the line is allowed to change slope, creating a "sharp corner" or "kink". The curve is continuous everywhere else.
+
+Must Satisfy:
+
+- Continuity
+
 ::: 
 
 For child growth, this lets the curve rise steeply in early infancy and then bend to a gentler slope later, without jumping.
@@ -587,6 +592,12 @@ A **cubic spline** is the spline of degree $d = 3$: a function made of cubic pol
 - the same curvature at each knot ($f''$ is continuous).
 
 Because the slope is continuous, the curve has no kinks. It bends smoothly through the knots.
+
+Must Satisfy:
+
+- Continuity
+- Smoothness
+
 :::
 
 For child growth, this lets the curve bend gradually from fast early growth to slower later growth, without jumps and without sharp corners.
@@ -805,8 +816,232 @@ and in particular the $x^3$ coefficient of piece $j$ is $\zeta_j = \beta_3 + \su
 
 :::
 
-One Major caveat, the tail behaviors of the curve (beyond the knots) are unstable. A cubic grows like $x^3$, so the fitted curve can swing sharply upward or downward in the tails. So we need to use Natural Cubic Slines or Restricted Cubic Splines.
+### Tail Behavior of a Cubic Spline
 
-### Natural Cubic Slines
+The **tails** are the two outer regions of the $x$-axis: the first interval $I_1$ to the left of the first knot $\kappa_1$, and the last interval $I_{K+1}$ to the right of the last knot $\kappa_K$. Nothing in the cubic spline definition constrains the curve there beyond the usual smoothness at the knots, so the tails are simply cubic polynomials.
 
-### Restricted Cubic Splines
+**Left tail ($x \le \kappa_1$).** Every hinge term $\left[(x-\kappa_k)^+\right]^3$ is switched off, so the spline reduces to the first cubic:
+
+$$
+f(x) = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 .
+$$
+
+**Right tail ($x > \kappa_K$).** Every hinge term is switched on, so $\left[(x-\kappa_k)^+\right]^3 = (x-\kappa_k)^3$ for all $k$. Expanding each $(x-\kappa_k)^3$ and collecting powers of $x$ gives
+
+$$
+f(x) = \Big(\beta_0 - \sum_{k=1}^{K}\beta_{k+3}\kappa_k^3\Big)
++ \Big(\beta_1 + 3\sum_{k=1}^{K}\beta_{k+3}\kappa_k^2\Big)x
++ \Big(\beta_2 - 3\sum_{k=1}^{K}\beta_{k+3}\kappa_k\Big)x^2
++ \Big(\beta_3 + \sum_{k=1}^{K}\beta_{k+3}\Big)x^3 .
+$$
+
+This is still a cubic polynomial in $x$, so in both tails the cubic spline behaves like an ordinary cubic.
+
+::: {.callout-note title="Why this is a problem"}
+
+- **Unbounded growth.** A cubic grows like $x^3$, so the curve shoots toward $\pm\infty$ as $x$ moves away from the knots, curving more and more steeply.
+- **Unreliable extrapolation.** Predictions outside the observed range of $x$ follow the cubic's trend, which usually has no real-world basis. For child growth, a cubic tail could predict a child's length shrinking or exploding at the oldest ages.
+
+:::
+
+This motivates restricting the tails. If we force $f$ to be a **straight line** beyond the boundary knots, the $x^2$ and $x^3$ coefficients must be zero in both tails. That is four constraints in total (two per tail), so the spline loses four parameters. The cubic spline had $K+4$ parameters, so the restricted version has $K+4-4 = K$. This is the idea behind the **restricted (natural)** cubic splines.
+
+## Restricted Cubic Splines (Natural Cubic Splines)
+
+::: {.callout-note title="Definition"}
+A **restricted cubic spline** is a cubic spline that is forced to be **linear in the tails**. Between the boundary knots $\kappa_1$ and $\kappa_K$ the curve is made of cubic polynomial pieces. To the left of $\kappa_1$ and to the right of $\kappa_K$ it is a straight line. At each knot the two neighboring pieces must match in three ways:
+
+- the same value at each knot ($f$ is continuous),
+- the same slope at each knot ($f'$ is continuous),
+- the same curvature at each knot ($f''$ is continuous).
+
+In addition, the curve must be a straight line beyond the boundary knots, which means the curvature is zero in both tails:
+
+- $f''(x) = 0$ for $x < \kappa_1$ and for $x > \kappa_K$.
+
+Because the curve is smooth, it has no kinks at the knots. Because it is linear in the tails, it does not curve away wildly where there is little data.
+
+Must Satisfy:
+
+- Continuity
+- Smoothness
+- Linearity in the tails
+
+:::
+
+For child growth, this lets the curve bend smoothly through the middle of the age range, but forces it to continue as a straight line at the youngest and oldest ages, where there is little data.
+
+### Mathematical Derivation:
+
+Let $\kappa_1 < \cdots < \kappa_K$ be the $K$ knots, with $K \ge 3$. The restricted cubic spline is a cubic spline with extra constraints, so we start from the cubic spline formula and impose the tail restriction on its coefficients. To avoid confusing the original coefficients with the final ones, we call the coefficients of the cubic spline $\lambda_k$ for now:
+
+$$
+f(x) = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \sum_{k=1}^{K} \lambda_k\,\left[(x - \kappa_k)^+\right]^3 ,
+$$
+
+where $\lambda_k$ plays the role that $\beta_{k+3}$ did in the cubic spline. This form already guarantees that $f$, $f'$, and $f''$ are continuous at every knot, so we only need to add the linearity restriction in the tails.
+
+### Step 1: Write the spline in each tail:
+
+**Left tail ($x \le \kappa_1$).** Every hinge term is switched off, so
+
+$$
+f(x) = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 .
+$$
+
+**Right tail ($x > \kappa_K$).** Every hinge term is switched on, so $\left[(x - \kappa_k)^+\right]^3 = (x-\kappa_k)^3$ for all $k$. Expanding each cube and collecting powers of $x$,
+
+$$
+f(x) = \Big(\beta_0 - \sum_{k=1}^{K}\lambda_k\kappa_k^3\Big)
++ \Big(\beta_1 + 3\sum_{k=1}^{K}\lambda_k\kappa_k^2\Big)x
++ \Big(\beta_2 - 3\sum_{k=1}^{K}\lambda_k\kappa_k\Big)x^2
++ \Big(\beta_3 + \sum_{k=1}^{K}\lambda_k\Big)x^3 .
+$$
+
+### Step 2: Force the left tail to be linear:
+
+A polynomial is a straight line only if its $x^2$ and $x^3$ coefficients are zero. In the left tail this gives
+
+$$
+\boxed{\,\beta_2 = 0, \qquad \beta_3 = 0\,}
+$$
+
+The left tail is now $f(x) = \beta_0 + \beta_1 x$.
+
+### Step 3: Force the right tail to be linear:
+
+In the right tail, set the $x^3$ and $x^2$ coefficients from Step 1 equal to zero. Using $\beta_2 = \beta_3 = 0$ from Step 2,
+
+$$
+\boxed{\,\sum_{k=1}^{K}\lambda_k = 0, \qquad \sum_{k=1}^{K}\lambda_k\,\kappa_k = 0\,}
+$$
+
+These are two linear constraints on the $K$ coefficients $\lambda_1, \dots, \lambda_K$. Together with Step 2, that is four constraints in total, so the cubic spline's $K+4$ parameters are reduced to $K+4-4 = K$.
+
+### Step 4: Solve for the last two coefficients:
+
+Use the two constraints from Step 3 to write the last two coefficients, $\lambda_{K-1}$ and $\lambda_K$, in terms of the first $K-2$. Move the first $K-2$ terms to the right side:
+
+$$
+\begin{aligned}
+\lambda_{K-1} + \lambda_K &= -\sum_{k=1}^{K-2}\lambda_k, \\
+\kappa_{K-1}\lambda_{K-1} + \kappa_K\lambda_K &= -\sum_{k=1}^{K-2}\kappa_k\lambda_k .
+\end{aligned}
+$$
+
+Multiply the first equation by $\kappa_K$ and subtract the second equation. The $\lambda_K$ terms cancel:
+
+$$
+(\kappa_K - \kappa_{K-1})\,\lambda_{K-1} = -\sum_{k=1}^{K-2}\lambda_k(\kappa_K - \kappa_k).
+$$
+
+Multiply the first equation by $\kappa_{K-1}$ and subtract it from the second equation. The $\lambda_{K-1}$ terms cancel:
+
+$$
+(\kappa_K - \kappa_{K-1})\,\lambda_K = \sum_{k=1}^{K-2}\lambda_k(\kappa_{K-1} - \kappa_k).
+$$
+
+Dividing by $\kappa_K - \kappa_{K-1}$,
+
+$$
+\boxed{\,
+\lambda_{K-1} = -\sum_{k=1}^{K-2}\lambda_k\,\frac{\kappa_K - \kappa_k}{\kappa_K - \kappa_{K-1}},
+\qquad
+\lambda_K = \sum_{k=1}^{K-2}\lambda_k\,\frac{\kappa_{K-1} - \kappa_k}{\kappa_K - \kappa_{K-1}}\,}
+$$
+
+**Check:** adding the two gives $\lambda_{K-1} + \lambda_K = \sum_{k=1}^{K-2}\lambda_k\,\dfrac{-(\kappa_K - \kappa_k) + (\kappa_{K-1} - \kappa_k)}{\kappa_K - \kappa_{K-1}} = -\sum_{k=1}^{K-2}\lambda_k$, which is the first constraint.
+
+### Step 5: Substitute and read off the basis functions:
+
+Since $\beta_2 = \beta_3 = 0$, the spline is
+
+$$
+f(x) = \beta_0 + \beta_1 x + \sum_{k=1}^{K}\lambda_k\left[(x-\kappa_k)^+\right]^3 .
+$$
+
+Substitute $\lambda_{K-1}$ and $\lambda_K$ from Step 4 and group everything that multiplies each remaining $\lambda_k$, for $k = 1, \dots, K-2$:
+
+$$
+f(x) = \beta_0 + \beta_1 x + \sum_{k=1}^{K-2}\lambda_k\left\{
+\left[(x-\kappa_k)^+\right]^3
+- \frac{\kappa_K - \kappa_k}{\kappa_K - \kappa_{K-1}}\left[(x-\kappa_{K-1})^+\right]^3
++ \frac{\kappa_{K-1} - \kappa_k}{\kappa_K - \kappa_{K-1}}\left[(x-\kappa_K)^+\right]^3
+\right\}.
+$$
+
+Rename the coefficients $\beta_{k+1} = \lambda_k$ for $k = 1, \dots, K-2$, so that $\beta_{k+1}$ belongs to knot $\kappa_k$ as in the linear spline. The basis functions are:
+
+$$
+\begin{aligned}
+b_0(x) &= 1, \qquad b_1(x) = x, \\
+b_{k+1}(x) &= \left[(x-\kappa_k)^+\right]^3
+- \frac{\kappa_K - \kappa_k}{\kappa_K - \kappa_{K-1}}\left[(x-\kappa_{K-1})^+\right]^3
++ \frac{\kappa_{K-1} - \kappa_k}{\kappa_K - \kappa_{K-1}}\left[(x-\kappa_K)^+\right]^3, \qquad k = 1, \dots, K-2 .
+\end{aligned}
+$$
+
+So the restricted cubic spline is the basis expansion
+
+$$
+\boxed{\,E[Y \mid x] = \beta_0 + \beta_1 x + \sum_{k=1}^{K-2}\beta_{k+1}\, b_{k+1}(x), \qquad \text{Var}(Y \mid x) = \sigma^2\,}
+$$
+
+with $M = K-1$.
+
+That is $K$ basis functions: $b_0, b_1$ and $K-2$ nonlinear ones. This matches the count from Step 3 ($K+4$ minus four constraints), and it is $K-1$ fewer... more precisely, $3$ fewer than the ordinary cubic spline's $K+4$ basis functions would suggest per knot only if you count the cubic polynomial part: the two terms $x^2$ and $x^3$ are removed, and two of the knot terms are absorbed into the others.
+
+The restricted cubic spline is therefore a **linear model in $\boldsymbol\beta$**, even though the curve is not a straight line in $x$. The design matrix has one column per basis function:
+
+$$
+\underbrace{\Phi =
+\begin{bmatrix}
+1 & x_1 & b_2(x_1) & \cdots & b_{K-1}(x_1) \\
+1 & x_2 & b_2(x_2) & \cdots & b_{K-1}(x_2) \\
+\vdots & \vdots & \vdots & & \vdots \\
+1 & x_n & b_2(x_n) & \cdots & b_{K-1}(x_n)
+\end{bmatrix}}_{\Phi\ (n \times K)}
+$$
+
+so $\Phi_{i,m} = b_m(x_i)$. The model and the least squares estimate keep the same form as before:
+
+$$
+Y = \Phi\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
+\hat{\boldsymbol\beta} = (\Phi'\Phi)^{-1}\Phi'Y .
+$$
+
+$$
+\underbrace{\begin{bmatrix} Y_1 \\ Y_2 \\ \vdots \\ Y_n \end{bmatrix}}_{Y\ (n \times 1)}
+=
+\underbrace{\begin{bmatrix}
+1 & x_1 & b_2(x_1) & \cdots & b_{K-1}(x_1) \\
+1 & x_2 & b_2(x_2) & \cdots & b_{K-1}(x_2) \\
+\vdots & \vdots & \vdots & & \vdots \\
+1 & x_n & b_2(x_n) & \cdots & b_{K-1}(x_n)
+\end{bmatrix}}_{\Phi\ (n \times K)}
+\underbrace{\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \vdots \\ \beta_{K-1} \end{bmatrix}}_{\boldsymbol\beta\ (K \times 1)}
++
+\underbrace{\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \vdots \\ \varepsilon_n \end{bmatrix}}_{\boldsymbol\varepsilon\ (n \times 1)}
+$$
+
+For example, with the minimum $K = 3$ knots there is only one nonlinear basis function, $b_2(x)$, so the model is $\beta_0 + \beta_1 x + \beta_2 b_2(x)$ with $K = 3$ parameters.
+
+### Step 6: What the coefficients mean:
+
+- $\beta_0$ is the intercept of the left tail.
+- $\beta_1$ is the slope of the left tail ($x \le \kappa_1$), because every $b_{k+1}(x)$ is zero there.
+- $\beta_2, \dots, \beta_{K-1}$ control how much the curve bends away from a straight line between the knots. If they are all zero, the whole curve is the straight line $\beta_0 + \beta_1 x$, so a restricted cubic spline contains the ordinary linear model as a special case.
+- In the right tail ($x > \kappa_K$) the curve is also a straight line, but its slope is not a free parameter. It is determined by $\beta_1$ and the $\beta_{k+1}$ together, because the constraints in Step 3 tie the right tail to the rest of the curve.
+
+::: {.callout-note title="Cubic vs. restricted cubic spline"}
+
+| | Cubic spline | Restricted cubic spline |
+|---|---|---|
+| Between boundary knots | cubic | cubic |
+| Left tail ($x < \kappa_1$) | cubic | **straight line** |
+| Right tail ($x > \kappa_K$) | cubic | **straight line** |
+| Extra constraints | none | $\beta_2 = \beta_3 = 0$, $\sum\lambda_k = 0$, $\sum\lambda_k\kappa_k = 0$ |
+| Basis functions | $1,\ x,\ x^2,\ x^3,\ \left[(x-\kappa_k)^+\right]^3$ | $1,\ x,\ b_{k+1}(x)$ |
+| Number of parameters | $K + 4$ | $K$ |
+
+:::

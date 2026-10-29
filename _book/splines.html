@@ -71,7 +71,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./summary.html" rel="next">
+<link href="./explainer.html" rel="next">
 <link href="./ordinal_regression.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -261,12 +261,18 @@ window.Quarto = {
  <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Splines</span></span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./explainer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Explainer of Basis Expansion Models</span></span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./summary.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -287,19 +293,19 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./bivariate_norm_dist.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Class-conditional bivariate normal distribution</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Class-conditional bivariate normal distribution</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./cross_validation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Cross Validation</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Cross Validation</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./boostrapping.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Bootstrapping</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Bootstrapping</span></span></a>
   </div>
 </li>
       </ul>
@@ -344,8 +350,17 @@ window.Quarto = {
   <li><a href="#step-4-write-one-formula-for-all-x-1" id="toc-step-4-write-one-formula-for-all-x-1" class="nav-link" data-scroll-target="#step-4-write-one-formula-for-all-x-1"><span class="header-section-number">6.5.5</span> Step 4: Write one formula for all <span class="math inline">\(x\)</span>:</a></li>
   <li><a href="#step-5-read-off-the-basis-functions-1" id="toc-step-5-read-off-the-basis-functions-1" class="nav-link" data-scroll-target="#step-5-read-off-the-basis-functions-1"><span class="header-section-number">6.5.6</span> Step 5: Read off the basis functions:</a></li>
   <li><a href="#step-6-what-the-coefficients-mean-1" id="toc-step-6-what-the-coefficients-mean-1" class="nav-link" data-scroll-target="#step-6-what-the-coefficients-mean-1"><span class="header-section-number">6.5.7</span> Step 6: What the coefficients mean:</a></li>
-  <li><a href="#natural-cubic-slines" id="toc-natural-cubic-slines" class="nav-link" data-scroll-target="#natural-cubic-slines"><span class="header-section-number">6.5.8</span> Natural Cubic Slines</a></li>
-  <li><a href="#restricted-cubic-splines" id="toc-restricted-cubic-splines" class="nav-link" data-scroll-target="#restricted-cubic-splines"><span class="header-section-number">6.5.9</span> Restricted Cubic Splines</a></li>
+  <li><a href="#tail-behavior-of-a-cubic-spline" id="toc-tail-behavior-of-a-cubic-spline" class="nav-link" data-scroll-target="#tail-behavior-of-a-cubic-spline"><span class="header-section-number">6.5.8</span> Tail Behavior of a Cubic Spline</a></li>
+  </ul></li>
+  <li><a href="#restricted-cubic-splines-natural-cubic-splines" id="toc-restricted-cubic-splines-natural-cubic-splines" class="nav-link" data-scroll-target="#restricted-cubic-splines-natural-cubic-splines"><span class="header-section-number">6.6</span> Restricted Cubic Splines (Natural Cubic Splines)</a>
+  <ul class="collapse">
+  <li><a href="#mathematical-derivation-2" id="toc-mathematical-derivation-2" class="nav-link" data-scroll-target="#mathematical-derivation-2"><span class="header-section-number">6.6.1</span> Mathematical Derivation:</a></li>
+  <li><a href="#step-1-write-the-spline-in-each-tail" id="toc-step-1-write-the-spline-in-each-tail" class="nav-link" data-scroll-target="#step-1-write-the-spline-in-each-tail"><span class="header-section-number">6.6.2</span> Step 1: Write the spline in each tail:</a></li>
+  <li><a href="#step-2-force-the-left-tail-to-be-linear" id="toc-step-2-force-the-left-tail-to-be-linear" class="nav-link" data-scroll-target="#step-2-force-the-left-tail-to-be-linear"><span class="header-section-number">6.6.3</span> Step 2: Force the left tail to be linear:</a></li>
+  <li><a href="#step-3-force-the-right-tail-to-be-linear" id="toc-step-3-force-the-right-tail-to-be-linear" class="nav-link" data-scroll-target="#step-3-force-the-right-tail-to-be-linear"><span class="header-section-number">6.6.4</span> Step 3: Force the right tail to be linear:</a></li>
+  <li><a href="#step-4-solve-for-the-last-two-coefficients" id="toc-step-4-solve-for-the-last-two-coefficients" class="nav-link" data-scroll-target="#step-4-solve-for-the-last-two-coefficients"><span class="header-section-number">6.6.5</span> Step 4: Solve for the last two coefficients:</a></li>
+  <li><a href="#step-5-substitute-and-read-off-the-basis-functions" id="toc-step-5-substitute-and-read-off-the-basis-functions" class="nav-link" data-scroll-target="#step-5-substitute-and-read-off-the-basis-functions"><span class="header-section-number">6.6.6</span> Step 5: Substitute and read off the basis functions:</a></li>
+  <li><a href="#step-6-what-the-coefficients-mean-2" id="toc-step-6-what-the-coefficients-mean-2" class="nav-link" data-scroll-target="#step-6-what-the-coefficients-mean-2"><span class="header-section-number">6.6.7</span> Step 6: What the coefficients mean:</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -507,7 +522,7 @@ Y = X\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
 </section>
 <section id="what-is-a-spline-and-why-do-we-need-one" class="level3" data-number="6.1.2">
 <h3 data-number="6.1.2" class="anchored" data-anchor-id="what-is-a-spline-and-why-do-we-need-one"><span class="header-section-number">6.1.2</span> What Is a Spline, and Why Do We Need One:</h3>
-<p><strong>The problem: a straight line is too rigid.</strong> The model <span class="math inline">\(f(x) = \beta_0 + \beta_1 x\)</span> says that every extra month of a child’s age adds the same <span class="math inline">\(\beta_1\)</span> cm of length, at every age. Real growth however, plateaus where the child may grow more rapidaly during the early motnhs of infancy but for later months of infancy, they grow as a slwoer rate, creating a bending in the curve. A straight line cannot bend, so it will over-predict in some regions and under-predict in others, no matter how much data we collect. (A multiple linear regression is not a good fit).</p>
+<p><strong>The problem: a straight line is too rigid.</strong> The model <span class="math inline">\(f(x) = \beta_0 + \beta_1 x\)</span> says that every extra month of a child’s age adds the same <span class="math inline">\(\beta_1\)</span> cm of length, at every age. Real growth however, plateaus where the child may grow more rapidaly during the early months of infancy but for later months of infancy, they grow as a slwoer rate, creating a bending in the curve. A straight line cannot bend, so it will over-predict in some regions and under-predict in others, no matter how much data we collect. (A multiple linear regression is not a good fit).</p>
 <div id="cell-fig-line-too-rigid" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
@@ -665,7 +680,7 @@ y_i = \beta_0 b_0(x_i) + \beta_1 b_1(x_i) + \cdots + \beta_M b_M(x_i) + \varepsi
 </table>
 <section id="types-of-basis-functions" class="level3" data-number="6.2.1">
 <h3 data-number="6.2.1" class="anchored" data-anchor-id="types-of-basis-functions"><span class="header-section-number">6.2.1</span> Types of Basis Functions:</h3>
-<p><strong>One type of basis expansions are Polynomials:</strong></p>
+<p><strong>Polynomials:</strong></p>
 <p>Take <span class="math inline">\(b_d(x) = x^d\)</span>, so that</p>
 <p><span class="math display">\[
 x \longrightarrow \{1,\ x,\ x^2,\ x^3,\ \dots,\ x^p\}, \qquad d = 0, 1, 2, \dots, p.
@@ -674,7 +689,7 @@ x \longrightarrow \{1,\ x,\ x^2,\ x^3,\ \dots,\ x^p\}, \qquad d = 0, 1, 2, \dots
 <li>Pros: smooth curve (no discontinuities)</li>
 <li>Cons: It is a <strong>global function</strong>: every coefficient affects the whole curve (function), so changing one coefficient <span class="math inline">\(\beta_m\)</span> changes <span class="math inline">\(f(x)\)</span> everywhere, and data at one end of the range can change the fit at the other end. High-degree polynomials also tend to oscillate between data points and to diverge in the tails.</li>
 </ol>
-<p><strong>Another type of basis expansions are Piecewise Polynomials:</strong></p>
+<p><strong>Piecewise Polynomials:</strong></p>
 <ul>
 <li>0th degree - piecewise constant</li>
 <li>1st degree - piecewise linear</li>
@@ -683,10 +698,10 @@ x \longrightarrow \{1,\ x,\ x^2,\ x^3,\ \dots,\ x^p\}, \qquad d = 0, 1, 2, \dots
 <li>etc.</li>
 </ul>
 <ol type="1">
-<li>Pros: It is a <strong>local function</strong>: local chnages only affect the segemnt they occur in rather than the entire curve (function), so changing one coefficient <span class="math inline">\(\beta\)</span> will chnage change the specifc segment of the curve.</li>
+<li>Pros: It is a <strong>local function</strong>: local changes only affect the segemnt they occur in rather than the entire curve (function), so changing one coefficient <span class="math inline">\(\beta\)</span> will change the specifc segment of the curve.</li>
 <li>Cons: Nothing forces neighboring peices to meet so there can be discontinuities and jumps in the curve where the knots begin and end. We must choose where these knots begin and end.</li>
 </ol>
-<p><strong>Another type of basis expansions are Spline:</strong></p>
+<p><strong>Splines:</strong></p>
 <p>A compromise of botb Degree Polynomials and Piecewise Polynomials:</p>
 <ol type="1">
 <li>Pro: smooth curve (no discontinuities) and a local function since changes in coefficient <span class="math inline">\(\beta\)</span> will chnage change the specifc segment of the curve defined by the knots which are specific pointd which breaks up the x-axis into segments.</li>
@@ -783,8 +798,8 @@ Figure&nbsp;6.2: Top: a separate polynomial of degree d fit on each of four piec
 <div class="callout-body-container callout-body">
 <p>A <strong>spline</strong> with <span class="math inline">\(K\)</span> <strong>knots</strong> <span class="math inline">\(\kappa_1, \dots, \kappa_K\)</span> is a function <span class="math inline">\(f(x)\)</span> such that</p>
 <ol type="1">
-<li>on each of the <span class="math inline">\(K+1\)</span> intervals, <span class="math inline">\(f(\kappa)\)</span> is a polynomial of degree at most <span class="math inline">\(d=1\)</span>, and</li>
-<li><span class="math inline">\(f(\kappa)\)</span> and its derivatives <span class="math inline">\(f'(\kappa), f''(\kappa), \dots, f^{(d-1)}(\kappa)\)</span> are continuous at every knot <span class="math inline">\(K\)</span>.</li>
+<li>on each of the <span class="math inline">\(K+1\)</span> intervals, <span class="math inline">\(f(\kappa)\)</span> is a polynomial of degree <span class="math inline">\(d\)</span>, and</li>
+<li><span class="math inline">\(f(\kappa)\)</span> and its derivatives <span class="math inline">\(f'(\kappa), f''(\kappa), \dots, f^{(d-1)}(\kappa)\)</span> are continuous at every knot <span class="math inline">\(\kappa_k\)</span>.</li>
 </ol>
 </div>
 </div>
@@ -834,6 +849,10 @@ Figure&nbsp;6.2: Top: a separate polynomial of degree d fit on each of four piec
 </div>
 <div class="callout-body-container callout-body">
 <p>A <strong>linear spline</strong> is the spline of degree <span class="math inline">\(d = 1\)</span>: a function made of straight-line pieces that are joined end to end at the knots. Between knots the curve is a straight line. At each knot the line is allowed to change slope, creating a “sharp corner” or “kink”. The curve is continuous everywhere else.</p>
+<p>Must Satisfy:</p>
+<ul>
+<li>Continuity</li>
+</ul>
 </div>
 </div>
 <p>For child growth, this lets the curve rise steeply in early infancy and then bend to a gentler slope later, without jumping.</p>
@@ -1004,6 +1023,11 @@ Y = \Phi\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
 <li>the same curvature at each knot (<span class="math inline">\(f''\)</span> is continuous).</li>
 </ul>
 <p>Because the slope is continuous, the curve has no kinks. It bends smoothly through the knots.</p>
+<p>Must Satisfy:</p>
+<ul>
+<li>Continuity</li>
+<li>Smoothness</li>
+</ul>
 </div>
 </div>
 <p>For child growth, this lets the curve bend gradually from fast early growth to slower later growth, without jumps and without sharp corners.</p>
@@ -1218,13 +1242,262 @@ f_j(x) = \underbrace{\beta_0 + \beta_1 x + \beta_2 x^2}_{\text{same as } f_1} + 
 </table>
 </div>
 </div>
-<p>One Major caveat, the tail behaviors of the curve (beyond the knots) are unstable. A cubic grows like <span class="math inline">\(x^3\)</span>, so the fitted curve can swing sharply upward or downward in the tails. So we need to use Natural Cubic Slines or Restricted Cubic Splines.</p>
 </section>
-<section id="natural-cubic-slines" class="level3" data-number="6.5.8">
-<h3 data-number="6.5.8" class="anchored" data-anchor-id="natural-cubic-slines"><span class="header-section-number">6.5.8</span> Natural Cubic Slines</h3>
+<section id="tail-behavior-of-a-cubic-spline" class="level3" data-number="6.5.8">
+<h3 data-number="6.5.8" class="anchored" data-anchor-id="tail-behavior-of-a-cubic-spline"><span class="header-section-number">6.5.8</span> Tail Behavior of a Cubic Spline</h3>
+<p>The <strong>tails</strong> are the two outer regions of the <span class="math inline">\(x\)</span>-axis: the first interval <span class="math inline">\(I_1\)</span> to the left of the first knot <span class="math inline">\(\kappa_1\)</span>, and the last interval <span class="math inline">\(I_{K+1}\)</span> to the right of the last knot <span class="math inline">\(\kappa_K\)</span>. Nothing in the cubic spline definition constrains the curve there beyond the usual smoothness at the knots, so the tails are simply cubic polynomials.</p>
+<p><strong>Left tail (<span class="math inline">\(x \le \kappa_1\)</span>).</strong> Every hinge term <span class="math inline">\(\left[(x-\kappa_k)^+\right]^3\)</span> is switched off, so the spline reduces to the first cubic:</p>
+<p><span class="math display">\[
+f(x) = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 .
+\]</span></p>
+<p><strong>Right tail (<span class="math inline">\(x &gt; \kappa_K\)</span>).</strong> Every hinge term is switched on, so <span class="math inline">\(\left[(x-\kappa_k)^+\right]^3 = (x-\kappa_k)^3\)</span> for all <span class="math inline">\(k\)</span>. Expanding each <span class="math inline">\((x-\kappa_k)^3\)</span> and collecting powers of <span class="math inline">\(x\)</span> gives</p>
+<p><span class="math display">\[
+f(x) = \Big(\beta_0 - \sum_{k=1}^{K}\beta_{k+3}\kappa_k^3\Big)
++ \Big(\beta_1 + 3\sum_{k=1}^{K}\beta_{k+3}\kappa_k^2\Big)x
++ \Big(\beta_2 - 3\sum_{k=1}^{K}\beta_{k+3}\kappa_k\Big)x^2
++ \Big(\beta_3 + \sum_{k=1}^{K}\beta_{k+3}\Big)x^3 .
+\]</span></p>
+<p>This is still a cubic polynomial in <span class="math inline">\(x\)</span>, so in both tails the cubic spline behaves like an ordinary cubic.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Why this is a problem">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Why this is a problem
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Unbounded growth.</strong> A cubic grows like <span class="math inline">\(x^3\)</span>, so the curve shoots toward <span class="math inline">\(\pm\infty\)</span> as <span class="math inline">\(x\)</span> moves away from the knots, curving more and more steeply.</li>
+<li><strong>Unreliable extrapolation.</strong> Predictions outside the observed range of <span class="math inline">\(x\)</span> follow the cubic’s trend, which usually has no real-world basis. For child growth, a cubic tail could predict a child’s length shrinking or exploding at the oldest ages.</li>
+</ul>
+</div>
+</div>
+<p>This motivates restricting the tails. If we force <span class="math inline">\(f\)</span> to be a <strong>straight line</strong> beyond the boundary knots, the <span class="math inline">\(x^2\)</span> and <span class="math inline">\(x^3\)</span> coefficients must be zero in both tails. That is four constraints in total (two per tail), so the spline loses four parameters. The cubic spline had <span class="math inline">\(K+4\)</span> parameters, so the restricted version has <span class="math inline">\(K+4-4 = K\)</span>. This is the idea behind the <strong>restricted (natural)</strong> cubic splines.</p>
 </section>
-<section id="restricted-cubic-splines" class="level3" data-number="6.5.9">
-<h3 data-number="6.5.9" class="anchored" data-anchor-id="restricted-cubic-splines"><span class="header-section-number">6.5.9</span> Restricted Cubic Splines</h3>
+</section>
+<section id="restricted-cubic-splines-natural-cubic-splines" class="level2" data-number="6.6">
+<h2 data-number="6.6" class="anchored" data-anchor-id="restricted-cubic-splines-natural-cubic-splines"><span class="header-section-number">6.6</span> Restricted Cubic Splines (Natural Cubic Splines)</h2>
+<div class="callout callout-style-default callout-note callout-titled" title="Definition">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Definition
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A <strong>restricted cubic spline</strong> is a cubic spline that is forced to be <strong>linear in the tails</strong>. Between the boundary knots <span class="math inline">\(\kappa_1\)</span> and <span class="math inline">\(\kappa_K\)</span> the curve is made of cubic polynomial pieces. To the left of <span class="math inline">\(\kappa_1\)</span> and to the right of <span class="math inline">\(\kappa_K\)</span> it is a straight line. At each knot the two neighboring pieces must match in three ways:</p>
+<ul>
+<li>the same value at each knot (<span class="math inline">\(f\)</span> is continuous),</li>
+<li>the same slope at each knot (<span class="math inline">\(f'\)</span> is continuous),</li>
+<li>the same curvature at each knot (<span class="math inline">\(f''\)</span> is continuous).</li>
+</ul>
+<p>In addition, the curve must be a straight line beyond the boundary knots, which means the curvature is zero in both tails:</p>
+<ul>
+<li><span class="math inline">\(f''(x) = 0\)</span> for <span class="math inline">\(x &lt; \kappa_1\)</span> and for <span class="math inline">\(x &gt; \kappa_K\)</span>.</li>
+</ul>
+<p>Because the curve is smooth, it has no kinks at the knots. Because it is linear in the tails, it does not curve away wildly where there is little data.</p>
+<p>Must Satisfy:</p>
+<ul>
+<li>Continuity</li>
+<li>Smoothness</li>
+<li>Linearity in the tails</li>
+</ul>
+</div>
+</div>
+<p>For child growth, this lets the curve bend smoothly through the middle of the age range, but forces it to continue as a straight line at the youngest and oldest ages, where there is little data.</p>
+<section id="mathematical-derivation-2" class="level3" data-number="6.6.1">
+<h3 data-number="6.6.1" class="anchored" data-anchor-id="mathematical-derivation-2"><span class="header-section-number">6.6.1</span> Mathematical Derivation:</h3>
+<p>Let <span class="math inline">\(\kappa_1 &lt; \cdots &lt; \kappa_K\)</span> be the <span class="math inline">\(K\)</span> knots, with <span class="math inline">\(K \ge 3\)</span>. The restricted cubic spline is a cubic spline with extra constraints, so we start from the cubic spline formula and impose the tail restriction on its coefficients. To avoid confusing the original coefficients with the final ones, we call the coefficients of the cubic spline <span class="math inline">\(\lambda_k\)</span> for now:</p>
+<p><span class="math display">\[
+f(x) = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 + \sum_{k=1}^{K} \lambda_k\,\left[(x - \kappa_k)^+\right]^3 ,
+\]</span></p>
+<p>where <span class="math inline">\(\lambda_k\)</span> plays the role that <span class="math inline">\(\beta_{k+3}\)</span> did in the cubic spline. This form already guarantees that <span class="math inline">\(f\)</span>, <span class="math inline">\(f'\)</span>, and <span class="math inline">\(f''\)</span> are continuous at every knot, so we only need to add the linearity restriction in the tails.</p>
+</section>
+<section id="step-1-write-the-spline-in-each-tail" class="level3" data-number="6.6.2">
+<h3 data-number="6.6.2" class="anchored" data-anchor-id="step-1-write-the-spline-in-each-tail"><span class="header-section-number">6.6.2</span> Step 1: Write the spline in each tail:</h3>
+<p><strong>Left tail (<span class="math inline">\(x \le \kappa_1\)</span>).</strong> Every hinge term is switched off, so</p>
+<p><span class="math display">\[
+f(x) = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 .
+\]</span></p>
+<p><strong>Right tail (<span class="math inline">\(x &gt; \kappa_K\)</span>).</strong> Every hinge term is switched on, so <span class="math inline">\(\left[(x - \kappa_k)^+\right]^3 = (x-\kappa_k)^3\)</span> for all <span class="math inline">\(k\)</span>. Expanding each cube and collecting powers of <span class="math inline">\(x\)</span>,</p>
+<p><span class="math display">\[
+f(x) = \Big(\beta_0 - \sum_{k=1}^{K}\lambda_k\kappa_k^3\Big)
++ \Big(\beta_1 + 3\sum_{k=1}^{K}\lambda_k\kappa_k^2\Big)x
++ \Big(\beta_2 - 3\sum_{k=1}^{K}\lambda_k\kappa_k\Big)x^2
++ \Big(\beta_3 + \sum_{k=1}^{K}\lambda_k\Big)x^3 .
+\]</span></p>
+</section>
+<section id="step-2-force-the-left-tail-to-be-linear" class="level3" data-number="6.6.3">
+<h3 data-number="6.6.3" class="anchored" data-anchor-id="step-2-force-the-left-tail-to-be-linear"><span class="header-section-number">6.6.3</span> Step 2: Force the left tail to be linear:</h3>
+<p>A polynomial is a straight line only if its <span class="math inline">\(x^2\)</span> and <span class="math inline">\(x^3\)</span> coefficients are zero. In the left tail this gives</p>
+<p><span class="math display">\[
+\boxed{\,\beta_2 = 0, \qquad \beta_3 = 0\,}
+\]</span></p>
+<p>The left tail is now <span class="math inline">\(f(x) = \beta_0 + \beta_1 x\)</span>.</p>
+</section>
+<section id="step-3-force-the-right-tail-to-be-linear" class="level3" data-number="6.6.4">
+<h3 data-number="6.6.4" class="anchored" data-anchor-id="step-3-force-the-right-tail-to-be-linear"><span class="header-section-number">6.6.4</span> Step 3: Force the right tail to be linear:</h3>
+<p>In the right tail, set the <span class="math inline">\(x^3\)</span> and <span class="math inline">\(x^2\)</span> coefficients from Step 1 equal to zero. Using <span class="math inline">\(\beta_2 = \beta_3 = 0\)</span> from Step 2,</p>
+<p><span class="math display">\[
+\boxed{\,\sum_{k=1}^{K}\lambda_k = 0, \qquad \sum_{k=1}^{K}\lambda_k\,\kappa_k = 0\,}
+\]</span></p>
+<p>These are two linear constraints on the <span class="math inline">\(K\)</span> coefficients <span class="math inline">\(\lambda_1, \dots, \lambda_K\)</span>. Together with Step 2, that is four constraints in total, so the cubic spline’s <span class="math inline">\(K+4\)</span> parameters are reduced to <span class="math inline">\(K+4-4 = K\)</span>.</p>
+</section>
+<section id="step-4-solve-for-the-last-two-coefficients" class="level3" data-number="6.6.5">
+<h3 data-number="6.6.5" class="anchored" data-anchor-id="step-4-solve-for-the-last-two-coefficients"><span class="header-section-number">6.6.5</span> Step 4: Solve for the last two coefficients:</h3>
+<p>Use the two constraints from Step 3 to write the last two coefficients, <span class="math inline">\(\lambda_{K-1}\)</span> and <span class="math inline">\(\lambda_K\)</span>, in terms of the first <span class="math inline">\(K-2\)</span>. Move the first <span class="math inline">\(K-2\)</span> terms to the right side:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\lambda_{K-1} + \lambda_K &amp;= -\sum_{k=1}^{K-2}\lambda_k, \\
+\kappa_{K-1}\lambda_{K-1} + \kappa_K\lambda_K &amp;= -\sum_{k=1}^{K-2}\kappa_k\lambda_k .
+\end{aligned}
+\]</span></p>
+<p>Multiply the first equation by <span class="math inline">\(\kappa_K\)</span> and subtract the second equation. The <span class="math inline">\(\lambda_K\)</span> terms cancel:</p>
+<p><span class="math display">\[
+(\kappa_K - \kappa_{K-1})\,\lambda_{K-1} = -\sum_{k=1}^{K-2}\lambda_k(\kappa_K - \kappa_k).
+\]</span></p>
+<p>Multiply the first equation by <span class="math inline">\(\kappa_{K-1}\)</span> and subtract it from the second equation. The <span class="math inline">\(\lambda_{K-1}\)</span> terms cancel:</p>
+<p><span class="math display">\[
+(\kappa_K - \kappa_{K-1})\,\lambda_K = \sum_{k=1}^{K-2}\lambda_k(\kappa_{K-1} - \kappa_k).
+\]</span></p>
+<p>Dividing by <span class="math inline">\(\kappa_K - \kappa_{K-1}\)</span>,</p>
+<p><span class="math display">\[
+\boxed{\,
+\lambda_{K-1} = -\sum_{k=1}^{K-2}\lambda_k\,\frac{\kappa_K - \kappa_k}{\kappa_K - \kappa_{K-1}},
+\qquad
+\lambda_K = \sum_{k=1}^{K-2}\lambda_k\,\frac{\kappa_{K-1} - \kappa_k}{\kappa_K - \kappa_{K-1}}\,}
+\]</span></p>
+<p><strong>Check:</strong> adding the two gives <span class="math inline">\(\lambda_{K-1} + \lambda_K = \sum_{k=1}^{K-2}\lambda_k\,\dfrac{-(\kappa_K - \kappa_k) + (\kappa_{K-1} - \kappa_k)}{\kappa_K - \kappa_{K-1}} = -\sum_{k=1}^{K-2}\lambda_k\)</span>, which is the first constraint.</p>
+</section>
+<section id="step-5-substitute-and-read-off-the-basis-functions" class="level3" data-number="6.6.6">
+<h3 data-number="6.6.6" class="anchored" data-anchor-id="step-5-substitute-and-read-off-the-basis-functions"><span class="header-section-number">6.6.6</span> Step 5: Substitute and read off the basis functions:</h3>
+<p>Since <span class="math inline">\(\beta_2 = \beta_3 = 0\)</span>, the spline is</p>
+<p><span class="math display">\[
+f(x) = \beta_0 + \beta_1 x + \sum_{k=1}^{K}\lambda_k\left[(x-\kappa_k)^+\right]^3 .
+\]</span></p>
+<p>Substitute <span class="math inline">\(\lambda_{K-1}\)</span> and <span class="math inline">\(\lambda_K\)</span> from Step 4 and group everything that multiplies each remaining <span class="math inline">\(\lambda_k\)</span>, for <span class="math inline">\(k = 1, \dots, K-2\)</span>:</p>
+<p><span class="math display">\[
+f(x) = \beta_0 + \beta_1 x + \sum_{k=1}^{K-2}\lambda_k\left\{
+\left[(x-\kappa_k)^+\right]^3
+- \frac{\kappa_K - \kappa_k}{\kappa_K - \kappa_{K-1}}\left[(x-\kappa_{K-1})^+\right]^3
++ \frac{\kappa_{K-1} - \kappa_k}{\kappa_K - \kappa_{K-1}}\left[(x-\kappa_K)^+\right]^3
+\right\}.
+\]</span></p>
+<p>Rename the coefficients <span class="math inline">\(\beta_{k+1} = \lambda_k\)</span> for <span class="math inline">\(k = 1, \dots, K-2\)</span>, so that <span class="math inline">\(\beta_{k+1}\)</span> belongs to knot <span class="math inline">\(\kappa_k\)</span> as in the linear spline. The basis functions are:</p>
+<p><span class="math display">\[
+\begin{aligned}
+b_0(x) &amp;= 1, \qquad b_1(x) = x, \\
+b_{k+1}(x) &amp;= \left[(x-\kappa_k)^+\right]^3
+- \frac{\kappa_K - \kappa_k}{\kappa_K - \kappa_{K-1}}\left[(x-\kappa_{K-1})^+\right]^3
++ \frac{\kappa_{K-1} - \kappa_k}{\kappa_K - \kappa_{K-1}}\left[(x-\kappa_K)^+\right]^3, \qquad k = 1, \dots, K-2 .
+\end{aligned}
+\]</span></p>
+<p>So the restricted cubic spline is the basis expansion</p>
+<p><span class="math display">\[
+\boxed{\,E[Y \mid x] = \beta_0 + \beta_1 x + \sum_{k=1}^{K-2}\beta_{k+1}\, b_{k+1}(x), \qquad \text{Var}(Y \mid x) = \sigma^2\,}
+\]</span></p>
+<p>with <span class="math inline">\(M = K-1\)</span>.</p>
+<p>That is <span class="math inline">\(K\)</span> basis functions: <span class="math inline">\(b_0, b_1\)</span> and <span class="math inline">\(K-2\)</span> nonlinear ones. This matches the count from Step 3 (<span class="math inline">\(K+4\)</span> minus four constraints), and it is <span class="math inline">\(K-1\)</span> fewer… more precisely, <span class="math inline">\(3\)</span> fewer than the ordinary cubic spline’s <span class="math inline">\(K+4\)</span> basis functions would suggest per knot only if you count the cubic polynomial part: the two terms <span class="math inline">\(x^2\)</span> and <span class="math inline">\(x^3\)</span> are removed, and two of the knot terms are absorbed into the others.</p>
+<p>The restricted cubic spline is therefore a <strong>linear model in <span class="math inline">\(\boldsymbol\beta\)</span></strong>, even though the curve is not a straight line in <span class="math inline">\(x\)</span>. The design matrix has one column per basis function:</p>
+<p><span class="math display">\[
+\underbrace{\Phi =
+\begin{bmatrix}
+1 &amp; x_1 &amp; b_2(x_1) &amp; \cdots &amp; b_{K-1}(x_1) \\
+1 &amp; x_2 &amp; b_2(x_2) &amp; \cdots &amp; b_{K-1}(x_2) \\
+\vdots &amp; \vdots &amp; \vdots &amp; &amp; \vdots \\
+1 &amp; x_n &amp; b_2(x_n) &amp; \cdots &amp; b_{K-1}(x_n)
+\end{bmatrix}}_{\Phi\ (n \times K)}
+\]</span></p>
+<p>so <span class="math inline">\(\Phi_{i,m} = b_m(x_i)\)</span>. The model and the least squares estimate keep the same form as before:</p>
+<p><span class="math display">\[
+Y = \Phi\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
+\hat{\boldsymbol\beta} = (\Phi'\Phi)^{-1}\Phi'Y .
+\]</span></p>
+<p><span class="math display">\[
+\underbrace{\begin{bmatrix} Y_1 \\ Y_2 \\ \vdots \\ Y_n \end{bmatrix}}_{Y\ (n \times 1)}
+=
+\underbrace{\begin{bmatrix}
+1 &amp; x_1 &amp; b_2(x_1) &amp; \cdots &amp; b_{K-1}(x_1) \\
+1 &amp; x_2 &amp; b_2(x_2) &amp; \cdots &amp; b_{K-1}(x_2) \\
+\vdots &amp; \vdots &amp; \vdots &amp; &amp; \vdots \\
+1 &amp; x_n &amp; b_2(x_n) &amp; \cdots &amp; b_{K-1}(x_n)
+\end{bmatrix}}_{\Phi\ (n \times K)}
+\underbrace{\begin{bmatrix} \beta_0 \\ \beta_1 \\ \beta_2 \\ \vdots \\ \beta_{K-1} \end{bmatrix}}_{\boldsymbol\beta\ (K \times 1)}
++
+\underbrace{\begin{bmatrix} \varepsilon_1 \\ \varepsilon_2 \\ \vdots \\ \varepsilon_n \end{bmatrix}}_{\boldsymbol\varepsilon\ (n \times 1)}
+\]</span></p>
+<p>For example, with the minimum <span class="math inline">\(K = 3\)</span> knots there is only one nonlinear basis function, <span class="math inline">\(b_2(x)\)</span>, so the model is <span class="math inline">\(\beta_0 + \beta_1 x + \beta_2 b_2(x)\)</span> with <span class="math inline">\(K = 3\)</span> parameters.</p>
+</section>
+<section id="step-6-what-the-coefficients-mean-2" class="level3" data-number="6.6.7">
+<h3 data-number="6.6.7" class="anchored" data-anchor-id="step-6-what-the-coefficients-mean-2"><span class="header-section-number">6.6.7</span> Step 6: What the coefficients mean:</h3>
+<ul>
+<li><span class="math inline">\(\beta_0\)</span> is the intercept of the left tail.</li>
+<li><span class="math inline">\(\beta_1\)</span> is the slope of the left tail (<span class="math inline">\(x \le \kappa_1\)</span>), because every <span class="math inline">\(b_{k+1}(x)\)</span> is zero there.</li>
+<li><span class="math inline">\(\beta_2, \dots, \beta_{K-1}\)</span> control how much the curve bends away from a straight line between the knots. If they are all zero, the whole curve is the straight line <span class="math inline">\(\beta_0 + \beta_1 x\)</span>, so a restricted cubic spline contains the ordinary linear model as a special case.</li>
+<li>In the right tail (<span class="math inline">\(x &gt; \kappa_K\)</span>) the curve is also a straight line, but its slope is not a free parameter. It is determined by <span class="math inline">\(\beta_1\)</span> and the <span class="math inline">\(\beta_{k+1}\)</span> together, because the constraints in Step 3 tie the right tail to the rest of the curve.</li>
+</ul>
+<div class="callout callout-style-default callout-note callout-titled" title="Cubic vs. restricted cubic spline">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Cubic vs.&nbsp;restricted cubic spline
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Cubic spline</th>
+<th>Restricted cubic spline</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Between boundary knots</td>
+<td>cubic</td>
+<td>cubic</td>
+</tr>
+<tr class="even">
+<td>Left tail (<span class="math inline">\(x &lt; \kappa_1\)</span>)</td>
+<td>cubic</td>
+<td><strong>straight line</strong></td>
+</tr>
+<tr class="odd">
+<td>Right tail (<span class="math inline">\(x &gt; \kappa_K\)</span>)</td>
+<td>cubic</td>
+<td><strong>straight line</strong></td>
+</tr>
+<tr class="even">
+<td>Extra constraints</td>
+<td>none</td>
+<td><span class="math inline">\(\beta_2 = \beta_3 = 0\)</span>, <span class="math inline">\(\sum\lambda_k = 0\)</span>, <span class="math inline">\(\sum\lambda_k\kappa_k = 0\)</span></td>
+</tr>
+<tr class="odd">
+<td>Basis functions</td>
+<td><span class="math inline">\(1,\ x,\ x^2,\ x^3,\ \left[(x-\kappa_k)^+\right]^3\)</span></td>
+<td><span class="math inline">\(1,\ x,\ b_{k+1}(x)\)</span></td>
+</tr>
+<tr class="even">
+<td>Number of parameters</td>
+<td><span class="math inline">\(K + 4\)</span></td>
+<td><span class="math inline">\(K\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 
 
 </section>
@@ -1638,8 +1911,8 @@ f_j(x) = \underbrace{\beta_0 + \beta_1 x + \beta_2 x^2}_{\text{same as } f_1} + 
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./summary.html" class="pagination-link" aria-label="Summary">
-        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Summary</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./explainer.html" class="pagination-link" aria-label="Explainer of Basis Expansion Models">
+        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Explainer of Basis Expansion Models</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
