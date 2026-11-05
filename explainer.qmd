@@ -344,7 +344,7 @@ ax.scatter(age, length_cm, s=14, color="purple", alpha=0.5, label="Data") # plot
 ax.plot(age_grid, f_true(age_grid), "r--", lw=2, label="True $f(x)$") # Draws the true curve
 
 # Repeats the next four lines once for each polynomial degree, so each pass fits and draws one curve
-for degree in [1, 2, 3, 6]:
+for degree in [1, 2, 3]:
     Phi = poly_basis(age, degree)  # builds the design matrix at your 150 observed ages. The shape is 150 x (p+1)
     beta_hat = np.linalg.lstsq(Phi, length_cm, rcond=None)[0] # least squares
     fit = poly_basis(age_grid, degree) @ beta_hat # predictions on grid

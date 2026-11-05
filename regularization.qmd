@@ -1,0 +1,104 @@
+# Regularization Homework Problems
+
+## Loading the Data:
+
+Loading the riboflavin dataset with $n=71$ observations and $p=4088$ predictors. This is an example od a rank-deficient problem since $p > n$.
+
+71 samples of B. subtilis, each with 4,088 gene expression features. The outcome is riboflavin (vitamin B2) production rate. Because $p > n$, ordinary least squares fails — this is the setting where regularization is not optional.
+
+```{r}
+riboflavin <- readRDS("riboflavin.rds")
+
+X <- riboflavin$x # 71 × 4088 matrix (predictor matrix X - multi column and multi row matrix)
+y <- riboflavin$y # length-71 vector (response vector y - single column and multi row matrix)
+
+c(n = nrow(X), p = ncol(X))
+```
+
+## Problem 1: 
+Confirm that OLS cannot create a unique solution for this dataset. Attempt to fit a linear model using `lm()` and report what happens. How many coefficients does R return as `NA`, and why?
+
+```{r}
+# converts the matrix X into a dataframe d1
+d1 <- as.data.frame(X)
+# add y as an extra column in the dataframe named y
+d1$y <- y 
+
+# fit a linear model on the data (predict response y and using all columns in the datafraem d1 except the response y)
+lm1 <- lm(y ~ ., data = d1) 
+
+# extract all the coefficients in the data
+beta_hat <- coef(lm1) 
+# add a boolean mask where for coefficients which are not null (FALSE) and for coefficients which are null (TRUE)
+beta_na <- is.na(beta_hat) 
+
+# replace every null coefficient with 0
+beta_hat[beta_na] <- 0 
+
+# plot each coefficient where coefficients are black dots and null coefficients are red triangles
+plot(beta_hat, col = beta_na + 1, pch = 16 + beta_na, xlab = "Coefficient index", ylab = expression(hat(beta))) 
+# add a legend
+legend("topright", legend = c("Estimated", "NA"), pch = 16:17, col = 1:2, bty = "n")
+# add plot titles
+title(main = paste("Coefficients set to NA:", sum(beta_na), "out of", length(beta_hat) - 1), font.main = 1)
+```
+
+```{r}
+length(coef(lm1)) # total coefficients R tried to estimate
+sum(is.na(coef(lm1))) # how many came back NA
+sum(!is.na(coef(lm1))) # how many were actually estimated
+lm1$rank # rank of the design matrix R used
+
+max(abs(residuals(lm1))) # how big is the largest error?
+summary(lm1)$r.squared # how well does it "fit"?
+```
+
+Interpretation: 
+
+Of all 4,088 coefficients for the predictors and 1 coefficient for the intercept (resulting in 4,089 total coefficients), 4,018 were null while only 71 had values. Because the design matrix is n x p where p > n, this means that there are more features/measurements than there are number of samples. So, there are infininetely many solutions. These solutions are the individual coefficients we are interested in. So, since there were 71 samples, the linear model returned 71 valid coefficients however, for the remaining 4,018, these coefficients were returned as null. This is called a lack of identifiability. The design matrix table is therefore considered singular.
+
+The plot highlgihts this as we see all 71 data points along the 0 coefficient index, this is because all linearly depeendent columns were arbitrarily dropped depending on their order present in the data and set to 0 (R views these columsn as redundant).
+
+## Problem 2: 
+Fit ridge regression using `glmnet` (`alpha = 0`). Select $\lambda$ via 10-fold cross-validation. Report $\lambda_{\min}$ and $\lambda_{1se}$. Plot the CV error curve with the two vertical lines. How does CV-MSE change as $\lambda$ increases?
+
+```{r}
+library(glmnet)
+
+set.seed(42)
+cv_ridge <- cv.glmnet(X, y, alpha = 0, nfolds = 10)
+
+c(lambda.min = round(cv_ridge$lambda.min, 4),
+  lambda.1se = round(cv_ridge$lambda.1se, 4))
+```
+
+## Problem 3: 
+Plot the ridge coefficient path $-\log(\lambda)$ (a previous version omitted the negative sign) on the x-axis, coefficient values on the y-axis. Describe qualitatively what happens to the coefficients as $\lambda$ increases. Does any coefficient reach exactly zero?
+
+```{r}
+plot(cv_ridge)
+```
+
+## Problem 4: 
+Fit lasso regression (`alpha = 1`) and select $\lambda$ via 10-fold CV. At $\lambda_{1se}$, how many gene expression features are retained (non-zero coefficients)? Plot the coefficient path and the CV error curve.
+
+## Problem 5: 
+Fit an elastic net with $\alpha \in \{0.25, 0.5, 0.75\}$. For each $\alpha$, record the minimum CV-MSE. Create a small table showing $(\alpha, \lambda_{\min}, \min \text{CV-MSE})$. Which $\alpha$ yields the lowest CV-MSE? How does the number of selected features compare to lasso?
+
+## Problem 6: 
+Fit PCR using the `pls` package (or manual SVD as shown in the chapter). Select the number of components $k$ via cross-validation (use `validationplot`). Report the optimal $k$.
+
+a. Back-transform the PCR fit to obtain the full 4,088-dimensional coefficient vector $\hat{\beta}_{\text{PCR}}$.
+
+b. Use $\hat{\beta}_{\text{PCR}}$ to generate a prediction for the first observation in the dataset (`X[1, ]`). Show your R code and the predicted value.
+
+c. In one sentence, explain why you needed all 4,088 gene expression values to generate this prediction even though you only fit $k$ principal components.
+
+## Problem 7: 
+Comparing across methods:
+
+a. Report the CV-MSE at the selected tuning parameter for each of the four methods (ridge, lasso, elastic net, PCR).
+
+b. Which method achieves the lowest CV-MSE on this dataset?
+
+c. Based on the guidance in the chapter, would you expect ridge or lasso to work better here? Does the data agree with your expectation? Why or why not?

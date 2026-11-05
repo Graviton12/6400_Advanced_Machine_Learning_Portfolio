@@ -22,6 +22,9 @@ book:
       chapters:
       - splines.qmd
       - explainer.qmd
+    - part: "Regularization"
+      chapters:
+      - regularization.qmd
     - summary.qmd
     - references.qmd
     - part: "Appendix"

@@ -71,7 +71,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./summary.html" rel="next">
+<link href="./regularization.html" rel="next">
 <link href="./splines.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -112,10 +112,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }</script>
 <script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
 
-
-
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
-
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
@@ -275,10 +272,27 @@ window.Quarto = {
 </li>
       </ul>
   </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+ <span class="menu-text">Regularization</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./regularization.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Regularization Homework Problems</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./summary.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -289,29 +303,29 @@ window.Quarto = {
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true">
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
  <span class="menu-text">Appendix</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./bivariate_norm_dist.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Class-conditional bivariate normal distribution</span></span></a>
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Class-conditional bivariate normal distribution</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./cross_validation.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">Cross Validation</span></span></a>
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Cross Validation</span></span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./boostrapping.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">Bootstrapping</span></span></a>
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Bootstrapping</span></span></a>
   </div>
 </li>
       </ul>
@@ -496,7 +510,7 @@ Y = X\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
 <section id="data-generation-model" class="level2" data-number="7.2">
 <h2 data-number="7.2" class="anchored" data-anchor-id="data-generation-model"><span class="header-section-number">7.2</span> Data Generation Model:</h2>
 <p>Below describes the data generation function for a randomly generated sample of 150 children whose predictor <span class="math inline">\(x\)</span> denoting children age in months.</p>
-<div id="aa20878f" class="cell" data-execution_count="1">
+<div id="12d4dbb2" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -519,7 +533,7 @@ Y = X\boldsymbol\beta + \boldsymbol\varepsilon, \qquad
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({<span class="st">"age_months"</span>: age, <span class="st">"length_cm"</span>: length_cm})</span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>df.head(<span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-display" data-execution_count="8">
+<div class="cell-output cell-output-display" data-execution_count="1">
 <div>
 
 
@@ -782,7 +796,7 @@ E[Y \mid x] = \beta_0 + \beta_1 x + \beta_2 x^2 + \cdots + \beta_p x^p = \sum_{d
 <span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>ax.plot(age_grid, f_true(age_grid), <span class="st">"r--"</span>, lw<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="st">"True $f(x)$"</span>) <span class="co"># Draws the true curve</span></span>
 <span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Repeats the next four lines once for each polynomial degree, so each pass fits and draws one curve</span></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> degree <span class="kw">in</span> [<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">6</span>]:</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> degree <span class="kw">in</span> [<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>]:</span>
 <span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    Phi <span class="op">=</span> poly_basis(age, degree)  <span class="co"># builds the design matrix at your 150 observed ages. The shape is 150 x (p+1)</span></span>
 <span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    beta_hat <span class="op">=</span> np.linalg.lstsq(Phi, length_cm, rcond<span class="op">=</span><span class="va">None</span>)[<span class="dv">0</span>] <span class="co"># least squares</span></span>
 <span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    fit <span class="op">=</span> poly_basis(age_grid, degree) <span class="op">@</span> beta_hat <span class="co"># predictions on grid</span></span>
@@ -1006,33 +1020,33 @@ Figure&nbsp;7.3: Linear spline with knots at 6, 12, and 24 months.
 Table&nbsp;7.1
 </figcaption>
 <div aria-describedby="tbl-slopes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output cell-output-display" data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="5">
 <style type="text/css">
 </style>
 
-<table id="T_c8d38" class="caption-top table table-sm table-striped small">
+<table id="T_2a466" class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th id="T_c8d38_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Segment (months)</th>
-<th id="T_c8d38_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Slope (cm/month)</th>
+<th id="T_2a466_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">Segment (months)</th>
+<th id="T_2a466_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">Slope (cm/month)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td id="T_c8d38_row0_col0" class="data row0 col0">0 to 6</td>
-<td id="T_c8d38_row0_col1" class="data row0 col1">3.49</td>
+<td id="T_2a466_row0_col0" class="data row0 col0">0 to 6</td>
+<td id="T_2a466_row0_col1" class="data row0 col1">3.49</td>
 </tr>
 <tr class="even">
-<td id="T_c8d38_row1_col0" class="data row1 col0">6 to 12</td>
-<td id="T_c8d38_row1_col1" class="data row1 col1">1.42</td>
+<td id="T_2a466_row1_col0" class="data row1 col0">6 to 12</td>
+<td id="T_2a466_row1_col1" class="data row1 col1">1.42</td>
 </tr>
 <tr class="odd">
-<td id="T_c8d38_row2_col0" class="data row2 col0">12 to 24</td>
-<td id="T_c8d38_row2_col1" class="data row2 col1">0.61</td>
+<td id="T_2a466_row2_col0" class="data row2 col0">12 to 24</td>
+<td id="T_2a466_row2_col1" class="data row2 col1">0.61</td>
 </tr>
 <tr class="even">
-<td id="T_c8d38_row3_col0" class="data row3 col0">24 to 36</td>
-<td id="T_c8d38_row3_col1" class="data row3 col1">0.39</td>
+<td id="T_2a466_row3_col0" class="data row3 col0">24 to 36</td>
+<td id="T_2a466_row3_col1" class="data row3 col1">0.39</td>
 </tr>
 </tbody>
 </table>
@@ -1610,8 +1624,8 @@ Figure&nbsp;7.5: Restricted cubic spline versus an ordinary cubic spline, both w
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./summary.html" class="pagination-link" aria-label="Summary">
-        <span class="nav-page-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Summary</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./regularization.html" class="pagination-link" aria-label="Regularization Homework Problems">
+        <span class="nav-page-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Regularization Homework Problems</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
