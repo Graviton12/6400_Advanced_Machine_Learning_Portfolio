@@ -164,10 +164,54 @@ plot(lasso_fit, xvar = "lambda", label = FALSE,
 
 Interpretation:
 
-Using the 10-fold cross validation yieled a lowest average CV error penalty term λ.min of 0.0289 and a heighest average CV error penalty term λ.1se of 0.0881. The CV error curve shows the CV-MSE change decreases near the lowest average CV error penalty term λ.min then begins to flatten up until the heighest average CV error penalty term λ.1se where the CV-MSE change begins to increase. At the heighest average CV error penalty term λ.1se, of the 4,088 gene expression features, 27 were non-zero coefficients reaminging while all other coefficients were set equal to zero. The lasso coefficient path shows coefficients of the genes entering the model one at a time as λ decreases. Thus, as λ decreases, coefficients of the genes switch on one at a time and their coefficients leave the zero line. Inversely, as λ increases, coefficients of the genes move towards where the weak/redundant coefficients equal exactly zero and important coefficients are near zero. 
+Using the 10-fold cross validation yieled a lowest average CV error penalty term λ.min of 0.0289 and a heighest average CV error penalty term λ.1se of 0.0881. The CV error curve shows the CV-MSE change decreases near the lowest average CV error penalty term λ.min then begins to flatten up until the heighest average CV error penalty term λ.1se where the CV-MSE change begins to increase. At the heighest average CV error penalty term λ.1se, of the 4,088 gene expression features, 27 were non-zero coefficients reaminging while all other coefficients were set equal to zero. The lasso coefficient path shows coefficients of the genes entering the model one at a time as λ decreases. Thus, as λ decreases, coefficients of the genes switch on one at a time and their coefficients leave the zero line. Inversely, as λ increases, coefficients of the genes move towards where the weak/redundant coefficients equal exactly zero and important coefficients are near zero. Since 27 < 71, regular OLS can now be applied and gives a unique answer using a relaxed lasso.
 
 ## Problem 5: 
 Fit an elastic net with $\alpha \in \{0.25, 0.5, 0.75\}$. For each $\alpha$, record the minimum CV-MSE. Create a small table showing $(\alpha, \lambda_{\min}, \min \text{CV-MSE})$. Which $\alpha$ yields the lowest CV-MSE? How does the number of selected features compare to lasso?
+
+```{r}
+alphas <- c(0.25, 0.5, 0.75) # build sequence of alphas for elastic net with values from 0.25, 0.5, 0.75
+
+# for every alpha value in the seqeuence of alphas, fit an elastic net using cross validation for all alpha values
+en_fit <- lapply(alphas, function(a) { 
+  set.seed(42) # set random seed 42
+  cv <- cv.glmnet(X, y, alpha = a, nfolds = 10) # run a elastic net with cross validation implimentation using every alpha value
+})
+
+# insert results into a dataframe with columns for alpha, lambda_min, and min_CV_MSE
+en_table <- data.frame(
+  alpha = alphas,
+  lambda.min = sapply(en_fit, function(cv) round(cv$lambda.min, 4)),
+  min_CV_MSE = sapply(en_fit, function(cv) round(min(cv$cvm), 4))
+)
+print(en_table)
+```
+
+```{r}
+# find the best alpha from your table
+en_table_best <- en_table[which.min(en_table$min_CV_MSE), ]
+en_table_best
+
+# refit elastic net at that alpha (same seed, so same folds)
+set.seed(42)
+cv_en <- cv.glmnet(X, y, alpha = en_table_best$alpha, nfolds = 10)
+
+# sum of non-zero gene coefficients
+count_nz <- function(cv, s) sum(as.matrix(coef(cv, s = s))[-1, ] != 0)
+
+# compare with lasso (cv_lasso from Problem 4)
+data.frame(
+  model = c("Lasso", paste("Elastic net, alpha =", alphas)),
+  nonzero_at_lambda.min = c(count_nz(cv_lasso, "lambda.min"),
+                            sapply(en_fit, count_nz, s = "lambda.min")),
+  nonzero_at_lambda.1se = c(count_nz(cv_lasso, "lambda.1se"),
+                            sapply(en_fit, count_nz, s = "lambda.1se"))
+)
+```
+
+Interpretation:
+
+An alpha of 0.75 yields the lowest CV-MSE of 0.2197. At alpha values of 0.25, 0.5, and 0.75, the min_CV_MSE values are 0.2238, 0.2261, and, 0.2197 respectively. AT lambda.1se, the lasso retains 27 features (27 non-zero coefficients). However, the elastic net at alpha values of 0.25, 0.5, and 0.75, have lambda.1se values of 66, 39, and 32 respectively. The elastic net retains more features compared to lasso since the elastic net blends in a ridge penalty with a lasso penalty. So, the ridge penalty shrinks weights towards zero but not does have them equaling to zero, so their corresponding features are still retained in the model. Recall that for the lasso penalty, the weaker weights are set equal to zero and thus, their corresponding features are dropped from the model. The ridge part introduces a grouping effect so correlated genes tend to share the weight and get similar coefficients. So, weights are kept or dropped together instead of one being picked arbitrarily. Therefore, 
 
 ## Problem 6: 
 Fit PCR using the `pls` package (or manual SVD as shown in the chapter). Select the number of components $k$ via cross-validation (use `validationplot`). Report the optimal $k$.
