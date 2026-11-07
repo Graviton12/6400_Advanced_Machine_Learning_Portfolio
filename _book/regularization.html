@@ -111,6 +111,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
@@ -431,8 +435,8 @@ window.Quarto = {
 </div>
 </div>
 <p>Interpretation:</p>
-<p>Of all 4,088 coefficients for the predictors and 1 coefficient for the intercept (resulting in 4,089 total coefficients), 4,018 were null while only 71 had values. Because the design matrix is n x p where p &gt; n, this means that there are more features/measurements than there are number of samples. So, there are infininetely many solutions. These solutions are the individual coefficients we are interested in. So, since there were 71 samples, the linear model returned 71 valid coefficients however, for the remaining 4,018, these coefficients were returned as null. This is called a lack of identifiability. The design matrix table is therefore considered singular.</p>
-<p>The plot highlgihts this as we see all 71 data points along the 0 coefficient index, this is because all linearly depeendent columns were arbitrarily dropped depending on their order present in the data and set to 0 (R views these columsn as redundant).</p>
+<p>Of all 4,088 coefficients for the predictors and 1 coefficient for the intercept (resulting in 4,089 total coefficients), 4,018 were null while only 71 had values. Because the design matrix is n x p where p &gt; n, this means that there are more features/measurements than there are number of samples. So, there are infinitely many solutions. These solutions are the individual coefficients we are interested in. So, since there were 71 samples, the linear model returned 71 valid coefficients however, for the remaining 4,018, these coefficients were returned as null. This is called a lack of identifiability. The design matrix table is therefore considered singular (not invertible).</p>
+<p>The plot highlights this as we see all 71 data points along the 0 coefficient index, this is because all linearly dependent columns were arbitrarily dropped depending on their order present in the data and set to 0 (These columns are said to be redundant since they are linearly dependent on another column).</p>
 </section>
 <section id="problem-2" class="level2" data-number="8.3">
 <h2 data-number="8.3" class="anchored" data-anchor-id="problem-2"><span class="header-section-number">8.3</span> Problem 2:</h2>
@@ -649,20 +653,171 @@ window.Quarto = {
 <section id="problem-6" class="level2" data-number="8.7">
 <h2 data-number="8.7" class="anchored" data-anchor-id="problem-6"><span class="header-section-number">8.7</span> Problem 6:</h2>
 <p>Fit PCR using the <code>pls</code> package (or manual SVD as shown in the chapter). Select the number of components <span class="math inline">\(k\)</span> via cross-validation (use <code>validationplot</code>). Report the optimal <span class="math inline">\(k\)</span>.</p>
+<p>Method #1:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Selecting via cross-validation</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># import the pls package</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pls) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'pls'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:stats':
+
+    loadings</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># set random seed</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>) </span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a><span class="co"># fit the PCR model for every number of components from 1 up to the maximum allowed, and run cross validation at each one</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>pcr_fit <span class="ot">&lt;-</span> <span class="fu">pcr</span>(y <span class="sc">~</span> X, <span class="at">validation =</span> <span class="st">"CV"</span>) </span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a><span class="co"># plot the CV mean squared error of prediction against the number of components</span></span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a><span class="fu">validationplot</span>(pcr_fit, <span class="at">val.type =</span> <span class="st">"MSE"</span>,</span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>               <span class="at">main =</span> <span class="st">"PCR: CV MSE vs. number of components"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="regularization_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pulls out the CV error numbers, one for each number of components, starting from 0 components (an intercept-only model)</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>msep_cv <span class="ot">&lt;-</span> <span class="fu">MSEP</span>(pcr_fit)<span class="sc">$</span>val[<span class="st">"CV"</span>, <span class="dv">1</span>, ]</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="co"># find optimal k by identiyfing the position of the smallest error. The - 1 is needed because that first entry is 0 components, so position 1 means k = 0, position 2 means k = 1, etc.</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>k_opt <span class="ot">&lt;-</span> <span class="fu">which.min</span>(msep_cv) <span class="sc">-</span> <span class="dv">1</span> </span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="st">`</span><span class="at">Optimal number of components</span><span class="st">`</span> <span class="ot">=</span> k_opt)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Optimal number of components.17 comps 
+                                   17 </code></pre>
+</div>
+</div>
+<p>Interpretion:</p>
+<p>The dips in the validation plot shows that error falls as useful components are added, then rises or flattens as extra components just fit noise. The bottom of the dip marks the optimal k. The plot shows the optimal k is in the range between 10 and 20. The actual optimal number of principal components k is 17.</p>
+<p>Method #2:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>Xc <span class="ot">&lt;-</span> <span class="fu">scale</span>(X) <span class="co"># center the genes</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>sv <span class="ot">&lt;-</span> <span class="fu">svd</span>(Xc) <span class="co"># apply singular value decomposition to X_c</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>Vk <span class="ot">&lt;-</span> sv<span class="sc">$</span>v[, <span class="dv">1</span><span class="sc">:</span>k_opt]  <span class="co"># first k directions (4088 x k)</span></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>Z  <span class="ot">&lt;-</span> Xc <span class="sc">%*%</span> Vk <span class="co"># principal components (71 x k)</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>gamma_hat <span class="ot">&lt;-</span> <span class="fu">coef</span>(<span class="fu">lm</span>(y <span class="sc">~</span> Z))[<span class="sc">-</span><span class="dv">1</span>] <span class="co"># fit PCR and retrieve the estimated gamma coefficients (weights) for k principal components</span></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>beta_manual <span class="ot">&lt;-</span> Vk <span class="sc">%*%</span> gamma_hat <span class="co"># back-transform to 4088 weights</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 <ol type="a">
-<li><p>Back-transform the PCR fit to obtain the full 4,088-dimensional coefficient vector <span class="math inline">\(\hat{\beta}_{\text{PCR}}\)</span>.</p></li>
-<li><p>Use <span class="math inline">\(\hat{\beta}_{\text{PCR}}\)</span> to generate a prediction for the first observation in the dataset (<code>X[1, ]</code>). Show your R code and the predicted value.</p></li>
-<li><p>In one sentence, explain why you needed all 4,088 gene expression values to generate this prediction even though you only fit <span class="math inline">\(k\)</span> principal components.</p></li>
+<li>Back-transform the PCR fit to obtain the full 4,088-dimensional coefficient vector <span class="math inline">\(\hat{\beta}^{\text{PCR}}\)</span>.</li>
 </ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Under the hood, does back-transformation. The regression gave k weights (one per principal component) </span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Each component is a mix of all the genes, so multiplying through gives one weight per gene: β̂_PCR = V_k γ̂</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="co"># where V_k holds the component directions and the gamma coefficients (weights) γ̂ </span></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>beta_pcr <span class="ot">&lt;-</span> <span class="fu">drop</span>(<span class="fu">coef</span>(pcr_fit, <span class="at">ncomp =</span> k_opt))</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(beta_pcr) <span class="co"># should return 4,088</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 4088</code></pre>
+</div>
+</div>
+<ol start="2" type="a">
+<li>Use <span class="math inline">\(\hat{\beta}^{\text{PCR}}\)</span> to generate a prediction for the first observation in the dataset (<code>X[1, ]</code>). Show your R code and the predicted value.</li>
+</ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># PCR works with centered data, so the model is: prediction = ȳ + (x − x̄)ᵀβ̂</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>x_bar <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(X) <span class="co"># the average of each gene across the 71 samples</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>y_bar <span class="ot">&lt;-</span> <span class="fu">mean</span>(y) <span class="co"># the average response</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a><span class="co"># predict the first observation</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>pred1 <span class="ot">&lt;-</span> y_bar <span class="sc">+</span> <span class="fu">sum</span>((X[<span class="dv">1</span>, ] <span class="sc">-</span> x_bar) <span class="sc">*</span> beta_pcr)</span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>pred1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -6.651018</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predict the first observation using pls package</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="fu">predict</span>(pcr_fit, <span class="at">ncomp =</span> k_opt)[<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -6.651018</code></pre>
+</div>
+</div>
+<ol start="3" type="a">
+<li>In one sentence, explain why you needed all 4,088 gene expression values to generate this prediction even though you only fit <span class="math inline">\(k\)</span> principal components.</li>
+</ol>
+<p>Each principal component is a weighted combination of all 4,088 genes, so the k fitted component weights map back to a nonzero coefficient on every gene, and computing a prediction requires the full 4,088-gene vector. In back-transformation to go from <span class="math inline">\(\hat{\gamma_k}\)</span> to <span class="math inline">\(\hat{\beta}^{\text{PCR}}\)</span>, it spreads the shrinkage across all original predictors which are the coefficient vector has non-zero entries. To generate a prediction for a new observation, you must still measure all 4,088 original variables.</p>
 </section>
 <section id="problem-7" class="level2" data-number="8.8">
 <h2 data-number="8.8" class="anchored" data-anchor-id="problem-7"><span class="header-section-number">8.8</span> Problem 7:</h2>
 <p>Comparing across methods:</p>
 <ol type="a">
-<li><p>Report the CV-MSE at the selected tuning parameter for each of the four methods (ridge, lasso, elastic net, PCR).</p></li>
-<li><p>Which method achieves the lowest CV-MSE on this dataset?</p></li>
-<li><p>Based on the guidance in the chapter, would you expect ridge or lasso to work better here? Does the data agree with your expectation? Why or why not?</p></li>
+<li>Report the CV-MSE at the selected tuning parameter for each of the four methods (ridge, lasso, elastic net, PCR).</li>
 </ol>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>mse_ridge <span class="ot">&lt;-</span> <span class="fu">min</span>(cv_ridge<span class="sc">$</span>cvm)</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>mse_lasso <span class="ot">&lt;-</span> <span class="fu">min</span>(cv_lasso<span class="sc">$</span>cvm)</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>mse_en    <span class="ot">&lt;-</span> <span class="fu">min</span>(cv_en<span class="sc">$</span>cvm)</span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>mse_pcr   <span class="ot">&lt;-</span> <span class="fu">unname</span>(msep_cv[k_opt <span class="sc">+</span> <span class="dv">1</span>])</span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="fu">c</span>(<span class="st">"Ridge"</span>, <span class="st">"Lasso"</span>,</span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>             <span class="fu">paste</span>(<span class="st">"Elastic net, alpha ="</span>, en_table_best<span class="sc">$</span>alpha),</span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a>             <span class="st">"PCR"</span>),</span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">tuning =</span> <span class="fu">c</span>(<span class="fu">paste</span>(<span class="st">"lambda ="</span>, <span class="fu">round</span>(cv_ridge<span class="sc">$</span>lambda.min, <span class="dv">4</span>)),</span>
+<span id="cb52-14"><a href="#cb52-14" aria-hidden="true" tabindex="-1"></a>             <span class="fu">paste</span>(<span class="st">"lambda ="</span>, <span class="fu">round</span>(cv_lasso<span class="sc">$</span>lambda.min, <span class="dv">4</span>)),</span>
+<span id="cb52-15"><a href="#cb52-15" aria-hidden="true" tabindex="-1"></a>             <span class="fu">paste</span>(<span class="st">"lambda ="</span>, <span class="fu">round</span>(cv_en<span class="sc">$</span>lambda.min, <span class="dv">4</span>)),</span>
+<span id="cb52-16"><a href="#cb52-16" aria-hidden="true" tabindex="-1"></a>             <span class="fu">paste</span>(<span class="st">"k ="</span>, k_opt)),</span>
+<span id="cb52-17"><a href="#cb52-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">CV_MSE =</span> <span class="fu">round</span>(<span class="fu">c</span>(mse_ridge, mse_lasso, mse_en, mse_pcr), <span class="dv">4</span>)</span>
+<span id="cb52-18"><a href="#cb52-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb52-19"><a href="#cb52-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-20"><a href="#cb52-20" aria-hidden="true" tabindex="-1"></a>comparison_sorted <span class="ot">&lt;-</span> comparison[<span class="fu">order</span>(comparison<span class="sc">$</span>CV_MSE), ]</span>
+<span id="cb52-21"><a href="#cb52-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-22"><a href="#cb52-22" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(comparison_sorted, <span class="at">row.names =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb52-23"><a href="#cb52-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"bordered"</span>, <span class="st">"striped"</span>),</span>
+<span id="cb52-24"><a href="#cb52-24" aria-hidden="true" tabindex="-1"></a>                <span class="at">full_width =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb52-25"><a href="#cb52-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">row_spec</span>(<span class="dv">1</span>, <span class="at">bold =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<table class="table table-bordered table-striped caption-top table-sm small">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th">method</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">tuning</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">CV_MSE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left; font-weight: bold;">Lasso</td>
+<td style="text-align: left; font-weight: bold;">lambda = 0.0289</td>
+<td style="text-align: right; font-weight: bold;">0.2159</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Elastic net, alpha = 0.75</td>
+<td style="text-align: left;">lambda = 0.0403</td>
+<td style="text-align: right;">0.2197</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">PCR</td>
+<td style="text-align: left;">k = 17</td>
+<td style="text-align: right;">0.2277</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Ridge</td>
+<td style="text-align: left;">lambda = 5.9342</td>
+<td style="text-align: right;">0.2472</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<ol start="2" type="a">
+<li>Which method achieves the lowest CV-MSE on this dataset?</li>
+</ol>
+<p>The lasoo regression method achieved the lowest CV-MSE value of 0.2159. Lasso regression beats the elastic net with an alpha value of 0.75 by only about 0.004, which is under 2%. Ridge rergession performed the worst as it is about 0.03 higher than lasso regression. However, the relative difference between all methods is marginal.</p>
+<p><strong>Importnot caveat:</strong> these methods were not cross-validated on identical folds. Both glmnet and pls use random 10-fold splits, but they split differently, and glmnet standardizes the genes internally while the default pcr() does not. So small gaps between methods may just reflect these differences.</p>
+<ol start="3" type="a">
+<li>Based on the guidance in the chapter, would you expect ridge or lasso to work better here? Does the data agree with your expectation? Why or why not?</li>
+</ol>
+<p>Based on the guidance from the chapter, I would expect that lasso regression to form the best because it handles the case where the number of features are greater than the number of observatiosn (p &gt; n) by shrinking weaker weights to be exactly 0 while shrinking stronger weights near but not exactly 0. other methods such as ridge regression still retain all weights which are skrank near 0 but never exactly 0. So, the model must still be fit using all features. Elastic net is a combination of lasso and ridge so we expect for this method to retain more features than lasso but less that ridge. Principal comonent regression did not perofrm the best likely because it builds k components from the features (genes) alone. Each component is a direction in which the features (genes) vary the most. It never asks whether that direction helps predict riboflavin production.</p>
 
 
 </section>

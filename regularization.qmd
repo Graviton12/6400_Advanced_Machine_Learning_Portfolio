@@ -55,9 +55,9 @@ summary(lm1)$r.squared # how well does it "fit"?
 
 Interpretation: 
 
-Of all 4,088 coefficients for the predictors and 1 coefficient for the intercept (resulting in 4,089 total coefficients), 4,018 were null while only 71 had values. Because the design matrix is n x p where p > n, this means that there are more features/measurements than there are number of samples. So, there are infininetely many solutions. These solutions are the individual coefficients we are interested in. So, since there were 71 samples, the linear model returned 71 valid coefficients however, for the remaining 4,018, these coefficients were returned as null. This is called a lack of identifiability. The design matrix table is therefore considered singular.
+Of all 4,088 coefficients for the predictors and 1 coefficient for the intercept (resulting in 4,089 total coefficients), 4,018 were null while only 71 had values. Because the design matrix is n x p where p > n, this means that there are more features/measurements than there are number of samples. So, there are infinitely many solutions. These solutions are the individual coefficients we are interested in. So, since there were 71 samples, the linear model returned 71 valid coefficients however, for the remaining 4,018, these coefficients were returned as null. This is called a lack of identifiability. The design matrix table is therefore considered singular (not invertible).
 
-The plot highlgihts this as we see all 71 data points along the 0 coefficient index, this is because all linearly depeendent columns were arbitrarily dropped depending on their order present in the data and set to 0 (R views these columsn as redundant).
+The plot highlights this as we see all 71 data points along the 0 coefficient index, this is because all linearly dependent columns were arbitrarily dropped depending on their order present in the data and set to 0 (These columns are said to be redundant since they are linearly dependent on another column).
 
 ## Problem 2: 
 Fit ridge regression using `glmnet` (`alpha = 0`). Select $\lambda$ via 10-fold cross-validation. Report $\lambda_{\min}$ and $\lambda_{1se}$. Plot the CV error curve with the two vertical lines. How does CV-MSE change as $\lambda$ increases?
@@ -216,17 +216,116 @@ An alpha of 0.75 yields the lowest CV-MSE of 0.2197. At alpha values of 0.25, 0.
 ## Problem 6: 
 Fit PCR using the `pls` package (or manual SVD as shown in the chapter). Select the number of components $k$ via cross-validation (use `validationplot`). Report the optimal $k$.
 
-a. Back-transform the PCR fit to obtain the full 4,088-dimensional coefficient vector $\hat{\beta}_{\text{PCR}}$.
+Method #1:
 
-b. Use $\hat{\beta}_{\text{PCR}}$ to generate a prediction for the first observation in the dataset (`X[1, ]`). Show your R code and the predicted value.
+```{r}
+
+# Selecting via cross-validation
+
+# import the pls package
+library(pls) 
+
+# set random seed
+set.seed(42) 
+
+# fit the PCR model for every number of components from 1 up to the maximum allowed, and run cross validation at each one
+pcr_fit <- pcr(y ~ X, validation = "CV") 
+
+# plot the CV mean squared error of prediction against the number of components
+validationplot(pcr_fit, val.type = "MSE",
+               main = "PCR: CV MSE vs. number of components")
+
+# pulls out the CV error numbers, one for each number of components, starting from 0 components (an intercept-only model)
+msep_cv <- MSEP(pcr_fit)$val["CV", 1, ]
+# find optimal k by identiyfing the position of the smallest error. The - 1 is needed because that first entry is 0 components, so position 1 means k = 0, position 2 means k = 1, etc.
+k_opt <- which.min(msep_cv) - 1 
+c(`Optimal number of components` = k_opt)
+
+```
+Interpretion:
+
+The dips in the validation plot shows that error falls as useful components are added, then rises or flattens as extra components just fit noise. The bottom of the dip marks the optimal k. The plot shows the optimal k is in the range between 10 and 20. The actual optimal number of principal components k is 17.
+
+Method #2:
+
+```{r}
+Xc <- scale(X) # center the genes
+sv <- svd(Xc) # apply singular value decomposition to X_c
+Vk <- sv$v[, 1:k_opt]  # first k directions (4088 x k)
+Z  <- Xc %*% Vk # principal components (71 x k)
+gamma_hat <- coef(lm(y ~ Z))[-1] # fit PCR and retrieve the estimated gamma coefficients (weights) for k principal components
+beta_manual <- Vk %*% gamma_hat # back-transform to 4088 weights
+```
+
+a. Back-transform the PCR fit to obtain the full 4,088-dimensional coefficient vector $\hat{\beta}^{\text{PCR}}$.
+
+```{r}
+# Under the hood, does back-transformation. The regression gave k weights (one per principal component) 
+# Each component is a mix of all the genes, so multiplying through gives one weight per gene: β̂_PCR = V_k γ̂
+# where V_k holds the component directions and the gamma coefficients (weights) γ̂ 
+beta_pcr <- drop(coef(pcr_fit, ncomp = k_opt))
+length(beta_pcr) # should return 4,088
+```
+
+b. Use $\hat{\beta}^{\text{PCR}}$ to generate a prediction for the first observation in the dataset (`X[1, ]`). Show your R code and the predicted value.
+
+```{r}
+# PCR works with centered data, so the model is: prediction = ȳ + (x − x̄)ᵀβ̂
+x_bar <- colMeans(X) # the average of each gene across the 71 samples
+y_bar <- mean(y) # the average response
+
+# predict the first observation
+pred1 <- y_bar + sum((X[1, ] - x_bar) * beta_pcr)
+pred1
+
+# predict the first observation using pls package
+predict(pcr_fit, ncomp = k_opt)[1, 1, 1]
+```
 
 c. In one sentence, explain why you needed all 4,088 gene expression values to generate this prediction even though you only fit $k$ principal components.
+
+Each principal component is a weighted combination of all 4,088 genes, so the k fitted component weights map back to a nonzero coefficient on every gene, and computing a prediction requires the full 4,088-gene vector. In back-transformation to go from $\hat{\gamma_k}$ to $\hat{\beta}^{\text{PCR}}$, it spreads the shrinkage across all original predictors which are the coefficient vector has non-zero entries. To generate a prediction for a new observation, you must still measure all 4,088 original variables.
 
 ## Problem 7: 
 Comparing across methods:
 
 a. Report the CV-MSE at the selected tuning parameter for each of the four methods (ridge, lasso, elastic net, PCR).
 
+```{r}
+library(knitr)
+library(kableExtra)
+
+mse_ridge <- min(cv_ridge$cvm)
+mse_lasso <- min(cv_lasso$cvm)
+mse_en    <- min(cv_en$cvm)
+mse_pcr   <- unname(msep_cv[k_opt + 1])
+
+comparison <- data.frame(
+  method = c("Ridge", "Lasso",
+             paste("Elastic net, alpha =", en_table_best$alpha),
+             "PCR"),
+  tuning = c(paste("lambda =", round(cv_ridge$lambda.min, 4)),
+             paste("lambda =", round(cv_lasso$lambda.min, 4)),
+             paste("lambda =", round(cv_en$lambda.min, 4)),
+             paste("k =", k_opt)),
+  CV_MSE = round(c(mse_ridge, mse_lasso, mse_en, mse_pcr), 4)
+)
+
+comparison_sorted <- comparison[order(comparison$CV_MSE), ]
+
+kable(comparison_sorted, row.names = FALSE) |>
+  kable_styling(bootstrap_options = c("bordered", "striped"),
+                full_width = FALSE) |>
+  row_spec(1, bold = TRUE)
+
+```
+
 b. Which method achieves the lowest CV-MSE on this dataset?
 
+The lasoo regression method achieved the lowest CV-MSE value of 0.2159. Lasso regression beats the elastic net with an alpha value of 0.75 by only about 0.004, which is under 2%. Ridge rergession performed the worst as it is about 0.03 higher than lasso regression. However, the relative difference between all methods is marginal. 
+
+**Importnot caveat:** these methods were not cross-validated on identical folds. Both glmnet and pls use random 10-fold splits, but they split differently, and glmnet standardizes the genes internally while the default pcr() does not. So small gaps between methods may just reflect these differences.
+
 c. Based on the guidance in the chapter, would you expect ridge or lasso to work better here? Does the data agree with your expectation? Why or why not?
+
+Based on the guidance from the chapter, I would expect that lasso regression to form the best because it handles the case where the number of features are greater than the number of observatiosn (p > n) by shrinking weaker weights to be exactly 0 while shrinking stronger weights near but not exactly 0. other methods such as ridge regression still retain all weights which are skrank near 0 but never exactly 0. So, the model must still be fit using all features. Elastic net is a combination of lasso and ridge so we expect for this method to retain more features than lasso but less that ridge. Principal comonent regression did not perofrm the best likely because it builds k components from the features (genes) alone. Each component is a direction in which the features (genes) vary the most. It never asks whether that direction helps predict riboflavin production.
