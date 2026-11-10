@@ -46,5 +46,8 @@
   },
   "regularization.qmd": {
     "regularization.html": "b7d3216d"
+  },
+  "bayes_lasso.qmd": {
+    "bayes_lasso.html": "918753e1"
   }
 }

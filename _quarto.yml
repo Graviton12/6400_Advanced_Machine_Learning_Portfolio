@@ -25,6 +25,7 @@ book:
     - part: "Regularization"
       chapters:
       - regularization.qmd
+      - bayes_lasso.qmd
     - summary.qmd
     - references.qmd
     - part: "Appendix"

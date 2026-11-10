@@ -149,5 +149,60 @@
     "crumbs": [
       "DS-6400: Advanced Machine Learning I Portfolio"
     ]
+  },
+  {
+    "objectID": "bayes_lasso.html",
+    "href": "bayes_lasso.html",
+    "title": "9  Bayes Lasso Regression",
+    "section": "",
+    "text": "9.1 Coefficient Path of lasso Regression:",
+    "crumbs": [
+      "Regularization",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Bayes Lasso Regression</span>"
+    ]
+  },
+  {
+    "objectID": "bayes_lasso.html#laplace-double-exponential-prior",
+    "href": "bayes_lasso.html#laplace-double-exponential-prior",
+    "title": "9  Bayes Lasso Regression",
+    "section": "9.2 Laplace (double-exponential) Prior:",
+    "text": "9.2 Laplace (double-exponential) Prior:\nTibshirani, who invented the lasso, noticed that the lasso answer is exactly the peak of the posterior if you use a particular prior: a Laplace (double-exponential) prior on each coefficient.\nThis prior is shaped like a tent, with a sharp spike at zero and tails that go out gently. It says “I believe most coefficients are probably near zero, but a few could be large.” That is the same idea as the lasso penalty, and the absolute-value penalty \\(|\\beta|\\) is just the shape of that prior.\nThe Bayesian lasso of Park and Casella (2008) places the following prior on the regression coefficients:\n\\[\n\\pi(\\boldsymbol{\\beta} \\mid \\sigma^2)=\\prod_{j=1}^{p}\\frac{\\lambda}{2\\sqrt{\\sigma^2}}\\;e^{-\\lambda|\\beta_j|/\\sqrt{\\sigma^2}}\n\\tag{9.1}\\]\n\n9.2.1 Reading the equation\nLeft side, \\(\\pi(\\boldsymbol{\\beta} \\mid \\sigma^2)\\). This is the prior. It says how plausible each possible value of \\(\\boldsymbol{\\beta}\\) is before looking at any data, given the noise level \\(\\sigma^2\\). Taller means more plausible.\nThe product \\(\\prod\\). The coefficients for \\(p\\) predictors are treated as independent, so the prior for the whole vector is each coefficient’s prior multiplied together. That means we only need to understand one factor.\nOne factor. Writing \\(\\sigma = \\sqrt{\\sigma^2}\\), a single coefficient has prior\n\\[\n\\frac{\\lambda}{2\\sigma}\\;e^{-\\lambda|\\beta_j|/\\sigma}.\n\\]\n\n\\(e^{-\\lambda|\\beta_j|/\\sigma}\\) is the tent shape.\n\nAt \\(\\beta_j = 0\\) the exponent is 0, so \\(e^0 = 1\\) and the curve is at its highest.\nAs \\(|\\beta_j|\\) grows, the exponent becomes more negative and the curve drops.\nThe absolute value makes the curve symmetric and gives it a sharp point at 0.\n\n\\(\\frac{\\lambda}{2\\sigma}\\) is a scaling constant. It makes the total area under the curve equal 1, which any probability density requires. It is also the height of the peak.\n\\(\\lambda\\) controls the sharpness. A bigger \\(\\lambda\\) gives a taller, narrower tent, meaning you are more confident the coefficient is near 0.\n\\(\\sigma\\) controls the spread. Bigger noise \\(\\sigma\\) widens the tent. Conditioning the prior on \\(\\sigma^2\\) is the paper’s key design choice, and it guarantees that the posterior has a single peak.\n\nFigure 9.1 shows this tent for three values of \\(\\lambda\\), alongside the bell-curve prior that corresponds to ridge regression.\n\n\n9.2.2 How the prior becomes the lasso penalty\nBy Bayes’ rule, the posterior is proportional to the likelihood times the prior:\n\\[\n\\pi(\\boldsymbol{\\beta} \\mid \\tilde{\\mathbf{y}}, \\sigma^2) \\;\\propto\\;\n\\underbrace{\\exp\\!\\left\\{-\\frac{\\|\\tilde{\\mathbf{y}} - \\mathbf{X}\\boldsymbol{\\beta}\\|_2^2}{2\\sigma^2}\\right\\}}_{\\text{likelihood}}\n\\;\\times\\;\n\\underbrace{\\exp\\!\\left\\{-\\frac{\\lambda}{\\sigma}\\sum_{j=1}^p |\\beta_j|\\right\\}}_{\\text{prior}}.\n\\]\nTaking the negative log and multiplying by \\(2\\sigma^2\\) gives\n\\[\n\\|\\tilde{\\mathbf{y}} - \\mathbf{X}\\boldsymbol{\\beta}\\|_2^2 \\;+\\; 2\\sigma\\lambda \\sum_{j=1}^p |\\beta_j|.\n\\]\n\nThe likelihood contributes the sum of squared residuals.\nThe prior contributes a sum of absolute values, which is the \\(L_1\\) penalty.\n\nThe posterior peak (the mode) is the \\(\\boldsymbol{\\beta}\\) that minimizes this expression, which is exactly the lasso problem with penalty parameter \\(2\\sigma\\lambda\\). So the lasso estimate is the posterior mode under the Laplace prior. The Bayesian lasso goes further by using the entire posterior distribution, which provides credible intervals for each coefficient.\n\n\nShow code\nimport numpy as np\nimport matplotlib.pyplot as plt\nfrom math import erf, sqrt\n\nsigma = 1.0                      # noise standard deviation (set to 1 for the picture)\nlams = [0.5, 1.5, 3.0]           # small, medium, large lambda\nbeta = np.linspace(-4, 4, 1000)  # possible coefficient values\n\nblue, orange = \"#2a78d6\", \"#eb6834\"\n\nfig, axes = plt.subplots(1, 3, figsize=(12, 3.8), sharey=True)\n\nfor ax, lam in zip(axes, lams):\n    # Laplace prior, equation (3) for a single coefficient\n    laplace = lam / (2 * sigma) * np.exp(-lam * np.abs(beta) / sigma)\n\n    # Normal prior with the same variance as the Laplace (variance = 2*sigma^2/lam^2)\n    sd = np.sqrt(2) * sigma / lam\n    normal = np.exp(-beta**2 / (2 * sd**2)) / (sd * np.sqrt(2 * np.pi))\n\n    # Shade the region |beta| &lt; 0.5\n    near0 = np.abs(beta) &lt; 0.5\n    ax.fill_between(beta[near0], laplace[near0], color=blue, alpha=0.18)\n\n    ax.plot(beta, laplace, color=blue, lw=2.5, label=\"Laplace prior (lasso)\")\n    ax.plot(beta, normal, color=orange, lw=2, ls=\"--\", label=\"Normal prior (ridge)\")\n\n    # Peak marker and label\n    peak = lam / (2 * sigma)\n    ax.plot(0, peak, \"o\", color=blue, ms=7, mec=\"white\", mew=1.5)\n    ax.annotate(f\"sharp peak\\nheight = λ/(2σ) = {peak:.2f}\",\n                xy=(0, peak), xytext=(25, 0), textcoords=\"offset points\",\n                fontsize=9, va=\"center\", arrowprops=dict(arrowstyle=\"-\", color=\"gray\"))\n\n    # Tail label\n    ax.annotate(\"gentle tails\", xy=(2.5, lam / (2 * sigma) * np.exp(-lam * 2.5 / sigma)),\n                xytext=(0, 40), textcoords=\"offset points\", ha=\"center\", fontsize=9,\n                arrowprops=dict(arrowstyle=\"-\", color=\"gray\"))\n\n    # Probability that |beta| &lt; 0.5 under each prior\n    p_lap = 1 - np.exp(-lam * 0.5 / sigma)\n    p_norm = erf(0.5 / (sd * sqrt(2)))\n    ax.set_title(f\"λ = {lam}\\nP(|β| &lt; 0.5): Laplace {p_lap:.0%}, Normal {p_norm:.0%}\",\n                 fontsize=10)\n    ax.set_xlabel(\"Coefficient value (β)\")\n    ax.axvline(0, color=\"gray\", lw=0.8, ls=\":\")\n    ax.spines[[\"top\", \"right\"]].set_visible(False)\n\naxes[0].set_ylabel(\"Prior plausibility (density)\")\naxes[0].legend(loc=\"upper left\", fontsize=8, frameon=False)\naxes[0].set_ylim(0, 1.9)\n\nplt.tight_layout()\nplt.show()\n\n\n\n\n\n\n\n\nFigure 9.1: The Laplace (double-exponential) prior behind the lasso, compared with the normal prior behind ridge regression, for three values of λ. The Laplace density has a sharp peak at 0 and gentle tails.\n\n\n\n\n\n\n\n9.2.3 How to read the picture\n\nThe x-axis is a possible value for one coefficient β.\nThe y-axis is how plausible the prior says that value is, so higher means more believable before seeing data.\nThe blue tent is the Laplace prior from equation (9.1). It peaks at β = 0 and falls off symmetrically on both sides.\nThe sharp point at 0 is the |β| in the exponent. This corner is what lets the posterior peak land exactly on zero, which gives the lasso its exact zeros.\nThe gentle tails mean a coefficient can still be large if the data push hard enough. The tent doesn’t forbid big values, it just considers them less likely.\nThe orange dashed curve is the normal (bell curve) prior that corresponds to ridge regression, drawn with the same overall spread. It is smooth and rounded at 0, so it has no corner to produce exact zeros. It also puts less weight on the far tails.\nThe shaded region and the two boxes show the “most coefficients are near zero” idea in numbers. The tent puts more of its probability within ±0.5 of zero than the bell curve does.\n\n\n\n9.2.4 The Big Picture\nIncreasing \\(\\lambda\\) makes the tent taller and narrower, so you’re more strongly betting that coefficients are near zero. In lasso terms, that is a bigger penalty and more coefficients dropped. Decreasing \\(\\lambda\\) flattens the tent, which is a weaker penalty, and the lasso moves toward ordinary regression.",
+    "crumbs": [
+      "Regularization",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Bayes Lasso Regression</span>"
+    ]
+  },
+  {
+    "objectID": "bayes_lasso.html#coefficient-path-of-lasso-regression",
+    "href": "bayes_lasso.html#coefficient-path-of-lasso-regression",
+    "title": "9  Bayes Lasso Regression",
+    "section": "",
+    "text": "Lasso coefficient path for riboflavin",
+    "crumbs": [
+      "Regularization",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Bayes Lasso Regression</span>"
+    ]
+  },
+  {
+    "objectID": "bayes_lasso.html#choosing-λ",
+    "href": "bayes_lasso.html#choosing-λ",
+    "title": "9  Bayes Lasso Regression",
+    "section": "9.3 Choosing λ:",
+    "text": "9.3 Choosing λ:\nThe lasso usually picks \\(\\lambda\\) by cross-validation. The Bayesian version offers two alternatives:\n\nEmpirical Bayes (marginal maximum likelihood): choose the \\(\\lambda\\) that makes the observed data most probable. It’s computed by repeatedly running the sampler and updating \\(\\lambda\\).\nHyperprior: treat \\(\\lambda\\) as another unknown, give it its own prior, and let the sampler estimate it along with everything else.",
+    "crumbs": [
+      "Regularization",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Bayes Lasso Regression</span>"
+    ]
+  },
+  {
+    "objectID": "bayes_lasso.html#comparing-lasso-vs.-bayesian-lasso",
+    "href": "bayes_lasso.html#comparing-lasso-vs.-bayesian-lasso",
+    "title": "9  Bayes Lasso Regression",
+    "section": "9.4 Comparing Lasso vs. Bayesian Lasso:",
+    "text": "9.4 Comparing Lasso vs. Bayesian Lasso:\n\n\n\nTable 9.1: Comparison of the lasso and the Bayesian lasso.\n\n\n\n\n\n\n\n\n\n\n\nLasso\nBayesian lasso\n\n\n\n\nOutput\nOne set of coefficients\nA distribution for each coefficient\n\n\nUncertainty\nHard to get reliably\nCredible intervals built in\n\n\nExact zeros\nYes\nNo (use intervals instead)\n\n\nComputation\nFast\nSlower (simulation)\n\n\nChoosing \\(\\lambda\\)\nCross-validation\nEmpirical Bayes or a hyperprior\n\n\n\n\n\n\n\n\n\n\nPark, Trevor, and George Casella. 2008. “The Bayesian Lasso.” Journal of the American Statistical Association 103 (482): 681–86. https://doi.org/10.1198/016214508000000337.",
+    "crumbs": [
+      "Regularization",
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Bayes Lasso Regression</span>"
+    ]
   }
 ]
