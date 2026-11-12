@@ -349,12 +349,25 @@ window.Quarto = {
   <li><a href="#laplace-double-exponential-prior" id="toc-laplace-double-exponential-prior" class="nav-link" data-scroll-target="#laplace-double-exponential-prior"><span class="header-section-number">9.2</span> Laplace (double-exponential) Prior:</a>
   <ul class="collapse">
   <li><a href="#reading-the-equation" id="toc-reading-the-equation" class="nav-link" data-scroll-target="#reading-the-equation"><span class="header-section-number">9.2.1</span> Reading the equation</a></li>
-  <li><a href="#how-the-prior-becomes-the-lasso-penalty" id="toc-how-the-prior-becomes-the-lasso-penalty" class="nav-link" data-scroll-target="#how-the-prior-becomes-the-lasso-penalty"><span class="header-section-number">9.2.2</span> How the prior becomes the lasso penalty</a></li>
-  <li><a href="#how-to-read-the-picture" id="toc-how-to-read-the-picture" class="nav-link" data-scroll-target="#how-to-read-the-picture"><span class="header-section-number">9.2.3</span> How to read the picture</a></li>
-  <li><a href="#the-big-picture" id="toc-the-big-picture" class="nav-link" data-scroll-target="#the-big-picture"><span class="header-section-number">9.2.4</span> The Big Picture</a></li>
+  <li><a href="#properties-of-the-laplace-double-exponential-distribution" id="toc-properties-of-the-laplace-double-exponential-distribution" class="nav-link" data-scroll-target="#properties-of-the-laplace-double-exponential-distribution"><span class="header-section-number">9.2.2</span> Properties of the Laplace (double-exponential) distribution</a></li>
+  <li><a href="#how-the-prior-becomes-the-lasso-penalty" id="toc-how-the-prior-becomes-the-lasso-penalty" class="nav-link" data-scroll-target="#how-the-prior-becomes-the-lasso-penalty"><span class="header-section-number">9.2.3</span> How the prior becomes the lasso penalty</a></li>
+  <li><a href="#how-to-read-the-picture" id="toc-how-to-read-the-picture" class="nav-link" data-scroll-target="#how-to-read-the-picture"><span class="header-section-number">9.2.4</span> How to read the picture</a></li>
+  <li><a href="#the-big-picture" id="toc-the-big-picture" class="nav-link" data-scroll-target="#the-big-picture"><span class="header-section-number">9.2.5</span> The Big Picture</a></li>
   </ul></li>
   <li><a href="#choosing-λ" id="toc-choosing-λ" class="nav-link" data-scroll-target="#choosing-λ"><span class="header-section-number">9.3</span> Choosing λ:</a></li>
   <li><a href="#comparing-lasso-vs.-bayesian-lasso" id="toc-comparing-lasso-vs.-bayesian-lasso" class="nav-link" data-scroll-target="#comparing-lasso-vs.-bayesian-lasso"><span class="header-section-number">9.4</span> Comparing Lasso vs.&nbsp;Bayesian Lasso:</a></li>
+  <li><a href="#the-bayesian-lasso-in-python-with-pymc" id="toc-the-bayesian-lasso-in-python-with-pymc" class="nav-link" data-scroll-target="#the-bayesian-lasso-in-python-with-pymc"><span class="header-section-number">9.5</span> The Bayesian lasso in Python with PyMC:</a>
+  <ul class="collapse">
+  <li><a href="#step-1-set-up-the-tools" id="toc-step-1-set-up-the-tools" class="nav-link" data-scroll-target="#step-1-set-up-the-tools"><span class="header-section-number">9.5.1</span> Step 1: Set up the tools</a></li>
+  <li><a href="#step-2-move-the-data-from-r-to-python" id="toc-step-2-move-the-data-from-r-to-python" class="nav-link" data-scroll-target="#step-2-move-the-data-from-r-to-python"><span class="header-section-number">9.5.2</span> Step 2: Move the data from R to Python</a></li>
+  <li><a href="#step-3-look-at-the-data" id="toc-step-3-look-at-the-data" class="nav-link" data-scroll-target="#step-3-look-at-the-data"><span class="header-section-number">9.5.3</span> Step 3: Look at the data</a></li>
+  <li><a href="#step-4-prepare-the-data" id="toc-step-4-prepare-the-data" class="nav-link" data-scroll-target="#step-4-prepare-the-data"><span class="header-section-number">9.5.4</span> Step 4: Prepare the data</a></li>
+  <li><a href="#step-5-build-the-model" id="toc-step-5-build-the-model" class="nav-link" data-scroll-target="#step-5-build-the-model"><span class="header-section-number">9.5.5</span> Step 5: Build the model</a></li>
+  <li><a href="#step-6-sample-from-the-posterior" id="toc-step-6-sample-from-the-posterior" class="nav-link" data-scroll-target="#step-6-sample-from-the-posterior"><span class="header-section-number">9.5.6</span> Step 6: Sample from the posterior</a></li>
+  <li><a href="#step-7-check-that-the-sampling-worked" id="toc-step-7-check-that-the-sampling-worked" class="nav-link" data-scroll-target="#step-7-check-that-the-sampling-worked"><span class="header-section-number">9.5.7</span> Step 7: Check that the sampling worked</a></li>
+  <li><a href="#step-8-read-the-results" id="toc-step-8-read-the-results" class="nav-link" data-scroll-target="#step-8-read-the-results"><span class="header-section-number">9.5.8</span> Step 8: Read the results</a></li>
+  <li><a href="#step-9-compare-with-the-ordinary-lasso" id="toc-step-9-compare-with-the-ordinary-lasso" class="nav-link" data-scroll-target="#step-9-compare-with-the-ordinary-lasso"><span class="header-section-number">9.5.9</span> Step 9: Compare with the ordinary lasso</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -418,8 +431,16 @@ window.Quarto = {
 </ul>
 <p><a href="#fig-laplace-prior" class="quarto-xref">Figure&nbsp;<span>9.1</span></a> shows this tent for three values of <span class="math inline">\(\lambda\)</span>, alongside the bell-curve prior that corresponds to ridge regression.</p>
 </section>
-<section id="how-the-prior-becomes-the-lasso-penalty" class="level3" data-number="9.2.2">
-<h3 data-number="9.2.2" class="anchored" data-anchor-id="how-the-prior-becomes-the-lasso-penalty"><span class="header-section-number">9.2.2</span> How the prior becomes the lasso penalty</h3>
+<section id="properties-of-the-laplace-double-exponential-distribution" class="level3" data-number="9.2.2">
+<h3 data-number="9.2.2" class="anchored" data-anchor-id="properties-of-the-laplace-double-exponential-distribution"><span class="header-section-number">9.2.2</span> Properties of the Laplace (double-exponential) distribution</h3>
+<ol type="1">
+<li>continuous probability distribution</li>
+<li>sharp peak at its center</li>
+<li>heavier tails than the normal (Gaussian) distribution</li>
+</ol>
+</section>
+<section id="how-the-prior-becomes-the-lasso-penalty" class="level3" data-number="9.2.3">
+<h3 data-number="9.2.3" class="anchored" data-anchor-id="how-the-prior-becomes-the-lasso-penalty"><span class="header-section-number">9.2.3</span> How the prior becomes the lasso penalty</h3>
 <p>By Bayes’ rule, the posterior is proportional to the likelihood times the prior:</p>
 <p><span class="math display">\[
 \pi(\boldsymbol{\beta} \mid \tilde{\mathbf{y}}, \sigma^2) \;\propto\;
@@ -508,8 +529,8 @@ Figure&nbsp;9.1: The Laplace (double-exponential) prior behind the lasso, compar
 </div>
 </div>
 </section>
-<section id="how-to-read-the-picture" class="level3" data-number="9.2.3">
-<h3 data-number="9.2.3" class="anchored" data-anchor-id="how-to-read-the-picture"><span class="header-section-number">9.2.3</span> How to read the picture</h3>
+<section id="how-to-read-the-picture" class="level3" data-number="9.2.4">
+<h3 data-number="9.2.4" class="anchored" data-anchor-id="how-to-read-the-picture"><span class="header-section-number">9.2.4</span> How to read the picture</h3>
 <ul>
 <li><strong>The x-axis</strong> is a possible value for one coefficient β.</li>
 <li><strong>The y-axis</strong> is how plausible the prior says that value is, so higher means more believable before seeing data.</li>
@@ -520,8 +541,8 @@ Figure&nbsp;9.1: The Laplace (double-exponential) prior behind the lasso, compar
 <li><strong>The shaded region</strong> and the two boxes show the “most coefficients are near zero” idea in numbers. The tent puts more of its probability within ±0.5 of zero than the bell curve does.</li>
 </ul>
 </section>
-<section id="the-big-picture" class="level3" data-number="9.2.4">
-<h3 data-number="9.2.4" class="anchored" data-anchor-id="the-big-picture"><span class="header-section-number">9.2.4</span> The Big Picture</h3>
+<section id="the-big-picture" class="level3" data-number="9.2.5">
+<h3 data-number="9.2.5" class="anchored" data-anchor-id="the-big-picture"><span class="header-section-number">9.2.5</span> The Big Picture</h3>
 <p>Increasing <span class="math inline">\(\lambda\)</span> makes the tent taller and narrower, so you’re more strongly betting that coefficients are near zero. In lasso terms, that is a bigger penalty and more coefficients dropped. Decreasing <span class="math inline">\(\lambda\)</span> flattens the tent, which is a weaker penalty, and the lasso moves toward ordinary regression.</p>
 </section>
 </section>
@@ -585,6 +606,469 @@ Table&nbsp;9.1: Comparison of the lasso and the Bayesian lasso.
 </div>
 </figure>
 </div>
+</section>
+<section id="the-bayesian-lasso-in-python-with-pymc" class="level2" data-number="9.5">
+<h2 data-number="9.5" class="anchored" data-anchor-id="the-bayesian-lasso-in-python-with-pymc"><span class="header-section-number">9.5</span> The Bayesian lasso in Python with PyMC:</h2>
+<p>So far we have seen <em>what</em> the Bayesian lasso is. In this section we run it on real data.</p>
+<p><strong>The data.</strong> The riboflavin dataset has <span class="math inline">\(n = 71\)</span> samples of the bacterium <em>Bacillus subtilis</em>. For each sample we have</p>
+<ul>
+<li>the response <span class="math inline">\(y\)</span>: the log of the riboflavin (vitamin B2) production rate, and</li>
+<li><span class="math inline">\(p = 4{,}088\)</span> predictors: the log expression level of each gene.</li>
+</ul>
+<p><strong>The question.</strong> Which genes are related to riboflavin production, and how sure are we about each one?</p>
+<p><strong>The challenge.</strong> We have far more predictors than samples (<span class="math inline">\(p \gg n\)</span>). Ordinary regression cannot be fit here, so we need a method that shrinks coefficients, which is exactly what the lasso does. However, it shrinks groups of coefficients exactly to zero arbitrarily. How sure are we that these coefficients should be set exactly to zero? In other words, how sure are we that these predictors should be dropped from the model? We use the Bayesian Lasso which adds the ability to say how uncertain each coefficient is of having a certain value.</p>
+<section id="step-1-set-up-the-tools" class="level3" data-number="9.5.1">
+<h3 data-number="9.5.1" class="anchored" data-anchor-id="step-1-set-up-the-tools"><span class="header-section-number">9.5.1</span> Step 1: Set up the tools</h3>
+<p>PyMC is a Python library for Bayesian modeling. You describe the model (priors and likelihood), and PyMC draws samples from the posterior for you. ArviZ is its companion library for diagnostics.</p>
+<div id="pymc-setup" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># imports</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np <span class="co"># import numpy</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd <span class="co"># import pandas</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt <span class="co"># import matplotlib</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pymc <span class="im">as</span> pm <span class="co"># import pymc</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> arviz <span class="im">as</span> az <span class="co"># import arviz</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LassoCV <span class="co"># import lasso from scikit-learn</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">42</span>)  <span class="co"># fixed seed of 42 so results are reproducible</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>g++ not available, if using conda: `conda install gxx`</code></pre>
+</div>
+</div>
+</section>
+<section id="step-2-move-the-data-from-r-to-python" class="level3" data-number="9.5.2">
+<h3 data-number="9.5.2" class="anchored" data-anchor-id="step-2-move-the-data-from-r-to-python"><span class="header-section-number">9.5.2</span> Step 2: Move the data from R to Python</h3>
+<p>The data came as an <code>.rds</code> file, which is R’s own file format. The file holds a data frame with the response <code>y</code> and a <span class="math inline">\(71 \times 4088\)</span> matrix <code>x</code> of gene expression values. We convert it to a plain CSV file that Python can read. This only needs to be run once, in R.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>rib <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"riboflavin.rds"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># x is stored as a special "AsIs" matrix; unclass() turns it into a plain matrix</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">unclass</span>(rib<span class="sc">$</span>x)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Put y in the first column, then all 4,088 gene columns</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(<span class="fu">cbind</span>(<span class="at">y =</span> rib<span class="sc">$</span>y, X), <span class="st">"riboflavin.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="step-3-look-at-the-data" class="level3" data-number="9.5.3">
+<h3 data-number="9.5.3" class="anchored" data-anchor-id="step-3-look-at-the-data"><span class="header-section-number">9.5.3</span> Step 3: Look at the data</h3>
+<div id="load-data" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(<span class="st">"riboflavin.csv"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>y_all <span class="op">=</span> df[<span class="st">"y"</span>].to_numpy() <span class="co"># response: log riboflavin production</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>X_df <span class="op">=</span> df.drop(columns<span class="op">=</span><span class="st">"y"</span>) <span class="co"># predictors: one column per gene</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>gene_names <span class="op">=</span> X_df.columns.to_numpy()</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>X_all <span class="op">=</span> X_df.to_numpy()</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>n, p <span class="op">=</span> X_all.shape</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Samples (n): </span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Genes (p):   </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Samples (n): 71
+Genes (p):   4088</code></pre>
+</div>
+</div>
+<p>Notice that <span class="math inline">\(p = 4088\)</span> is about 58 times larger than <span class="math inline">\(n = 71\)</span>. With more predictors than observations, there are infinitely many coefficient vectors that fit the data perfectly, so ordinary least squares has no unique answer. The prior is what makes the problem solvable: it says “most coefficients are probably near zero.”</p>
+</section>
+<section id="step-4-prepare-the-data" class="level3" data-number="9.5.4">
+<h3 data-number="9.5.4" class="anchored" data-anchor-id="step-4-prepare-the-data"><span class="header-section-number">9.5.4</span> Step 4: Prepare the data</h3>
+<p>We do three things before modeling.</p>
+<p><strong>4a. Split into training and test sets.</strong> We fit the model on the training samples and keep some samples hidden. Later we use the hidden samples to check whether the model predicts well on data it has never seen.</p>
+<p><strong>4b. Screen to the most promising genes.</strong> Sampling 4,088 coefficients with MCMC is possible but slow. To keep this demonstration fast, we keep the 100 genes most correlated with <span class="math inline">\(y\)</span> in the training data. We use only the training data for this step. If we looked at the test samples, information would leak and the test results would look better than they should.</p>
+<p><strong>4c. Standardize.</strong> We rescale every gene to mean 0 and standard deviation 1, and center and scale <span class="math inline">\(y\)</span>. This matters because the lasso penalty treats all coefficients equally, so predictors measured on larger scales would otherwise be penalized unfairly. Centering also lets us leave the intercept out of the model, since centered data have an intercept of zero (the paper makes the same simplification). Test data are scaled using the <em>training</em> means and standard deviations.</p>
+<div id="prepare-data" class="cell" data-execution_count="4">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.feature_selection <span class="im">import</span> SelectKBest, f_regression</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 4a. 80/20 split (20% of 71 samples rounds up to 15 test samples)</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># X_train_raw: the gene values for the training samples (56 × 4088)</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"># X_test_raw: the gene values for the test samples (15 × 4088)</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"># y_train_raw: the response for the training samples (56 values)</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># y_test_raw: the response for the test samples (15 values)</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>X_train_raw, X_test_raw, y_train_raw, y_test_raw <span class="op">=</span> train_test_split(</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    X_all, y_all, test_size<span class="op">=</span><span class="fl">0.2</span>, random_state<span class="op">=</span><span class="dv">42</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co"># 4b. Keep the 100 genes most related to y - fit on TRAINING data only</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="co"># create a selector that scores every gene by how strongly it is related to y and keeps the best k = 100</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="co"># f_regression is the scoring method where for each gene on its own, it asks “how strongly does this gene predict y?” </span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="co"># a higher score means a stronger relationship, regardless of direction</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>selector <span class="op">=</span> SelectKBest(f_regression, k<span class="op">=</span><span class="dv">100</span>).fit(X_train_raw, y_train_raw)</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>keep_idx <span class="op">=</span> selector.get_support(indices<span class="op">=</span><span class="va">True</span>)   <span class="co"># positions of the 100 kept genes</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>kept_genes <span class="op">=</span> gene_names[keep_idx]</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="co"># 4c. Standardize genes - means and sds come from TRAINING data only</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>x_scaler <span class="op">=</span> StandardScaler().fit(X_train_raw[:, keep_idx])</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>Z_train <span class="op">=</span> x_scaler.transform(X_train_raw[:, keep_idx])</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>Z_test <span class="op">=</span> x_scaler.transform(X_test_raw[:, keep_idx])</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardize y the same way (we keep y_mean and y_sd to convert predictions back later)</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>y_mean, y_sd <span class="op">=</span> y_train_raw.mean(), y_train_raw.std(ddof<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>y_train <span class="op">=</span> (y_train_raw <span class="op">-</span> y_mean) <span class="op">/</span> y_sd</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>y_test <span class="op">=</span> (y_test_raw <span class="op">-</span> y_mean) <span class="op">/</span> y_sd</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>n_train, p_kept <span class="op">=</span> Z_train.shape</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>n_test <span class="op">=</span> <span class="bu">len</span>(y_test)</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Training samples: </span><span class="sc">{</span>n_train<span class="sc">}</span><span class="ss">, test samples: </span><span class="sc">{</span>n_test<span class="sc">}</span><span class="ss">, genes kept: </span><span class="sc">{</span>p_kept<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Training samples: 56, test samples: 15, genes kept: 100</code></pre>
+</div>
+</div>
+</section>
+<section id="step-5-build-the-model" class="level3" data-number="9.5.5">
+<h3 data-number="9.5.5" class="anchored" data-anchor-id="step-5-build-the-model"><span class="header-section-number">9.5.5</span> Step 5: Build the model</h3>
+<p>A Bayesian model has two parts: a <strong>likelihood</strong> (how the data arise given the parameters) and <strong>priors</strong> (what we believe about the parameters beforehand). The model mirrors the paper:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Piece</th>
+<th style="text-align: left;">Math</th>
+<th style="text-align: left;">PyMC code</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Likelihood</td>
+<td style="text-align: left;"><span class="math inline">\(y_i \sim N\left(\mathbf{x}_i^\top \boldsymbol{\beta},\ \sigma^2\right)\)</span></td>
+<td style="text-align: left;"><code>pm.Normal("y_obs", mu=..., sigma=sigma, observed=y_train)</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Prior on each coefficient</td>
+<td style="text-align: left;"><span class="math inline">\(\beta_j \mid \sigma^2 \sim \text{Laplace}\left(0,\ \sigma/\lambda\right)\)</span>, which is equation (3)</td>
+<td style="text-align: left;"><code>pm.Laplace("beta", mu=0, b=sigma / lam)</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Prior on the noise</td>
+<td style="text-align: left;"><span class="math inline">\(\sigma \sim \text{Half-Cauchy}(1)\)</span></td>
+<td style="text-align: left;"><code>pm.HalfCauchy("sigma", beta=1)</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Prior on the penalty</td>
+<td style="text-align: left;"><span class="math inline">\(\lambda^2 \sim \text{Gamma}(r, \delta)\)</span>, as in Section 3.2 of the paper</td>
+<td style="text-align: left;"><code>pm.Gamma("lam_sq", alpha=r, beta=delta)</code></td>
+</tr>
+</tbody>
+</table>
+<p>A few notes on these choices:</p>
+<ul>
+<li><strong>The Laplace scale.</strong> The Laplace density <span class="math inline">\(\frac{1}{2b}e^{-|\beta|/b}\)</span> matches equation (3) when <span class="math inline">\(b = \sigma/\lambda\)</span>. Because <span class="math inline">\(b\)</span> depends on <span class="math inline">\(\sigma\)</span>, the prior is <em>conditional</em> on the noise level, which is the paper’s key design choice for getting a single-peaked posterior.</li>
+<li><strong>Letting the data choose <span class="math inline">\(\lambda\)</span>.</strong> Instead of fixing <span class="math inline">\(\lambda\)</span> or tuning it by cross-validation, we give it a prior (a “hyperprior”) and let the sampler estimate it along with everything else. The paper puts the Gamma prior on <span class="math inline">\(\lambda^2\)</span>. We use <span class="math inline">\(r = 1\)</span>, which makes it an exponential prior, and a small <span class="math inline">\(\delta = 0.01\)</span>, which makes it very diffuse (prior mean for <span class="math inline">\(\lambda^2\)</span> is <span class="math inline">\(r/\delta = 100\)</span>). A diffuse prior means the data, not our guess, drive the result.</li>
+</ul>
+<div id="pymc-model" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Hyperprior settings for lambda^2 ~ Gamma(r, delta)  (rate parameterization)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>r, delta <span class="op">=</span> <span class="fl">1.0</span>, <span class="fl">0.01</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>{<span class="st">"gene"</span>: kept_genes}) <span class="im">as</span> bayes_lasso:</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Penalty strength. We place the prior on lambda^2 as in the paper.</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    lam_sq <span class="op">=</span> pm.Gamma(<span class="st">"lam_sq"</span>, alpha<span class="op">=</span>r, beta<span class="op">=</span>delta)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    lam <span class="op">=</span> pm.Deterministic(<span class="st">"lam"</span>, pm.math.sqrt(lam_sq))</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Noise standard deviation (the data are standardized, so ~1 is the right scale)</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    sigma <span class="op">=</span> pm.HalfCauchy(<span class="st">"sigma"</span>, beta<span class="op">=</span><span class="fl">1.0</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># One coefficient per gene, each with a Laplace (tent-shaped) prior.</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Scale b = sigma / lambda, matching equation (3).</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    beta <span class="op">=</span> pm.Laplace(<span class="st">"beta"</span>, mu<span class="op">=</span><span class="fl">0.0</span>, b<span class="op">=</span>sigma <span class="op">/</span> lam, dims<span class="op">=</span><span class="st">"gene"</span>)</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Predicted mean for each training sample: X times beta</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    mu <span class="op">=</span> pm.math.dot(Z_train, beta)</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Likelihood: observed y is the prediction plus normal noise</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>    pm.Normal(<span class="st">"y_obs"</span>, mu<span class="op">=</span>mu, sigma<span class="op">=</span>sigma, observed<span class="op">=</span>y_train)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="step-6-sample-from-the-posterior" class="level3" data-number="9.5.6">
+<h3 data-number="9.5.6" class="anchored" data-anchor-id="step-6-sample-from-the-posterior"><span class="header-section-number">9.5.6</span> Step 6: Sample from the posterior</h3>
+<p>The posterior distribution has no neat formula, so we <strong>simulate</strong> it. MCMC (Markov chain Monte Carlo) is a method that wanders through the space of possible parameter values, spending more time where the posterior is high. After enough steps, the list of visited values behaves like a random sample from the posterior.</p>
+<ul>
+<li>A <strong>chain</strong> is one such wandering path. We run 4 chains from different starting points so we can check that they agree.</li>
+<li><strong>Tuning</strong> steps (<code>tune</code>) let the algorithm adapt its step size. They are thrown away. This is the “burn-in” in the paper.</li>
+<li><strong>Draws</strong> (<code>draws</code>) are the samples we keep.</li>
+</ul>
+<p>This takes a few minutes on a laptop.</p>
+<div id="sample" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> bayes_lasso:</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    idata <span class="op">=</span> pm.sample(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>        draws<span class="op">=</span><span class="dv">1000</span>,          <span class="co"># samples kept per chain</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        tune<span class="op">=</span><span class="dv">1000</span>,           <span class="co"># warm-up steps per chain (discarded)</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        chains<span class="op">=</span><span class="dv">4</span>,            <span class="co"># independent chains</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        target_accept<span class="op">=</span><span class="fl">0.95</span>,  <span class="co"># smaller steps: slower but safer for this tricky geometry</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>        random_seed<span class="op">=</span><span class="dv">42</span>,</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>        progressbar<span class="op">=</span><span class="va">False</span>,   <span class="co"># keeps the rendered book tidy</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Initializing NUTS using jitter+adapt_diag...
+Multiprocess sampling (4 chains in 4 jobs)
+NUTS: [lam_sq, sigma, beta]
+Sampling 4 chains for 1_000 tune and 1_000 draw iterations (4_000 + 4_000 draws total) took 26 seconds.</code></pre>
+</div>
+</div>
+</section>
+<section id="step-7-check-that-the-sampling-worked" class="level3" data-number="9.5.7">
+<h3 data-number="9.5.7" class="anchored" data-anchor-id="step-7-check-that-the-sampling-worked"><span class="header-section-number">9.5.7</span> Step 7: Check that the sampling worked</h3>
+<p>Before trusting any result, we check that the chains converged. Three things to look for:</p>
+<ul>
+<li><strong>R-hat</strong> compares the chains to each other. Values at or below about 1.01 mean they agree.</li>
+<li><strong>Effective sample size (ESS)</strong> counts how many <em>independent</em> samples the draws are worth, since neighboring MCMC draws are correlated. Hundreds or more is comfortable.</li>
+<li><strong>Divergences</strong> are warnings from the sampler that it struggled in some region. Ideally there are none.</li>
+</ul>
+<div id="diagnostics" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Summary for the two global parameters</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(az.summary(idata, var_names<span class="op">=</span>[<span class="st">"lam"</span>, <span class="st">"sigma"</span>], round_to<span class="op">=</span><span class="dv">3</span>))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Worst-case diagnostics across all the coefficients</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>beta_summary <span class="op">=</span> az.summary(idata, var_names<span class="op">=</span>[<span class="st">"beta"</span>])</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Largest R-hat among coefficients:"</span>, <span class="bu">round</span>(beta_summary[<span class="st">"r_hat"</span>].<span class="bu">max</span>(), <span class="dv">3</span>))</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Smallest bulk ESS among coefficients:"</span>, <span class="bu">int</span>(beta_summary[<span class="st">"ess_bulk"</span>].<span class="bu">min</span>()))</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>n_div <span class="op">=</span> <span class="bu">int</span>(idata.sample_stats[<span class="st">"diverging"</span>].<span class="bu">sum</span>())</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Divergent transitions:"</span>, n_div)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        mean     sd  eti89_lb  eti89_ub  ess_bulk  ess_tail  r_hat  mcse_mean  \
+lam    9.403  2.461     5.823    13.695   564.743   910.085  1.005      0.099   
+sigma  0.400  0.053     0.321     0.489  1694.297  1962.566  1.001      0.001   
+
+       mcse_sd  
+lam      0.046  
+sigma    0.001  
+
+Largest R-hat among coefficients: 1.006
+Smallest bulk ESS among coefficients: 2355
+Divergent transitions: 0</code></pre>
+</div>
+</div>
+<div id="cell-fig-trace" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>az.plot_trace(idata, var_names<span class="op">=</span>[<span class="st">"lam"</span>, <span class="st">"sigma"</span>])</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="fig-trace" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-trace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="bayes_lasso_files/figure-html/fig-trace-output-1.png" width="1335" height="248" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-trace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.2: Trace plots for λ and σ. Left: the posterior distribution from each chain (the four curves should overlap). Right: the values visited at each step (should look like fuzzy, patternless noise).
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>In <a href="#fig-trace" class="quarto-xref">Figure&nbsp;<span>9.2</span></a>, healthy sampling looks like four overlapping curves on the left and a fuzzy band with no trends on the right. If you see large R-hat values, many divergences, or chains that disagree, increase <code>tune</code>, increase <code>target_accept</code> (up to 0.99), or run longer.</p>
+</section>
+<section id="step-8-read-the-results" class="level3" data-number="9.5.8">
+<h3 data-number="9.5.8" class="anchored" data-anchor-id="step-8-read-the-results"><span class="header-section-number">9.5.8</span> Step 8: Read the results</h3>
+<p>First, pull the samples out of the result object into plain arrays. Each row of <code>beta_draws</code> is one posterior draw of all the coefficients.</p>
+<div id="extract-draws" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>post <span class="op">=</span> idata.posterior</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># beta_draws has shape (number of draws, number of genes)</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>beta_draws <span class="op">=</span> (post[<span class="st">"beta"</span>]</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>              .stack(sample<span class="op">=</span>(<span class="st">"chain"</span>, <span class="st">"draw"</span>))</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>              .transpose(<span class="st">"sample"</span>, <span class="st">"gene"</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>              .values)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>lam_draws <span class="op">=</span> post[<span class="st">"lam"</span>].values.flatten()</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>sigma_draws <span class="op">=</span> post[<span class="st">"sigma"</span>].values.flatten()</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"beta_draws shape:"</span>, beta_draws.shape)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>beta_draws shape: (4000, 100)</code></pre>
+</div>
+</div>
+<section id="a.-what-did-the-data-say-about-lambda" class="level4" data-number="9.5.8.1">
+<h4 data-number="9.5.8.1" class="anchored" data-anchor-id="a.-what-did-the-data-say-about-lambda"><span class="header-section-number">9.5.8.1</span> 8a. What did the data say about <span class="math inline">\(\lambda\)</span>?</h4>
+<div id="cell-fig-lambda-posterior" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>lam_lo, lam_med, lam_hi <span class="op">=</span> np.quantile(lam_draws, [<span class="fl">0.025</span>, <span class="fl">0.5</span>, <span class="fl">0.975</span>])</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="fl">3.5</span>))</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>ax.hist(lam_draws, bins<span class="op">=</span><span class="dv">40</span>, color<span class="op">=</span><span class="st">"#2a78d6"</span>, alpha<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>ax.axvline(lam_med, color<span class="op">=</span><span class="st">"black"</span>, lw<span class="op">=</span><span class="fl">1.5</span>, label<span class="op">=</span><span class="ss">f"median = </span><span class="sc">{</span>lam_med<span class="sc">:.1f}</span><span class="ss">"</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"λ"</span>)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Number of posterior draws"</span>)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>ax.legend(frameon<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>ax.spines[[<span class="st">"top"</span>, <span class="st">"right"</span>]].set_visible(<span class="va">False</span>)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"λ: median </span><span class="sc">{</span>lam_med<span class="sc">:.2f}</span><span class="ss">, 95% credible interval (</span><span class="sc">{</span>lam_lo<span class="sc">:.2f}</span><span class="ss">, </span><span class="sc">{</span>lam_hi<span class="sc">:.2f}</span><span class="ss">)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="fig-lambda-posterior" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-lambda-posterior-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="bayes_lasso_files/figure-html/fig-lambda-posterior-output-1.png" width="519" height="320" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lambda-posterior-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.3: Posterior distribution of the penalty parameter λ. The prior was very diffuse, so this shape comes from the data.
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>λ: median 9.19, 95% credible interval (5.23, 14.87)</code></pre>
+</div>
+</div>
+<p>A single number from ordinary lasso (chosen by cross-validation) is replaced here by a whole distribution for <span class="math inline">\(\lambda\)</span>. Remember that a larger <span class="math inline">\(\lambda\)</span> means a sharper tent, so a stronger pull toward zero.</p>
+</section>
+<section id="b.-coefficients-with-credible-intervals" class="level4" data-number="9.5.8.2">
+<h4 data-number="9.5.8.2" class="anchored" data-anchor-id="b.-coefficients-with-credible-intervals"><span class="header-section-number">9.5.8.2</span> 8b. Coefficients with credible intervals</h4>
+<p>For each gene we compute the posterior <strong>median</strong> (our best guess) and a <strong>95% credible interval</strong> (the range that contains the coefficient with 95% probability, given the model and data). The paper’s rule for variable selection is: a gene looks important if its interval <strong>excludes zero</strong>.</p>
+<div id="coef-table" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>coef_lo, coef_med, coef_hi <span class="op">=</span> np.quantile(beta_draws, [<span class="fl">0.025</span>, <span class="fl">0.5</span>, <span class="fl">0.975</span>], axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>excludes_zero <span class="op">=</span> (coef_lo <span class="op">&gt;</span> <span class="dv">0</span>) <span class="op">|</span> (coef_hi <span class="op">&lt;</span> <span class="dv">0</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"gene"</span>: kept_genes,</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"median"</span>: coef_med,</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"lower_95"</span>: coef_lo,</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"upper_95"</span>: coef_hi,</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"excludes_zero"</span>: excludes_zero,</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>}).sort_values(<span class="st">"median"</span>, key<span class="op">=</span>np.<span class="bu">abs</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Genes whose 95% interval excludes zero: </span><span class="sc">{</span>excludes_zero<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span>p_kept<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(results.head(<span class="dv">10</span>).<span class="bu">round</span>(<span class="dv">3</span>).to_string(index<span class="op">=</span><span class="va">False</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Genes whose 95% interval excludes zero: 0 of 100
+
+   gene  median  lower_95  upper_95  excludes_zero
+LYSC_at  -0.104    -0.292     0.016          False
+YXLE_at  -0.060    -0.316     0.040          False
+YETI_at  -0.045    -0.209     0.045          False
+YFII_at   0.043    -0.041     0.221          False
+YDDK_at  -0.042    -0.185     0.040          False
+YXLD_at  -0.041    -0.256     0.057          False
+YXLC_at  -0.040    -0.257     0.057          False
+YJCJ_at   0.035    -0.052     0.216          False
+XKDC_at   0.034    -0.053     0.186          False
+YOAB_at  -0.033    -0.192     0.052          False</code></pre>
+</div>
+</div>
+<div id="cell-fig-forest" class="cell" data-fig-height="6" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>top <span class="op">=</span> results.head(<span class="dv">20</span>).iloc[::<span class="op">-</span><span class="dv">1</span>]       <span class="co"># reverse so the largest is at the top</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>ypos <span class="op">=</span> np.arange(<span class="bu">len</span>(top))</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> np.where(top[<span class="st">"excludes_zero"</span>], <span class="st">"#eb6834"</span>, <span class="st">"#888780"</span>)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="dv">6</span>))</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> yy, (_, row), c <span class="kw">in</span> <span class="bu">zip</span>(ypos, top.iterrows(), colors):</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    ax.plot([row[<span class="st">"lower_95"</span>], row[<span class="st">"upper_95"</span>]], [yy, yy], color<span class="op">=</span>c, lw<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    ax.plot(row[<span class="st">"median"</span>], yy, <span class="st">"o"</span>, color<span class="op">=</span>c, ms<span class="op">=</span><span class="dv">6</span>)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>ax.axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">"black"</span>, lw<span class="op">=</span><span class="dv">1</span>, ls<span class="op">=</span><span class="st">":"</span>)</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>ax.set_yticks(ypos)</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>ax.set_yticklabels(top[<span class="st">"gene"</span>])</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Coefficient (standardized units)"</span>)</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>ax.spines[[<span class="st">"top"</span>, <span class="st">"right"</span>]].set_visible(<span class="va">False</span>)</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="fig-forest" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-forest-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="bayes_lasso_files/figure-html/fig-forest-output-1.png" width="664" height="566" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-forest-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.4: Posterior medians and 95% credible intervals for the 20 genes with the largest effects. Orange intervals exclude zero; gray ones include zero.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Two things are worth noticing:</p>
+<ul>
+<li><strong>No coefficient is exactly zero.</strong> The Bayesian lasso reports posterior medians, which are shrunken toward zero but not set to zero. The credible intervals take over the job of variable selection.</li>
+<li><strong>Many intervals include zero, even for genes with large estimates.</strong> With only 56 training samples and 100 candidate genes, the data cannot pin most coefficients down. This is an honest answer, and it is something the ordinary lasso would not tell you.</li>
+</ul>
+</section>
+<section id="c.-what-a-posterior-looks-like" class="level4" data-number="9.5.8.3">
+<h4 data-number="9.5.8.3" class="anchored" data-anchor-id="c.-what-a-posterior-looks-like"><span class="header-section-number">9.5.8.3</span> 8c. What a posterior looks like</h4>
+<p>For the presentation, it helps to see the thing the Bayesian lasso returns for each gene: a whole distribution, not a single number.</p>
+<div id="cell-fig-posteriors" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>strongest <span class="op">=</span> results.iloc[<span class="dv">0</span>][<span class="st">"gene"</span>]</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>weakest <span class="op">=</span> results.iloc[<span class="op">-</span><span class="dv">1</span>][<span class="st">"gene"</span>]</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">3.5</span>), sharex<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, g <span class="kw">in</span> <span class="bu">zip</span>(axes, [strongest, weakest]):</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    j <span class="op">=</span> np.where(kept_genes <span class="op">==</span> g)[<span class="dv">0</span>][<span class="dv">0</span>]</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    ax.hist(beta_draws[:, j], bins<span class="op">=</span><span class="dv">40</span>, color<span class="op">=</span><span class="st">"#2a78d6"</span>, alpha<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    ax.axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">"black"</span>, lw<span class="op">=</span><span class="fl">1.2</span>, ls<span class="op">=</span><span class="st">"--"</span>)</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    ax.set_title(g)</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"Coefficient (standardized units)"</span>)</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    ax.spines[[<span class="st">"top"</span>, <span class="st">"right"</span>]].set_visible(<span class="va">False</span>)</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">"Number of posterior draws"</span>)</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="fig-posteriors" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-posteriors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="bayes_lasso_files/figure-html/fig-posteriors-output-1.png" width="951" height="326" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-posteriors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.5: Full posterior distributions for the strongest gene (left) and a gene with a weak effect (right). The dashed line marks zero.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="step-9-compare-with-the-ordinary-lasso" class="level3" data-number="9.5.9">
+<h3 data-number="9.5.9" class="anchored" data-anchor-id="step-9-compare-with-the-ordinary-lasso"><span class="header-section-number">9.5.9</span> Step 9: Compare with the ordinary lasso</h3>
+<p>We now fit the ordinary lasso on the same training data, choosing its penalty by 5-fold cross-validation, and compare coefficients.</p>
+<p><code>scikit-learn</code> writes the lasso objective as <span class="math inline">\(\frac{1}{2n}\|y - X\beta\|_2^2 + \alpha\|\beta\|_1\)</span>. Starting from the posterior and dividing through, the Bayesian <span class="math inline">\(\lambda\)</span> corresponds to <span class="math inline">\(\alpha = \sigma\lambda / n\)</span>. This lets us translate our posterior into the lasso’s units.</p>
+<div id="lasso-compare" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>lasso <span class="op">=</span> LassoCV(cv<span class="op">=</span><span class="dv">5</span>, random_state<span class="op">=</span><span class="dv">0</span>, max_iter<span class="op">=</span><span class="dv">50_000</span>).fit(Z_train, y_train)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>alpha_equiv <span class="op">=</span> np.median(sigma_draws) <span class="op">*</span> lam_med <span class="op">/</span> n_train</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Cross-validated lasso alpha:           </span><span class="sc">{</span>lasso<span class="sc">.</span>alpha_<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Alpha implied by Bayesian lasso (σλ/n): </span><span class="sc">{</span>alpha_equiv<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Genes with nonzero lasso coefficient:  </span><span class="sc">{</span>(lasso.coef_ <span class="op">!=</span> <span class="dv">0</span>)<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span>p_kept<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Genes with a nonzero Bayesian median:  </span><span class="sc">{</span>(coef_med <span class="op">!=</span> <span class="dv">0</span>)<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span>p_kept<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Cross-validated lasso alpha:           0.0237
+Alpha implied by Bayesian lasso (σλ/n): 0.0652
+Genes with nonzero lasso coefficient:  26 of 100
+Genes with a nonzero Bayesian median:  100 of 100</code></pre>
+</div>
+</div>
+<div id="cell-fig-lasso-vs-bayes" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">5.5</span>, <span class="fl">5.5</span>))</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>ax.scatter(lasso.coef_, coef_med, color<span class="op">=</span><span class="st">"#2a78d6"</span>, alpha<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>lim <span class="op">=</span> <span class="fl">1.1</span> <span class="op">*</span> <span class="bu">max</span>(np.<span class="bu">abs</span>(lasso.coef_).<span class="bu">max</span>(), np.<span class="bu">abs</span>(coef_med).<span class="bu">max</span>())</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>ax.plot([<span class="op">-</span>lim, lim], [<span class="op">-</span>lim, lim], color<span class="op">=</span><span class="st">"gray"</span>, ls<span class="op">=</span><span class="st">":"</span>)</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>ax.axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">"gray"</span>, lw<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>ax.axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">"gray"</span>, lw<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"Lasso coefficient"</span>)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Bayesian lasso posterior median"</span>)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>ax.spines[[<span class="st">"top"</span>, <span class="st">"right"</span>]].set_visible(<span class="va">False</span>)</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Correlation:"</span>, <span class="bu">round</span>(np.corrcoef(lasso.coef_, coef_med)[<span class="dv">0</span>, <span class="dv">1</span>], <span class="dv">3</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="fig-lasso-vs-bayes" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-lasso-vs-bayes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="bayes_lasso_files/figure-html/fig-lasso-vs-bayes-output-1.png" width="490" height="467" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lasso-vs-bayes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9.6: Ordinary lasso coefficients versus Bayesian lasso posterior medians. The two are strongly related, but the lasso has many exact zeros (points on the vertical line at 0) while the Bayesian medians do not.
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Correlation: 0.731</code></pre>
+</div>
+</div>
+<p>This matches what the paper found on its diabetes data: the Bayesian lasso posterior medians are very close to the lasso estimates, with the added benefit of credible intervals, and with no exact zeros.</p>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
@@ -592,6 +1076,7 @@ Table&nbsp;9.1: Comparison of the lasso and the Bayesian lasso.
 Park, Trevor, and George Casella. 2008. <span>“The <span>B</span>ayesian <span>L</span>asso.”</span> <em>Journal of the American Statistical Association</em> 103 (482): 681–86. <a href="https://doi.org/10.1198/016214508000000337">https://doi.org/10.1198/016214508000000337</a>.
 </div>
 </div>
+</section>
 </section>
 
 </main> <!-- /main -->

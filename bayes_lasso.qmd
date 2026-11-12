@@ -38,6 +38,12 @@ $$
 
 @fig-laplace-prior shows this tent for three values of $\lambda$, alongside the bell-curve prior that corresponds to ridge regression.
 
+### Properties of the Laplace (double-exponential) distribution
+
+1. continuous probability distribution
+2. sharp peak at its center
+3. heavier tails than the normal (Gaussian) distribution
+
 ### How the prior becomes the lasso penalty
 
 By Bayes' rule, the posterior is proportional to the likelihood times the prior:
@@ -154,3 +160,388 @@ The lasso usually picks $\lambda$ by cross-validation. The Bayesian version offe
 | Choosing $\lambda$ | Cross-validation | Empirical Bayes or a hyperprior |
 
 : Comparison of the lasso and the Bayesian lasso. {#tbl-lasso-comparison}
+
+## The Bayesian lasso in Python with PyMC:
+
+So far we have seen *what* the Bayesian lasso is. In this section we run it on real data.
+
+**The data.** The riboflavin dataset has $n = 71$ samples of the bacterium *Bacillus subtilis*. For each sample we have
+
+- the response $y$: the log of the riboflavin (vitamin B2) production rate, and
+- $p = 4{,}088$ predictors: the log expression level of each gene.
+
+**The question.** Which genes are related to riboflavin production, and how sure are we about each one?
+
+**The challenge.** We have far more predictors than samples ($p \gg n$). Ordinary regression cannot be fit here, so we need a method that shrinks coefficients, which is exactly what the lasso does. However, it shrinks groups of coefficients exactly to zero arbitrarily. How sure are we that these coefficients should be set exactly to zero? In other words, how sure are we that these predictors should be dropped from the model? We use the Bayesian Lasso which adds the ability to say how uncertain each coefficient is of having a certain value.
+
+### Step 1: Set up the tools
+
+PyMC is a Python library for Bayesian modeling. You describe the model (priors and likelihood), and PyMC draws samples from the posterior for you. ArviZ is its companion library for diagnostics.
+
+```{python}
+
+#| label: pymc-setup
+
+# imports
+import numpy as np # import numpy
+import pandas as pd # import pandas
+import matplotlib.pyplot as plt # import matplotlib
+import pymc as pm # import pymc
+import arviz as az # import arviz
+from sklearn.linear_model import LassoCV # import lasso from scikit-learn
+
+rng = np.random.default_rng(42)  # fixed seed of 42 so results are reproducible
+```
+
+### Step 2: Move the data from R to Python
+
+The data came as an `.rds` file, which is R's own file format. The file holds a data frame with the response `y` and a $71 \times 4088$ matrix `x` of gene expression values. We convert it to a plain CSV file that Python can read. This only needs to be run once, in R.
+
+```r
+rib <- readRDS("riboflavin.rds")
+
+# x is stored as a special "AsIs" matrix; unclass() turns it into a plain matrix
+X <- unclass(rib$x)
+
+# Put y in the first column, then all 4,088 gene columns
+write.csv(cbind(y = rib$y, X), "riboflavin.csv", row.names = FALSE)
+```
+
+### Step 3: Look at the data
+
+```{python}
+
+#| label: load-data
+
+df = pd.read_csv("riboflavin.csv")
+
+y_all = df["y"].to_numpy() # response: log riboflavin production
+X_df = df.drop(columns="y") # predictors: one column per gene
+gene_names = X_df.columns.to_numpy()
+X_all = X_df.to_numpy()
+
+n, p = X_all.shape
+print(f"Samples (n): {n}")
+print(f"Genes (p):   {p}")
+```
+
+Notice that $p = 4088$ is about 58 times larger than $n = 71$. With more predictors than observations, there are infinitely many coefficient vectors that fit the data perfectly, so ordinary least squares has no unique answer. The prior is what makes the problem solvable: it says "most coefficients are probably near zero."
+
+### Step 4: Prepare the data
+
+We do three things before modeling.
+
+**4a. Split into training and test sets.** We fit the model on the training samples and keep some samples hidden. Later we use the hidden samples to check whether the model predicts well on data it has never seen.
+
+**4b. Screen to the most promising genes.** Sampling 4,088 coefficients with MCMC is possible but slow. To keep this demonstration fast, we keep the 100 genes most correlated with $y$ in the training data. We use only the training data for this step. If we looked at the test samples, information would leak and the test results would look better than they should.
+
+**4c. Standardize.** We rescale every gene to mean 0 and standard deviation 1, and center and scale $y$. This matters because the lasso penalty treats all coefficients equally, so predictors measured on larger scales would otherwise be penalized unfairly. Centering also lets us leave the intercept out of the model, since centered data have an intercept of zero (the paper makes the same simplification). Test data are scaled using the *training* means and standard deviations.
+
+```{python}
+
+#| label: prepare-data
+#| code-fold: True
+
+from sklearn.model_selection import train_test_split
+from sklearn.feature_selection import SelectKBest, f_regression
+from sklearn.preprocessing import StandardScaler
+
+# 4a. 80/20 split (20% of 71 samples rounds up to 15 test samples)
+
+# X_train_raw: the gene values for the training samples (56 × 4088)
+# X_test_raw: the gene values for the test samples (15 × 4088)
+# y_train_raw: the response for the training samples (56 values)
+# y_test_raw: the response for the test samples (15 values)
+
+X_train_raw, X_test_raw, y_train_raw, y_test_raw = train_test_split(
+    X_all, y_all, test_size=0.2, random_state=42
+)
+
+# 4b. Keep the 100 genes most related to y - fit on TRAINING data only
+
+# create a selector that scores every gene by how strongly it is related to y and keeps the best k = 100
+# f_regression is the scoring method where for each gene on its own, it asks “how strongly does this gene predict y?” 
+# a higher score means a stronger relationship, regardless of direction
+selector = SelectKBest(f_regression, k=100).fit(X_train_raw, y_train_raw)
+keep_idx = selector.get_support(indices=True)   # positions of the 100 kept genes
+kept_genes = gene_names[keep_idx]
+
+# 4c. Standardize genes - means and sds come from TRAINING data only
+
+x_scaler = StandardScaler().fit(X_train_raw[:, keep_idx])
+Z_train = x_scaler.transform(X_train_raw[:, keep_idx])
+Z_test = x_scaler.transform(X_test_raw[:, keep_idx])
+
+# Standardize y the same way (we keep y_mean and y_sd to convert predictions back later)
+
+y_mean, y_sd = y_train_raw.mean(), y_train_raw.std(ddof=1)
+y_train = (y_train_raw - y_mean) / y_sd
+y_test = (y_test_raw - y_mean) / y_sd
+
+n_train, p_kept = Z_train.shape
+n_test = len(y_test)
+print(f"Training samples: {n_train}, test samples: {n_test}, genes kept: {p_kept}")
+```
+
+### Step 5: Build the model
+
+A Bayesian model has two parts: a **likelihood** (how the data arise given the parameters) and **priors** (what we believe about the parameters beforehand). The model mirrors the paper:
+
+| Piece | Math | PyMC code |
+|:--|:--|:--|
+| Likelihood | $y_i \sim N\left(\mathbf{x}_i^\top \boldsymbol{\beta},\ \sigma^2\right)$ | `pm.Normal("y_obs", mu=..., sigma=sigma, observed=y_train)` |
+| Prior on each coefficient | $\beta_j \mid \sigma^2 \sim \text{Laplace}\left(0,\ \sigma/\lambda\right)$, which is equation (3) | `pm.Laplace("beta", mu=0, b=sigma / lam)` |
+| Prior on the noise | $\sigma \sim \text{Half-Cauchy}(1)$ | `pm.HalfCauchy("sigma", beta=1)` |
+| Prior on the penalty | $\lambda^2 \sim \text{Gamma}(r, \delta)$, as in Section 3.2 of the paper | `pm.Gamma("lam_sq", alpha=r, beta=delta)` |
+
+A few notes on these choices:
+
+- **The Laplace scale.** The Laplace density $\frac{1}{2b}e^{-|\beta|/b}$ matches equation (3) when $b = \sigma/\lambda$. Because $b$ depends on $\sigma$, the prior is *conditional* on the noise level, which is the paper's key design choice for getting a single-peaked posterior.
+- **Letting the data choose $\lambda$.** Instead of fixing $\lambda$ or tuning it by cross-validation, we give it a prior (a "hyperprior") and let the sampler estimate it along with everything else. The paper puts the Gamma prior on $\lambda^2$. We use $r = 1$, which makes it an exponential prior, and a small $\delta = 0.01$, which makes it very diffuse (prior mean for $\lambda^2$ is $r/\delta = 100$). A diffuse prior means the data, not our guess, drive the result.
+
+```{python}
+
+#| label: pymc-model
+
+# Hyperprior settings for lambda^2 ~ Gamma(r, delta)  (rate parameterization)
+r, delta = 1.0, 0.01
+
+with pm.Model(coords={"gene": kept_genes}) as bayes_lasso:
+
+    # Penalty strength. We place the prior on lambda^2 as in the paper.
+    lam_sq = pm.Gamma("lam_sq", alpha=r, beta=delta)
+    lam = pm.Deterministic("lam", pm.math.sqrt(lam_sq))
+
+    # Noise standard deviation (the data are standardized, so ~1 is the right scale)
+    sigma = pm.HalfCauchy("sigma", beta=1.0)
+
+    # One coefficient per gene, each with a Laplace (tent-shaped) prior.
+    # Scale b = sigma / lambda, matching equation (3).
+    beta = pm.Laplace("beta", mu=0.0, b=sigma / lam, dims="gene")
+
+    # Predicted mean for each training sample: X times beta
+    mu = pm.math.dot(Z_train, beta)
+
+    # Likelihood: observed y is the prediction plus normal noise
+    pm.Normal("y_obs", mu=mu, sigma=sigma, observed=y_train)
+```
+
+### Step 6: Sample from the posterior
+
+The posterior distribution has no neat formula, so we **simulate** it. MCMC (Markov chain Monte Carlo) is a method that wanders through the space of possible parameter values, spending more time where the posterior is high. After enough steps, the list of visited values behaves like a random sample from the posterior.
+
+- A **chain** is one such wandering path. We run 4 chains from different starting points so we can check that they agree.
+- **Tuning** steps (`tune`) let the algorithm adapt its step size. They are thrown away. This is the "burn-in" in the paper.
+- **Draws** (`draws`) are the samples we keep.
+
+This takes a few minutes on a laptop.
+
+```{python}
+
+#| label: sample
+
+with bayes_lasso:
+    idata = pm.sample(
+        draws=1000,          # samples kept per chain
+        tune=1000,           # warm-up steps per chain (discarded)
+        chains=4,            # independent chains
+        target_accept=0.95,  # smaller steps: slower but safer for this tricky geometry
+        random_seed=42,
+        progressbar=False,   # keeps the rendered book tidy
+    )
+```
+
+### Step 7: Check that the sampling worked
+
+Before trusting any result, we check that the chains converged. Three things to look for:
+
+- **R-hat** compares the chains to each other. Values at or below about 1.01 mean they agree.
+- **Effective sample size (ESS)** counts how many *independent* samples the draws are worth, since neighboring MCMC draws are correlated. Hundreds or more is comfortable.
+- **Divergences** are warnings from the sampler that it struggled in some region. Ideally there are none.
+
+```{python}
+
+#| label: diagnostics
+
+# Summary for the two global parameters
+print(az.summary(idata, var_names=["lam", "sigma"], round_to=3))
+
+# Worst-case diagnostics across all the coefficients
+beta_summary = az.summary(idata, var_names=["beta"])
+print("\nLargest R-hat among coefficients:", round(beta_summary["r_hat"].max(), 3))
+print("Smallest bulk ESS among coefficients:", int(beta_summary["ess_bulk"].min()))
+
+n_div = int(idata.sample_stats["diverging"].sum())
+print("Divergent transitions:", n_div)
+```
+
+```{python}
+
+#| label: fig-trace
+#| fig-cap: "Trace plots for λ and σ. Left: the posterior distribution from each chain (the four curves should overlap). Right: the values visited at each step (should look like fuzzy, patternless noise)."
+
+az.plot_trace(idata, var_names=["lam", "sigma"])
+plt.tight_layout()
+plt.show()
+```
+
+In @fig-trace, healthy sampling looks like four overlapping curves on the left and a fuzzy band with no trends on the right. If you see large R-hat values, many divergences, or chains that disagree, increase `tune`, increase `target_accept` (up to 0.99), or run longer.
+
+### Step 8: Read the results
+
+First, pull the samples out of the result object into plain arrays. Each row of `beta_draws` is one posterior draw of all the coefficients.
+
+```{python}
+
+#| label: extract-draws
+
+post = idata.posterior
+
+# beta_draws has shape (number of draws, number of genes)
+beta_draws = (post["beta"]
+              .stack(sample=("chain", "draw"))
+              .transpose("sample", "gene")
+              .values)
+lam_draws = post["lam"].values.flatten()
+sigma_draws = post["sigma"].values.flatten()
+
+print("beta_draws shape:", beta_draws.shape)
+```
+
+#### 8a. What did the data say about $\lambda$?
+
+```{python}
+
+#| label: fig-lambda-posterior
+#| fig-cap: "Posterior distribution of the penalty parameter λ. The prior was very diffuse, so this shape comes from the data."
+
+lam_lo, lam_med, lam_hi = np.quantile(lam_draws, [0.025, 0.5, 0.975])
+
+fig, ax = plt.subplots(figsize=(6, 3.5))
+ax.hist(lam_draws, bins=40, color="#2a78d6", alpha=0.8)
+ax.axvline(lam_med, color="black", lw=1.5, label=f"median = {lam_med:.1f}")
+ax.set_xlabel("λ")
+ax.set_ylabel("Number of posterior draws")
+ax.legend(frameon=False)
+ax.spines[["top", "right"]].set_visible(False)
+plt.show()
+
+print(f"λ: median {lam_med:.2f}, 95% credible interval ({lam_lo:.2f}, {lam_hi:.2f})")
+```
+
+A single number from ordinary lasso (chosen by cross-validation) is replaced here by a whole distribution for $\lambda$. Remember that a larger $\lambda$ means a sharper tent, so a stronger pull toward zero.
+
+#### 8b. Coefficients with credible intervals
+
+For each gene we compute the posterior **median** (our best guess) and a **95% credible interval** (the range that contains the coefficient with 95% probability, given the model and data). The paper's rule for variable selection is: a gene looks important if its interval **excludes zero**.
+
+```{python}
+
+#| label: coef-table
+
+coef_lo, coef_med, coef_hi = np.quantile(beta_draws, [0.025, 0.5, 0.975], axis=0)
+excludes_zero = (coef_lo > 0) | (coef_hi < 0)
+
+results = pd.DataFrame({
+    "gene": kept_genes,
+    "median": coef_med,
+    "lower_95": coef_lo,
+    "upper_95": coef_hi,
+    "excludes_zero": excludes_zero,
+}).sort_values("median", key=np.abs, ascending=False)
+
+print(f"Genes whose 95% interval excludes zero: {excludes_zero.sum()} of {p_kept}\n")
+print(results.head(10).round(3).to_string(index=False))
+```
+
+```{python}
+
+#| label: fig-forest
+#| fig-cap: "Posterior medians and 95% credible intervals for the 20 genes with the largest effects. Orange intervals exclude zero; gray ones include zero."
+#| fig-height: 6
+
+top = results.head(20).iloc[::-1]       # reverse so the largest is at the top
+ypos = np.arange(len(top))
+colors = np.where(top["excludes_zero"], "#eb6834", "#888780")
+
+fig, ax = plt.subplots(figsize=(7, 6))
+for yy, (_, row), c in zip(ypos, top.iterrows(), colors):
+    ax.plot([row["lower_95"], row["upper_95"]], [yy, yy], color=c, lw=2)
+    ax.plot(row["median"], yy, "o", color=c, ms=6)
+ax.axvline(0, color="black", lw=1, ls=":")
+ax.set_yticks(ypos)
+ax.set_yticklabels(top["gene"])
+ax.set_xlabel("Coefficient (standardized units)")
+ax.spines[["top", "right"]].set_visible(False)
+plt.tight_layout()
+plt.show()
+```
+
+Two things are worth noticing:
+
+- **No coefficient is exactly zero.** The Bayesian lasso reports posterior medians, which are shrunken toward zero but not set to zero. The credible intervals take over the job of variable selection.
+- **Many intervals include zero, even for genes with large estimates.** With only 56 training samples and 100 candidate genes, the data cannot pin most coefficients down. This is an honest answer, and it is something the ordinary lasso would not tell you.
+
+#### 8c. What a posterior looks like
+
+For the presentation, it helps to see the thing the Bayesian lasso returns for each gene: a whole distribution, not a single number.
+
+```{python}
+
+#| label: fig-posteriors
+#| fig-cap: "Full posterior distributions for the strongest gene (left) and a gene with a weak effect (right). The dashed line marks zero."
+
+strongest = results.iloc[0]["gene"]
+weakest = results.iloc[-1]["gene"]
+
+fig, axes = plt.subplots(1, 2, figsize=(10, 3.5), sharex=True)
+for ax, g in zip(axes, [strongest, weakest]):
+    j = np.where(kept_genes == g)[0][0]
+    ax.hist(beta_draws[:, j], bins=40, color="#2a78d6", alpha=0.8)
+    ax.axvline(0, color="black", lw=1.2, ls="--")
+    ax.set_title(g)
+    ax.set_xlabel("Coefficient (standardized units)")
+    ax.spines[["top", "right"]].set_visible(False)
+axes[0].set_ylabel("Number of posterior draws")
+plt.tight_layout()
+plt.show()
+```
+
+### Step 9: Compare with the ordinary lasso
+
+We now fit the ordinary lasso on the same training data, choosing its penalty by 5-fold cross-validation, and compare coefficients.
+
+`scikit-learn` writes the lasso objective as $\frac{1}{2n}\|y - X\beta\|_2^2 + \alpha\|\beta\|_1$. Starting from the posterior and dividing through, the Bayesian $\lambda$ corresponds to $\alpha = \sigma\lambda / n$. This lets us translate our posterior into the lasso's units.
+
+```{python}
+#| label: lasso-compare
+
+lasso = LassoCV(cv=5, random_state=0, max_iter=50_000).fit(Z_train, y_train)
+
+alpha_equiv = np.median(sigma_draws) * lam_med / n_train
+print(f"Cross-validated lasso alpha:           {lasso.alpha_:.4f}")
+print(f"Alpha implied by Bayesian lasso (σλ/n): {alpha_equiv:.4f}")
+print(f"Genes with nonzero lasso coefficient:  {(lasso.coef_ != 0).sum()} of {p_kept}")
+print(f"Genes with a nonzero Bayesian median:  {(coef_med != 0).sum()} of {p_kept}")
+```
+
+```{python}
+
+#| label: fig-lasso-vs-bayes
+#| fig-cap: "Ordinary lasso coefficients versus Bayesian lasso posterior medians. The two are strongly related, but the lasso has many exact zeros (points on the vertical line at 0) while the Bayesian medians do not."
+
+fig, ax = plt.subplots(figsize=(5.5, 5.5))
+ax.scatter(lasso.coef_, coef_med, color="#2a78d6", alpha=0.7)
+lim = 1.1 * max(np.abs(lasso.coef_).max(), np.abs(coef_med).max())
+ax.plot([-lim, lim], [-lim, lim], color="gray", ls=":")
+ax.axhline(0, color="gray", lw=0.6)
+ax.axvline(0, color="gray", lw=0.6)
+ax.set_xlabel("Lasso coefficient")
+ax.set_ylabel("Bayesian lasso posterior median")
+ax.spines[["top", "right"]].set_visible(False)
+plt.show()
+
+print("Correlation:", round(np.corrcoef(lasso.coef_, coef_med)[0, 1], 3))
+```
+
+This matches what the paper found on its diabetes data: the Bayesian lasso posterior medians are very close to the lasso estimates, with the added benefit of credible intervals, and with no exact zeros.
