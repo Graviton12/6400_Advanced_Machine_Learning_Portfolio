@@ -670,53 +670,42 @@ Genes (p):   4088</code></pre>
 <h3 data-number="9.5.4" class="anchored" data-anchor-id="step-4-prepare-the-data"><span class="header-section-number">9.5.4</span> Step 4: Prepare the data</h3>
 <p>We do three things before modeling.</p>
 <p><strong>4a. Split into training and test sets.</strong> We fit the model on the training samples and keep some samples hidden. Later we use the hidden samples to check whether the model predicts well on data it has never seen.</p>
-<p><strong>4b. Screen to the most promising genes.</strong> Sampling 4,088 coefficients with MCMC is possible but slow. To keep this demonstration fast, we keep the 100 genes most correlated with <span class="math inline">\(y\)</span> in the training data. We use only the training data for this step. If we looked at the test samples, information would leak and the test results would look better than they should.</p>
-<p><strong>4c. Standardize.</strong> We rescale every gene to mean 0 and standard deviation 1, and center and scale <span class="math inline">\(y\)</span>. This matters because the lasso penalty treats all coefficients equally, so predictors measured on larger scales would otherwise be penalized unfairly. Centering also lets us leave the intercept out of the model, since centered data have an intercept of zero (the paper makes the same simplification). Test data are scaled using the <em>training</em> means and standard deviations.</p>
+<p><strong>4b. Standardize.</strong> We rescale every gene to mean 0 and standard deviation 1, and center and scale <span class="math inline">\(y\)</span>. This matters because the lasso penalty treats all coefficients equally, so predictors measured on larger scales would otherwise be penalized unfairly. Centering also lets us leave the intercept out of the model, since centered data have an intercept of zero (the paper makes the same simplification). Test data are scaled using the <em>training</em> means and standard deviations.</p>
 <div id="prepare-data" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.feature_selection <span class="im">import</span> SelectKBest, f_regression</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 4a. 80/20 split (20% of 71 samples rounds up to 15 test samples)</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># X_train_raw: the gene values for the training samples (56 × 4088)</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"># X_test_raw: the gene values for the test samples (15 × 4088)</span></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"># y_train_raw: the response for the training samples (56 values)</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># y_test_raw: the response for the test samples (15 values)</span></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>X_train_raw, X_test_raw, y_train_raw, y_test_raw <span class="op">=</span> train_test_split(</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    X_all, y_all, test_size<span class="op">=</span><span class="fl">0.2</span>, random_state<span class="op">=</span><span class="dv">42</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="co"># 4b. Keep the 100 genes most related to y - fit on TRAINING data only</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="co"># create a selector that scores every gene by how strongly it is related to y and keeps the best k = 100</span></span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="co"># f_regression is the scoring method where for each gene on its own, it asks “how strongly does this gene predict y?” </span></span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="co"># a higher score means a stronger relationship, regardless of direction</span></span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>selector <span class="op">=</span> SelectKBest(f_regression, k<span class="op">=</span><span class="dv">100</span>).fit(X_train_raw, y_train_raw)</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>keep_idx <span class="op">=</span> selector.get_support(indices<span class="op">=</span><span class="va">True</span>)   <span class="co"># positions of the 100 kept genes</span></span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>kept_genes <span class="op">=</span> gene_names[keep_idx]</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="co"># 4c. Standardize genes - means and sds come from TRAINING data only</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 4a. 80/20 split (20% of 71 samples rounds up to 15 test samples)</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># X_train_raw: gene values for the training samples (56 × 4088)</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co"># X_test_raw: gene values for the test samples (15 × 4088)</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># y_train_raw: the response for the training samples (56 values)</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"># y_test_raw: the response for the test samples (15 values)</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>X_train_raw, X_test_raw, y_train_raw, y_test_raw <span class="op">=</span> train_test_split(</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    X_all, y_all, test_size<span class="op">=</span><span class="fl">0.2</span>, random_state<span class="op">=</span><span class="dv">42</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 4b. Standardize genes - means and sds come from TRAINING data only</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co"># We keep all 4088 genes (no screening step); the Bayesian lasso handles p &gt; n.</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>x_scaler <span class="op">=</span> StandardScaler().fit(X_train_raw)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>Z_train <span class="op">=</span> x_scaler.transform(X_train_raw)</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>Z_test <span class="op">=</span> x_scaler.transform(X_test_raw)</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardize y the same way (we keep y_mean and y_sd to convert predictions back later)</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>y_mean, y_sd <span class="op">=</span> y_train_raw.mean(), y_train_raw.std(ddof<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>y_train <span class="op">=</span> (y_train_raw <span class="op">-</span> y_mean) <span class="op">/</span> y_sd</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>y_test <span class="op">=</span> (y_test_raw <span class="op">-</span> y_mean) <span class="op">/</span> y_sd</span>
 <span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>x_scaler <span class="op">=</span> StandardScaler().fit(X_train_raw[:, keep_idx])</span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>Z_train <span class="op">=</span> x_scaler.transform(X_train_raw[:, keep_idx])</span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>Z_test <span class="op">=</span> x_scaler.transform(X_test_raw[:, keep_idx])</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Standardize y the same way (we keep y_mean and y_sd to convert predictions back later)</span></span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>y_mean, y_sd <span class="op">=</span> y_train_raw.mean(), y_train_raw.std(ddof<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>y_train <span class="op">=</span> (y_train_raw <span class="op">-</span> y_mean) <span class="op">/</span> y_sd</span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>y_test <span class="op">=</span> (y_test_raw <span class="op">-</span> y_mean) <span class="op">/</span> y_sd</span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>n_train, p_kept <span class="op">=</span> Z_train.shape</span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>n_test <span class="op">=</span> <span class="bu">len</span>(y_test)</span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Training samples: </span><span class="sc">{</span>n_train<span class="sc">}</span><span class="ss">, test samples: </span><span class="sc">{</span>n_test<span class="sc">}</span><span class="ss">, genes kept: </span><span class="sc">{</span>p_kept<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>n_train, p <span class="op">=</span> Z_train.shape</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>n_test <span class="op">=</span> <span class="bu">len</span>(y_test)</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Training samples: </span><span class="sc">{</span>n_train<span class="sc">}</span><span class="ss">, test samples: </span><span class="sc">{</span>n_test<span class="sc">}</span><span class="ss">, genes: </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>Training samples: 56, test samples: 15, genes kept: 100</code></pre>
+<pre><code>Training samples: 56, test samples: 15, genes: 4088</code></pre>
 </div>
 </div>
 </section>
@@ -768,7 +757,7 @@ Genes (p):   4088</code></pre>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Hyperprior settings for lambda^2 ~ Gamma(r, delta)  (rate parameterization)</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>r, delta <span class="op">=</span> <span class="fl">1.0</span>, <span class="fl">0.01</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>{<span class="st">"gene"</span>: kept_genes}) <span class="im">as</span> bayes_lasso:</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> pm.Model(coords<span class="op">=</span>{<span class="st">"gene"</span>: gene_names}) <span class="im">as</span> bayes_lasso:</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Penalty strength. We place the prior on lambda^2 as in the paper.</span></span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    lam_sq <span class="op">=</span> pm.Gamma(<span class="st">"lam_sq"</span>, alpha<span class="op">=</span>r, beta<span class="op">=</span>delta)</span>
@@ -811,7 +800,13 @@ Genes (p):   4088</code></pre>
 <pre><code>Initializing NUTS using jitter+adapt_diag...
 Multiprocess sampling (4 chains in 4 jobs)
 NUTS: [lam_sq, sigma, beta]
-Sampling 4 chains for 1_000 tune and 1_000 draw iterations (4_000 + 4_000 draws total) took 26 seconds.</code></pre>
+Sampling 4 chains for 1_000 tune and 1_000 draw iterations (4_000 + 4_000 draws total) took 342 seconds.
+Chain 0 reached the maximum tree depth. Increase `max_treedepth`, increase `target_accept` or reparameterize.
+Chain 1 reached the maximum tree depth. Increase `max_treedepth`, increase `target_accept` or reparameterize.
+Chain 2 reached the maximum tree depth. Increase `max_treedepth`, increase `target_accept` or reparameterize.
+Chain 3 reached the maximum tree depth. Increase `max_treedepth`, increase `target_accept` or reparameterize.
+The rhat statistic is larger than 1.01 for some parameters. This indicates problems during sampling. See https://arxiv.org/abs/1903.08008 for details
+The effective sample size per chain is smaller than 100 for some parameters.  A higher number is needed for reliable rhat and ess computation. See https://arxiv.org/abs/1903.08008 for details</code></pre>
 </div>
 </div>
 </section>
@@ -835,16 +830,16 @@ Sampling 4 chains for 1_000 tune and 1_000 draw iterations (4_000 + 4_000 draws 
 <span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>n_div <span class="op">=</span> <span class="bu">int</span>(idata.sample_stats[<span class="st">"diverging"</span>].<span class="bu">sum</span>())</span>
 <span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Divergent transitions:"</span>, n_div)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>        mean     sd  eti89_lb  eti89_ub  ess_bulk  ess_tail  r_hat  mcse_mean  \
-lam    9.403  2.461     5.823    13.695   564.743   910.085  1.005      0.099   
-sigma  0.400  0.053     0.321     0.489  1694.297  1962.566  1.001      0.001   
+<pre><code>         mean     sd  eti89_lb  eti89_ub  ess_bulk  ess_tail  r_hat  \
+lam    10.775  5.315     3.647    20.233    61.757    77.260  1.073   
+sigma   0.138  0.062     0.049     0.245    73.054    76.514  1.049   
 
-       mcse_sd  
-lam      0.046  
-sigma    0.001  
+       mcse_mean  mcse_sd  
+lam        0.663    0.521  
+sigma      0.007    0.003  
 
-Largest R-hat among coefficients: 1.006
-Smallest bulk ESS among coefficients: 2355
+Largest R-hat among coefficients: 1.028
+Smallest bulk ESS among coefficients: 282
 Divergent transitions: 0</code></pre>
 </div>
 </div>
@@ -883,7 +878,7 @@ Figure&nbsp;9.2: Trace plots for λ and σ. Left: the posterior distribution fro
 <span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"beta_draws shape:"</span>, beta_draws.shape)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>beta_draws shape: (4000, 100)</code></pre>
+<pre><code>beta_draws shape: (4000, 4088)</code></pre>
 </div>
 </div>
 <section id="a.-what-did-the-data-say-about-lambda" class="level4" data-number="9.5.8.1">
@@ -914,7 +909,7 @@ Figure&nbsp;9.3: Posterior distribution of the penalty parameter λ. The prior w
 </div>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>λ: median 9.19, 95% credible interval (5.23, 14.87)</code></pre>
+<pre><code>λ: median 10.00, 95% credible interval (2.88, 23.39)</code></pre>
 </div>
 </div>
 <p>A single number from ordinary lasso (chosen by cross-validation) is replaced here by a whole distribution for <span class="math inline">\(\lambda\)</span>. Remember that a larger <span class="math inline">\(\lambda\)</span> means a sharper tent, so a stronger pull toward zero.</p>
@@ -927,29 +922,29 @@ Figure&nbsp;9.3: Posterior distribution of the penalty parameter λ. The prior w
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>excludes_zero <span class="op">=</span> (coef_lo <span class="op">&gt;</span> <span class="dv">0</span>) <span class="op">|</span> (coef_hi <span class="op">&lt;</span> <span class="dv">0</span>)</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"gene"</span>: kept_genes,</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"gene"</span>: gene_names,</span>
 <span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"median"</span>: coef_med,</span>
 <span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"lower_95"</span>: coef_lo,</span>
 <span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"upper_95"</span>: coef_hi,</span>
 <span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"excludes_zero"</span>: excludes_zero,</span>
 <span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>}).sort_values(<span class="st">"median"</span>, key<span class="op">=</span>np.<span class="bu">abs</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Genes whose 95% interval excludes zero: </span><span class="sc">{</span>excludes_zero<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span>p_kept<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Genes whose 95% interval excludes zero: </span><span class="sc">{</span>excludes_zero<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span>p<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
 <span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(results.head(<span class="dv">10</span>).<span class="bu">round</span>(<span class="dv">3</span>).to_string(index<span class="op">=</span><span class="va">False</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Genes whose 95% interval excludes zero: 0 of 100
+<pre><code>Genes whose 95% interval excludes zero: 0 of 4088
 
-   gene  median  lower_95  upper_95  excludes_zero
-LYSC_at  -0.104    -0.292     0.016          False
-YXLE_at  -0.060    -0.316     0.040          False
-YETI_at  -0.045    -0.209     0.045          False
-YFII_at   0.043    -0.041     0.221          False
-YDDK_at  -0.042    -0.185     0.040          False
-YXLD_at  -0.041    -0.256     0.057          False
-YXLC_at  -0.040    -0.257     0.057          False
-YJCJ_at   0.035    -0.052     0.216          False
-XKDC_at   0.034    -0.053     0.186          False
-YOAB_at  -0.033    -0.192     0.052          False</code></pre>
+     gene  median  lower_95  upper_95  excludes_zero
+  LYSC_at  -0.008    -0.071     0.023          False
+YHDS_r_at   0.007    -0.025     0.075          False
+  YXLD_at  -0.007    -0.065     0.024          False
+  YXLC_at  -0.007    -0.074     0.026          False
+  YOAB_at  -0.006    -0.068     0.026          False
+  YHZA_at  -0.006    -0.060     0.025          False
+  YXLE_at  -0.006    -0.065     0.025          False
+  YEBC_at  -0.005    -0.067     0.024          False
+  SIGY_at  -0.005    -0.063     0.027          False
+  YTSA_at   0.005    -0.028     0.057          False</code></pre>
 </div>
 </div>
 <div id="cell-fig-forest" class="cell" data-fig-height="6" data-execution_count="12">
@@ -972,7 +967,7 @@ YOAB_at  -0.033    -0.192     0.052          False</code></pre>
 <div id="fig-forest" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-forest-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="bayes_lasso_files/figure-html/fig-forest-output-1.png" width="664" height="566" class="figure-img">
+<img src="bayes_lasso_files/figure-html/fig-forest-output-1.png" width="665" height="566" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-forest-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;9.4: Posterior medians and 95% credible intervals for the 20 genes with the largest effects. Orange intervals exclude zero; gray ones include zero.
@@ -996,7 +991,7 @@ Figure&nbsp;9.4: Posterior medians and 95% credible intervals for the 20 genes w
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">3.5</span>), sharex<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, g <span class="kw">in</span> <span class="bu">zip</span>(axes, [strongest, weakest]):</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    j <span class="op">=</span> np.where(kept_genes <span class="op">==</span> g)[<span class="dv">0</span>][<span class="dv">0</span>]</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    j <span class="op">=</span> np.where(gene_names <span class="op">==</span> g)[<span class="dv">0</span>][<span class="dv">0</span>]</span>
 <span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    ax.hist(beta_draws[:, j], bins<span class="op">=</span><span class="dv">40</span>, color<span class="op">=</span><span class="st">"#2a78d6"</span>, alpha<span class="op">=</span><span class="fl">0.8</span>)</span>
 <span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    ax.axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">"black"</span>, lw<span class="op">=</span><span class="fl">1.2</span>, ls<span class="op">=</span><span class="st">"--"</span>)</span>
 <span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    ax.set_title(g)</span>
@@ -1030,13 +1025,13 @@ Figure&nbsp;9.5: Full posterior distributions for the strongest gene (left) and 
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>alpha_equiv <span class="op">=</span> np.median(sigma_draws) <span class="op">*</span> lam_med <span class="op">/</span> n_train</span>
 <span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Cross-validated lasso alpha:           </span><span class="sc">{</span>lasso<span class="sc">.</span>alpha_<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
 <span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Alpha implied by Bayesian lasso (σλ/n): </span><span class="sc">{</span>alpha_equiv<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Genes with nonzero lasso coefficient:  </span><span class="sc">{</span>(lasso.coef_ <span class="op">!=</span> <span class="dv">0</span>)<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span>p_kept<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Genes with a nonzero Bayesian median:  </span><span class="sc">{</span>(coef_med <span class="op">!=</span> <span class="dv">0</span>)<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span>p_kept<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Genes with nonzero lasso coefficient:  </span><span class="sc">{</span>(lasso.coef_ <span class="op">!=</span> <span class="dv">0</span>)<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Genes with a nonzero Bayesian median:  </span><span class="sc">{</span>(coef_med <span class="op">!=</span> <span class="dv">0</span>)<span class="sc">.</span><span class="bu">sum</span>()<span class="sc">}</span><span class="ss"> of </span><span class="sc">{</span>p<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Cross-validated lasso alpha:           0.0237
-Alpha implied by Bayesian lasso (σλ/n): 0.0652
-Genes with nonzero lasso coefficient:  26 of 100
-Genes with a nonzero Bayesian median:  100 of 100</code></pre>
+<pre><code>Cross-validated lasso alpha:           0.0059
+Alpha implied by Bayesian lasso (σλ/n): 0.0237
+Genes with nonzero lasso coefficient:  54 of 4088
+Genes with a nonzero Bayesian median:  4088 of 4088</code></pre>
 </div>
 </div>
 <div id="cell-fig-lasso-vs-bayes" class="cell" data-execution_count="15">
@@ -1065,7 +1060,7 @@ Figure&nbsp;9.6: Ordinary lasso coefficients versus Bayesian lasso posterior med
 </div>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Correlation: 0.731</code></pre>
+<pre><code>Correlation: 0.272</code></pre>
 </div>
 </div>
 <p>This matches what the paper found on its diabetes data: the Bayesian lasso posterior medians are very close to the lasso estimates, with the added benefit of credible intervals, and with no exact zeros.</p>
