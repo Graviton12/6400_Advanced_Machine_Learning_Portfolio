@@ -49,5 +49,8 @@
   },
   "bayes_lasso.qmd": {
     "bayes_lasso.html": "918753e1"
+  },
+  "group_lasso.qmd": {
+    "group_lasso.html": "e3f267fd"
   }
 }

@@ -1,0 +1,349 @@
+# Group Lasso
+
+**Paper Title:** Why group-specific regularization? Motivating the group lasso
+
+## Motivation
+
+Many models contain a **categorical variable** that is allowed to *interact* with a continuous predictor. Coding the categorical variable takes several columns; coding its interactions with a flexible (spline) effect takes even more. Those columns belong together: they are all different ways of asking one question, "does this group behave differently from the others?"
+
+This chapter motivates the **group lasso** in four steps:
+
+1. Introduce a categorical variable, and its interactions, into a regression model.
+2. Show why we need **group-specific regularization** when some groups are small.
+3. Show what the **lasso** can and cannot do about it.
+4. Show how the **group lasso** fixes the part the lasso gets wrong.
+
+The structure and plots follow the Interactions chapter of the class notes ([tgstewart.cloud/ipm/interactions.html](https://tgstewart.cloud/ipm/interactions.html)), in particular its sections on group-specific non-linear relationships, group-specific regularization, and lasso regression. The notes use NHANES (`Age` predicting blood pressure, with `Race1` as the grouping variable). Here the same ideas are rebuilt in Python on an exoplanet catalog:
+
+| Role | This chapter |
+|---|---|
+| Outcome |`P_ESI`, the Earth Similarity Index |
+| Continuous predictor | $\log_{10}$ equilibrium temperature (`P_TEMP_EQUIL`) |
+| Grouping variable | `P_TYPE`, planet type (6 levels) |
+
+## Setup and and data
+
+```{python}
+#| label: setup
+#| code-fold: True
+
+# importing relavent libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from statsmodels.nonparametric.smoothers_lowess import lowess
+from sklearn.linear_model import lasso_path
+from sklearn.model_selection import KFold
+
+plt.rcParams.update({
+    "figure.dpi": 110, "axes.spines.top": False, "axes.spines.right": False,
+    "axes.grid": True, "grid.color": "#e6e6e3", "grid.linewidth": 0.6,
+    "axes.edgecolor": "#8a8a85", "axes.labelcolor": "#2b2b2a",
+    "xtick.color": "#52514e", "ytick.color": "#52514e", "font.size": 9,
+})
+INK, MUTED = "#2b2b2a", "#8a8a85"
+
+# fixed categorical order (one colour per planet type, never reassigned)
+PALETTE = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#6250d6"]
+```
+
+Each planet observation has a Earth-Like Similarity Index (ESI) score where if the ESI is closer to 1, more Earth-Like and if the ESI is closer ot 0, less Earth-Like. This is the target variable. The predictor variables include numerical feature equilibrium temperature in Kelvin and categorical feature planet type. The sample size of planets n = 5,358 after dropping rows with missing values.
+
+Planet types are ordered by increasing mass, so the **last level, Jovian, is the largest group and serves as the reference level** throughout.
+
+```{python}
+#| label: load-data
+#| code-fold: True
+
+# loading the data
+raw = pd.read_csv("habitable_worlds_catalog_trimmed.csv")
+planets = raw.dropna(subset=["P_ESI", "P_TEMP_EQUIL", "P_TYPE"]).copy()
+planets["logT"] = np.log10(planets["P_TEMP_EQUIL"])
+
+# specificy the level/categories of the categorical variable planet type
+levels = ["Miniterran", "Subterran", "Terran", "Superterran", "Neptunian", "Jovian"]
+K = len(levels)
+planets["P_TYPE"] = pd.Categorical(planets["P_TYPE"], categories=levels)
+planets = planets.reset_index(drop=True)
+
+x = planets["logT"].to_numpy()
+y = planets["P_ESI"].to_numpy()
+g = planets["P_TYPE"].cat.codes.to_numpy()      
+n = len(y)
+n_g = np.bincount(g, minlength=K)
+w = n_g / n 
+
+# display the data
+print(f"Complete cases: {n}  (of {len(raw)} rows)")
+pd.DataFrame({"P_TYPE": levels, "n": n_g, "proportion": w.round(4),
+              "mean ESI": [y[g == j].mean().round(3) for j in range(K)]})
+```
+
+The groups are badly unbalanced: one group has thousands of planets and another has fewer than ten.
+
+```{python}
+#| label: fig-raw
+#| fig-cap: "ESI against log10 equilibrium temperature, one panel per planet type. Group sizes range from 8 to over 1,500 planets."
+#| code-fold: True
+
+fig, axes = plt.subplots(2, 3, figsize=(10, 5.4), sharex=True, sharey=True)
+for j, ax in enumerate(axes.flat):
+    m = g == j
+    ax.scatter(x[m], y[m], s=7, alpha=0.5, color=PALETTE[j], linewidths=0)
+    ax.set_title(f"{levels[j]} (n={n_g[j]})", fontsize=9.5, color=INK, loc="left")
+for ax in axes[1]:
+    ax.set_xlabel(r"$\log_{10}$ equilibrium temp (K)")
+for ax in axes[:, 0]:
+    ax.set_ylabel("ESI")
+fig.tight_layout()
+plt.show()
+```
+
+## Categorical variables and interactions
+
+### A flexible curve for one predictor
+
+To let the effect of temperature be non-linear, we use a restricted cubic spline. With four knots the basis has three columns, $x$, $x'$, $x''$. Tthe knots are fixed once and reused in every model, so the models differ only in *which coefficients are shared across groups*, not in the basis.
+
+```{python}
+#| label: rcs-basis
+#| code-fold: True
+
+def rcs(v, knots):
+    # restricted cubic spline basis: returns len(knots)-1 columns (x, x', x'', ...)
+    t = np.asarray(knots, float); k = len(t)
+    pos = lambda u: np.maximum(u, 0.0) ** 3
+    cols = [v]
+    for j in range(k - 2):
+        cols.append((pos(v - t[j])
+                     - pos(v - t[k - 2]) * (t[k - 1] - t[j]) / (t[k - 1] - t[k - 2])
+                     + pos(v - t[k - 1]) * (t[k - 2] - t[j]) / (t[k - 1] - t[k - 2]))
+                    / (t[k - 1] - t[0]) ** 2)
+    return np.column_stack(cols)
+
+knots = np.quantile(x, [0.05, 0.35, 0.65, 0.95])
+B = rcs(x, knots)
+print("knots:", knots.round(3), "| basis columns:", B.shape[1])
+```
+
+### The sharing ladder
+
+Write $b(x) = (x, x', x'')$ for the spline basis and $I_j$ for the indicator of planet type $j$ (Jovian is the reference). The class notes walk up a ladder of models that share progressively less information between groups:
+
+**Fully shared** (one curve for every planet type; 4 coefficients):
+$$E[\text{ESI}\mid x] = \beta_0 + \beta_1 x + \beta_2 x' + \beta_3 x''$$
+
+**Partial sharing** (same shape, a different level for each type; 4 + 5 = 9 coefficients):
+$$E[\text{ESI}\mid x, \text{type}] = \beta_0 + \beta_1 x + \beta_2 x' + \beta_3 x'' + \sum_{j=1}^{5}\gamma_j I_j$$
+
+**Full interaction** (every type gets its own curve; $4 + 5 + 15 = 24$ coefficients):
+$$E[\text{ESI}\mid x, \text{type}] = \beta_0 + \sum_{m=1}^3 \beta_m b_m(x) + \sum_{j=1}^{5}\left[\gamma_j I_j + \sum_{m=1}^3 \delta_{jm}\, I_j\, b_m(x)\right]$$
+
+The $\gamma_j$ and $\delta_{jm}$ are the *interaction* coefficients: they say how type $j$ departs from the reference. For $G$ groups and a spline with $p$ terms, the interaction model spends $(G-1)(p+1)$ extra coefficients, and each group's curve is estimated from **only that group's rows**.
+
+```{python}
+#| label: designs
+#| code-fold: True
+
+def treat_dummies(g):
+    return np.eye(K)[g][:, :-1] # reference = last level (Jovian)
+
+def design(kind, B, g):
+    ones, T = np.ones((len(B), 1)), treat_dummies(g)
+    if kind == "shared":
+        return np.hstack([ones, B])
+    if kind == "offset":
+        return np.hstack([ones, B, T])
+    if kind == "interaction":
+        return np.hstack([ones, B, T] + [B * T[:, [j]] for j in range(K - 1)])
+    raise ValueError(kind)
+
+fits = {k: sm.OLS(y, design(k, B, g)).fit() for k in ["shared", "offset", "interaction"]}
+pd.DataFrame({"model": list(fits),
+              "coefficients": [int(f.df_model + 1) for f in fits.values()],
+              "in-sample R2": [round(f.rsquared, 3) for f in fits.values()],
+              "sigma": [round(np.sqrt(f.scale), 4) for f in fits.values()]})
+```
+
+To plot each fitted curve we evaluate it over the observed temperature range of each group.
+
+```{python}
+#| label: curve-helpers
+#| code-fold: True
+
+grid = {j: np.linspace(x[g == j].min(), x[g == j].max(), 120) for j in range(K)}
+
+def ols_curves(kind, fit):
+    out = {}
+    for j in range(K):
+        xs = grid[j]; Bg = rcs(xs, knots); gg = np.full(len(xs), j)
+        sf = fit.get_prediction(design(kind, Bg, gg)).summary_frame(alpha=0.05)
+        out[j] = (xs, sf["mean"].to_numpy(), sf["mean_ci_lower"].to_numpy(), sf["mean_ci_upper"].to_numpy())
+    return out
+```
+
+### Fully shared: one curve for everyone
+
+```{python}
+#| label: fig-shared
+#| fig-cap: "Fully shared model: one temperature-ESI curve (with 95% confidence band) for all planet types."
+#| code-fold: True
+
+cur = ols_curves("shared", fits["shared"])
+xs, yh, lo, hi = cur[5]
+xs = np.linspace(x.min(), x.max(), 200)
+sf = fits["shared"].get_prediction(design("shared", rcs(xs, knots), np.zeros(len(xs), int))).summary_frame()
+fig, ax = plt.subplots(figsize=(6.2, 3.8))
+ax.scatter(x, y, s=5, alpha=0.25, color=MUTED, linewidths=0)
+ax.fill_between(xs, sf["mean_ci_lower"], sf["mean_ci_upper"], color=INK, alpha=0.2, lw=0)
+ax.plot(xs, sf["mean"], color=INK, lw=2)
+ax.set_xlabel(r"$\log_{10}$ equilibrium temp (K)"); ax.set_ylabel("ESI")
+plt.show()
+```
+
+### Partial sharing: same shape, shifted
+
+Adding the type main effect, without interactions, gives parallel curves: same shape, different level.
+
+```{python}
+#| label: fig-offset
+#| fig-cap: "Partial sharing: the planet-type main effect shifts a common curve up or down. The curves are parallel by construction."
+#| code-fold: True
+
+cur = ols_curves("offset", fits["offset"])
+fig, ax = plt.subplots(figsize=(6.6, 4))
+for j in range(K):
+    xs, yh, lo, hi = cur[j]
+    ax.plot(xs, yh, color=PALETTE[j], lw=2, label=levels[j])
+ax.set_xlabel(r"$\log_{10}$ equilibrium temp (K)"); ax.set_ylabel("fitted ESI")
+ax.legend(frameon=False, ncol=2, fontsize=8)
+plt.show()
+```
+
+### Full interaction: the shape differs by type
+
+Replacing `+` with `*` in the formula (here: multiplying every spline column by every type indicator) lets each type have its own curve. The figures shows one panel per group, fitted curve and 95% confidence band.
+
+```{python}
+#| label: fig-interaction
+#| fig-cap: "Full-interaction model: each planet type gets its own curve (95% confidence band, shaded). Compare the width of the bands for the large groups (bottom row) with the two smallest groups (top left)."
+#| code-fold: True
+
+def facet_curves(curve_sets, ylim=(0, 1), show_points=True, figsize=(10.5, 5.8)):
+    """curve_sets: list of dicts {label, curves{j:(xs,yh,lo,hi)}, color, ls, lw, band}."""
+    fig, axes = plt.subplots(2, 3, figsize=figsize, sharex=False, sharey=True)
+    for j, ax in enumerate(axes.flat):
+        m = g == j
+        if show_points:
+            ax.scatter(x[m], y[m], s=8, alpha=0.35, color=MUTED, linewidths=0)
+        for cs in curve_sets:
+            xs, yh, lo, hi = cs["curves"][j]
+            if cs.get("band"):
+                ax.fill_between(xs, lo, hi, color=cs["color"], alpha=0.2, lw=0)
+            ax.plot(xs, yh, color=cs["color"], ls=cs.get("ls", "-"), lw=cs.get("lw", 2),
+                    label=cs["label"])
+        ax.set_title(f"{levels[j]} (n={n_g[j]})", fontsize=9.5, color=INK, loc="left")
+        ax.set_ylim(*ylim)
+    for ax in axes[1]:
+        ax.set_xlabel(r"$\log_{10}$ equilibrium temp (K)")
+    for ax in axes[:, 0]:
+        ax.set_ylabel("ESI")
+    return fig, axes
+
+cur_int = ols_curves("interaction", fits["interaction"])
+fig, axes = facet_curves([{"label": "full interaction", "curves": cur_int,
+                           "color": PALETTE[0], "band": True}])
+fig.tight_layout(); plt.show()
+```
+
+The curves for the small groups are visibly less stable: wider confidence bands and more wiggle, because each group's spline is estimated from its own data alone, with nothing borrowed from the other five groups. We can quantify that.
+
+```{python}
+#| label: ci-width
+#| code-fold: True
+
+ci_width = pd.DataFrame({
+    "P_TYPE": levels, "n": n_g,
+    "mean 95% CI width (full interaction)": [np.mean(cur_int[j][3] - cur_int[j][2]).round(3) for j in range(K)],
+})
+ci_width
+```
+
+### No sharing: fully separate models
+
+At the other extreme we fit one model per group, each with its own residual variance. As in the notes, the *mean* model is the same as the full interaction model.
+
+```{python}
+#| label: fig-separate
+#| fig-cap: "Predictions from six fully separate models against predictions from the single full-interaction model. They coincide: with a full interaction, 'no sharing' and 'full interaction' are the same mean model."
+#| code-fold: True
+
+pred_sep = np.empty(n)
+sigmas = {}
+for j in range(K):
+    m = g == j
+    f_j = sm.OLS(y[m], design("shared", B[m], g[m])).fit()
+    pred_sep[m] = f_j.predict(design("shared", B[m], g[m]))
+    sigmas[levels[j]] = np.sqrt(f_j.scale)
+pred_int = fits["interaction"].predict(design("interaction", B, g))
+print("identical predictions:", np.allclose(pred_sep, pred_int))
+
+fig, ax = plt.subplots(figsize=(4.6, 4.2))
+ax.scatter(pred_sep, pred_int, s=6, alpha=0.3, color=PALETTE[0], linewidths=0)
+lim = [min(pred_sep.min(), pred_int.min()), max(pred_sep.max(), pred_int.max())]
+ax.plot(lim, lim, color=PALETTE[1], ls="--", lw=1.2)
+ax.set_xlabel("separate-model predictions"); ax.set_ylabel("interaction-model predictions")
+plt.show()
+```
+
+## The need for group-specific regularization
+
+- **Sharing everything** throws away real information. Planet types plainly differ in both level and shape.
+- **Sharing nothing** estimates $p+1$ coefficients for every type from that type's rows alone. For a group with 8 planets this is hopeless, and even a few dozen is a lot.
+- **Choosing by hand** is unsatisfying when there are many groups. Each group could sit at its own point on the sharing spectrum, and the number of candidate structures explodes.
+
+**Regularization:** reparameterize the model into a *global* block that carries a shared curve and a *deviation* block that carries each group's departure from it, then penalize only the deviation block. Cross-validation chooses how much of each deviation survives, so the data decide how much each group shares.
+
+### Key implementation detail: deviation parameterization
+
+With treatment (reference-cell) coding, the interaction columns measure each group's departure from one arbitrary *reference* group (here Jovian). Shrinking those coefficients shrinks every group toward the reference, not toward a sensible common curve. The class notes fix this with a **deviation parameterization**, in which the main-effect columns describe an *average* curve and the group columns describe departures from it.
+
+With $k$ levels and a reference level $k$, the deviation features are $D_j = I_j - I_k$ for $j = 1, \dots, k-1$ (the `contr.sum` coding), and the intercept becomes the *unweighted* average of the group means. The notes then generalize to a **population-mean** version for unbalanced groups, using group proportions $w_j$:
+
+$$D_j = I_j - \frac{w_j}{w_k}\, I_k, \qquad j = 1, \dots, k-1.$$
+
+With this coding the global curve is the **proportion-weighted average curve**, and $\alpha_j$ is group $j$'s deviation from it. Group $k$'s deviation is implied: $\delta_k = -\sum_{j<k} (w_j/w_k)\,\delta_j$. We use the population-mean version because our groups are so unbalanced. With plain sum-to-zero coding, a deviation in one tiny group would force an equal and opposite deviation in every other group, which is a strange constraint. With population weights, a tiny group moving only nudges the huge reference group a tiny amount. (With equal $w_j$ the two codings coincide.)
+
+```{python}
+#| label: deviation-coding
+#| code-fold: True
+
+# rows = planet types (levels), columns = the k-1 deviation features D_1..D_{k-1}
+C_pop = np.vstack([np.eye(K - 1), -(w[:-1] / w[-1])[None, :]])
+pd.DataFrame(C_pop, index=levels, columns=[f"D_{j+1} ({levels[j]})" for j in range(K - 1)]).round(3)
+```
+
+Each `D_j` multiplies the group's main-effect column *and* its three spline-interaction columns. The coefficients of those four columns, written $\delta_j = (\delta_{j0}, \delta_{j1}, \delta_{j2}, \delta_{j3})$, are the deviation of group $j$'s whole curve from the global curve. They form a natural **group of four coefficients**: either type $j$ follows the global curve, or it doesn't. Keep this grouping in mind.
+
+```{python}
+#| label: deviation-design
+#| code-fold: True
+
+def glob_design(B):
+    return np.hstack([np.ones((len(B), 1)), B])                 # global block: intercept + spline (4 cols)
+
+def dev_design(B, g):
+    D = C_pop[g]                                                # n x (K-1)
+    base = np.hstack([np.ones((len(B), 1)), B])                 # [1, b1, b2, b3]
+    return np.hstack([D[:, [j]] * base for j in range(K - 1)])  # n x 20; block j = columns 4j..4j+3
+
+G = glob_design(B)               # unpenalized (global) columns
+Xd = dev_design(B, g)            # penalized (deviation) columns
+J, KJ = K - 1, 4                 # 5 explicit groups of 4 coefficients
+print("global columns:", G.shape[1], "| deviation columns:", Xd.shape[1])
+
+# check: same column space as the full interaction model => same unpenalized fit
+full_dev = sm.OLS(y, np.hstack([G, Xd])).fit()
+
+```

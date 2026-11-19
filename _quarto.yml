@@ -26,6 +26,9 @@ book:
       chapters:
       - regularization.qmd
       - bayes_lasso.qmd
+    - part: "Interactions"
+      chapters:
+      - group_lasso.qmd
     - summary.qmd
     - references.qmd
     - part: "Appendix"
