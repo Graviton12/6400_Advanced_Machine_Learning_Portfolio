@@ -350,12 +350,11 @@ window.Quarto = {
   <li><a href="#setup-and-and-data" id="toc-setup-and-and-data" class="nav-link" data-scroll-target="#setup-and-and-data"><span class="header-section-number">10.2</span> Setup and and data</a></li>
   <li><a href="#categorical-variables-and-interactions" id="toc-categorical-variables-and-interactions" class="nav-link" data-scroll-target="#categorical-variables-and-interactions"><span class="header-section-number">10.3</span> Categorical variables and interactions</a>
   <ul class="collapse">
-  <li><a href="#a-flexible-curve-for-one-predictor" id="toc-a-flexible-curve-for-one-predictor" class="nav-link" data-scroll-target="#a-flexible-curve-for-one-predictor"><span class="header-section-number">10.3.1</span> A flexible curve for one predictor</a></li>
-  <li><a href="#the-sharing-ladder" id="toc-the-sharing-ladder" class="nav-link" data-scroll-target="#the-sharing-ladder"><span class="header-section-number">10.3.2</span> The sharing ladder</a></li>
-  <li><a href="#fully-shared-one-curve-for-everyone" id="toc-fully-shared-one-curve-for-everyone" class="nav-link" data-scroll-target="#fully-shared-one-curve-for-everyone"><span class="header-section-number">10.3.3</span> Fully shared: one curve for everyone</a></li>
-  <li><a href="#partial-sharing-same-shape-shifted" id="toc-partial-sharing-same-shape-shifted" class="nav-link" data-scroll-target="#partial-sharing-same-shape-shifted"><span class="header-section-number">10.3.4</span> Partial sharing: same shape, shifted</a></li>
-  <li><a href="#full-interaction-the-shape-differs-by-type" id="toc-full-interaction-the-shape-differs-by-type" class="nav-link" data-scroll-target="#full-interaction-the-shape-differs-by-type"><span class="header-section-number">10.3.5</span> Full interaction: the shape differs by type</a></li>
-  <li><a href="#no-sharing-fully-separate-models" id="toc-no-sharing-fully-separate-models" class="nav-link" data-scroll-target="#no-sharing-fully-separate-models"><span class="header-section-number">10.3.6</span> No sharing: fully separate models</a></li>
+  <li><a href="#implimenting-a-restricted-cubic-spline" id="toc-implimenting-a-restricted-cubic-spline" class="nav-link" data-scroll-target="#implimenting-a-restricted-cubic-spline"><span class="header-section-number">10.3.1</span> Implimenting a Restricted Cubic Spline</a></li>
+  <li><a href="#fully-shared-one-curve-for-everyone" id="toc-fully-shared-one-curve-for-everyone" class="nav-link" data-scroll-target="#fully-shared-one-curve-for-everyone"><span class="header-section-number">10.3.2</span> Fully shared: one curve for everyone</a></li>
+  <li><a href="#partial-sharing-same-shape-shifted" id="toc-partial-sharing-same-shape-shifted" class="nav-link" data-scroll-target="#partial-sharing-same-shape-shifted"><span class="header-section-number">10.3.3</span> Partial sharing: same shape, shifted</a></li>
+  <li><a href="#full-interaction-the-shape-differs-by-type" id="toc-full-interaction-the-shape-differs-by-type" class="nav-link" data-scroll-target="#full-interaction-the-shape-differs-by-type"><span class="header-section-number">10.3.4</span> Full interaction: the shape differs by type</a></li>
+  <li><a href="#no-sharing-fully-separate-models" id="toc-no-sharing-fully-separate-models" class="nav-link" data-scroll-target="#no-sharing-fully-separate-models"><span class="header-section-number">10.3.5</span> No sharing: fully separate models</a></li>
   </ul></li>
   <li><a href="#the-need-for-group-specific-regularization" id="toc-the-need-for-group-specific-regularization" class="nav-link" data-scroll-target="#the-need-for-group-specific-regularization"><span class="header-section-number">10.4</span> The need for group-specific regularization</a>
   <ul class="collapse">
@@ -438,51 +437,136 @@ window.Quarto = {
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> statsmodels.nonparametric.smoothers_lowess <span class="im">import</span> lowess</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> lasso_path</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> KFold</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>plt.rcParams.update({</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"figure.dpi"</span>: <span class="dv">110</span>, <span class="st">"axes.spines.top"</span>: <span class="va">False</span>, <span class="st">"axes.spines.right"</span>: <span class="va">False</span>,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.grid"</span>: <span class="va">True</span>, <span class="st">"grid.color"</span>: <span class="st">"#e6e6e3"</span>, <span class="st">"grid.linewidth"</span>: <span class="fl">0.6</span>,</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.edgecolor"</span>: <span class="st">"#8a8a85"</span>, <span class="st">"axes.labelcolor"</span>: <span class="st">"#2b2b2a"</span>,</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"xtick.color"</span>: <span class="st">"#52514e"</span>, <span class="st">"ytick.color"</span>: <span class="st">"#52514e"</span>, <span class="st">"font.size"</span>: <span class="dv">9</span>,</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>INK, MUTED <span class="op">=</span> <span class="st">"#2b2b2a"</span>, <span class="st">"#8a8a85"</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># fixed categorical order (one colour per planet type, never reassigned)</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>PALETTE <span class="op">=</span> [<span class="st">"#2a78d6"</span>, <span class="st">"#eb6834"</span>, <span class="st">"#1baf7a"</span>, <span class="st">"#eda100"</span>, <span class="st">"#e87ba4"</span>, <span class="st">"#6250d6"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> display</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>plt.rcParams.update({</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"figure.dpi"</span>: <span class="dv">110</span>, <span class="st">"axes.spines.top"</span>: <span class="va">False</span>, <span class="st">"axes.spines.right"</span>: <span class="va">False</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.grid"</span>: <span class="va">True</span>, <span class="st">"grid.color"</span>: <span class="st">"#e6e6e3"</span>, <span class="st">"grid.linewidth"</span>: <span class="fl">0.6</span>,</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"axes.edgecolor"</span>: <span class="st">"#8a8a85"</span>, <span class="st">"axes.labelcolor"</span>: <span class="st">"#2b2b2a"</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"xtick.color"</span>: <span class="st">"#52514e"</span>, <span class="st">"ytick.color"</span>: <span class="st">"#52514e"</span>, <span class="st">"font.size"</span>: <span class="dv">9</span>,</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>INK, MUTED <span class="op">=</span> <span class="st">"#2b2b2a"</span>, <span class="st">"#8a8a85"</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># fixed categorical order (one colour per planet type, never reassigned)</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>PALETTE <span class="op">=</span> [<span class="st">"#2a78d6"</span>, <span class="st">"#eb6834"</span>, <span class="st">"#1baf7a"</span>, <span class="st">"#eda100"</span>, <span class="st">"#e87ba4"</span>, <span class="st">"#6250d6"</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 <p>Each planet observation has a Earth-Like Similarity Index (ESI) score where if the ESI is closer to 1, more Earth-Like and if the ESI is closer ot 0, less Earth-Like. This is the target variable. The predictor variables include numerical feature equilibrium temperature in Kelvin and categorical feature planet type. The sample size of planets n = 5,358 after dropping rows with missing values.</p>
 <p>Planet types are ordered by increasing mass, so the <strong>last level, Jovian, is the largest group and serves as the reference level</strong> throughout.</p>
-<div id="cell-load-data" class="cell" data-execution_count="2">
+<div id="load-data" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># loading the data</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># loading the data and taking the log of the planet equilibrium temp</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>raw <span class="op">=</span> pd.read_csv(<span class="st">"habitable_worlds_catalog_trimmed.csv"</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>planets <span class="op">=</span> raw.dropna(subset<span class="op">=</span>[<span class="st">"P_ESI"</span>, <span class="st">"P_TEMP_EQUIL"</span>, <span class="st">"P_TYPE"</span>]).copy()</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>planets[<span class="st">"logT"</span>] <span class="op">=</span> np.log10(planets[<span class="st">"P_TEMP_EQUIL"</span>])</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># specificy the level/categories of the categorical variable planet type</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># specify the level/categories of the categorical variable planet type</span></span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>levels <span class="op">=</span> [<span class="st">"Miniterran"</span>, <span class="st">"Subterran"</span>, <span class="st">"Terran"</span>, <span class="st">"Superterran"</span>, <span class="st">"Neptunian"</span>, <span class="st">"Jovian"</span>]</span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>K <span class="op">=</span> <span class="bu">len</span>(levels)</span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>planets[<span class="st">"P_TYPE"</span>] <span class="op">=</span> pd.Categorical(planets[<span class="st">"P_TYPE"</span>], categories<span class="op">=</span>levels)</span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>planets <span class="op">=</span> planets.reset_index(drop<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> planets[<span class="st">"logT"</span>].to_numpy()</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> planets[<span class="st">"P_ESI"</span>].to_numpy()</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> planets[<span class="st">"P_TYPE"</span>].cat.codes.to_numpy()      </span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="bu">len</span>(y)</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>n_g <span class="op">=</span> np.bincount(g, minlength<span class="op">=</span>K)</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>w <span class="op">=</span> n_g <span class="op">/</span> n </span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co"># display the data</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Complete cases: </span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">  (of </span><span class="sc">{</span><span class="bu">len</span>(raw)<span class="sc">}</span><span class="ss"> rows)"</span>)</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>pd.DataFrame({<span class="st">"P_TYPE"</span>: levels, <span class="st">"n"</span>: n_g, <span class="st">"proportion"</span>: w.<span class="bu">round</span>(<span class="dv">4</span>),</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>              <span class="st">"mean ESI"</span>: [y[g <span class="op">==</span> j].mean().<span class="bu">round</span>(<span class="dv">3</span>) <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K)]})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># specify outcome var, numerical predictor var, and categorical predictor var</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> planets[<span class="st">"logT"</span>].to_numpy()</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> planets[<span class="st">"P_ESI"</span>].to_numpy()</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> planets[<span class="st">"P_TYPE"</span>].cat.codes.to_numpy()  </span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="bu">len</span>(y)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>n_g <span class="op">=</span> np.bincount(g, minlength<span class="op">=</span>K)</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>w <span class="op">=</span> n_g <span class="op">/</span> n </span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co"># preview the original data (all original columns)</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>display(raw.head())</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="co"># display the data</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Complete cases: </span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">  (of </span><span class="sc">{</span><span class="bu">len</span>(raw)<span class="sc">}</span><span class="ss"> rows)"</span>)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>pd.DataFrame({<span class="st">"P_TYPE"</span>: levels, <span class="st">"n"</span>: n_g, <span class="st">"proportion"</span>: w.<span class="bu">round</span>(<span class="dv">4</span>),</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>              <span class="st">"mean ESI"</span>: [y[g <span class="op">==</span> j].mean().<span class="bu">round</span>(<span class="dv">3</span>) <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K)]})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
+<div id="load-data-1" class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">P_NAME</th>
+<th data-quarto-table-cell-role="th">P_MASS</th>
+<th data-quarto-table-cell-role="th">P_RADIUS</th>
+<th data-quarto-table-cell-role="th">P_PERIOD</th>
+<th data-quarto-table-cell-role="th">P_SEMI_MAJOR_AXIS</th>
+<th data-quarto-table-cell-role="th">P_TEMP_EQUIL</th>
+<th data-quarto-table-cell-role="th">P_TYPE</th>
+<th data-quarto-table-cell-role="th">P_ESI</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>OGLE-2016-BLG-1227L b</td>
+<td>250.00</td>
+<td>13.90</td>
+<td>NaN</td>
+<td>3.4000</td>
+<td>NaN</td>
+<td>Jovian</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Kepler-276 c</td>
+<td>16.60</td>
+<td>2.90</td>
+<td>31.884000</td>
+<td>0.1994</td>
+<td>541.98483</td>
+<td>Neptunian</td>
+<td>0.272032</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>Kepler-829 b</td>
+<td>5.10</td>
+<td>2.11</td>
+<td>6.883376</td>
+<td>0.0678</td>
+<td>1001.11710</td>
+<td>Superterran</td>
+<td>0.254763</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>K2-283 b</td>
+<td>12.20</td>
+<td>3.52</td>
+<td>1.921036</td>
+<td>0.0291</td>
+<td>1104.46820</td>
+<td>Neptunian</td>
+<td>0.193906</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>Kepler-477 b</td>
+<td>4.94</td>
+<td>2.07</td>
+<td>11.119907</td>
+<td>0.0911</td>
+<td>681.30334</td>
+<td>Superterran</td>
+<td>0.276721</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Complete cases: 5358  (of 5599 rows)</code></pre>
 </div>
-<div id="load-data" class="cell-output cell-output-display" data-execution_count="35">
+<div id="load-data-2" class="cell-output cell-output-display" data-execution_count="60">
 <div>
 
 
@@ -546,20 +630,51 @@ window.Quarto = {
 </div>
 </div>
 <p>The groups are badly unbalanced: one group has thousands of planets and another has fewer than ten.</p>
-<div id="cell-fig-raw" class="cell" data-execution_count="3">
+<div id="cell-fig-raw-unlogged" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">5.4</span>), sharex<span class="op">=</span><span class="va">True</span>, sharey<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> j, ax <span class="kw">in</span> <span class="bu">enumerate</span>(axes.flat):</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> g <span class="op">==</span> j</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    ax.scatter(x[m], y[m], s<span class="op">=</span><span class="dv">7</span>, alpha<span class="op">=</span><span class="fl">0.5</span>, color<span class="op">=</span>PALETTE[j], linewidths<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"</span><span class="sc">{</span>levels[j]<span class="sc">}</span><span class="ss"> (n=</span><span class="sc">{</span>n_g[j]<span class="sc">}</span><span class="ss">)"</span>, fontsize<span class="op">=</span><span class="fl">9.5</span>, color<span class="op">=</span>INK, loc<span class="op">=</span><span class="st">"left"</span>)</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax <span class="kw">in</span> axes[<span class="dv">1</span>]:</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="er">\</span><span class="vs">log_</span><span class="op">{10}</span><span class="dv">$</span><span class="vs"> equilibrium temp </span><span class="kw">(</span><span class="vs">K</span><span class="kw">)</span><span class="vs">"</span>)</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax <span class="kw">in</span> axes[:, <span class="dv">0</span>]:</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">"ESI"</span>)</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>x_raw <span class="op">=</span> planets[<span class="st">"P_TEMP_EQUIL"</span>].to_numpy()</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">5.4</span>), sharex<span class="op">=</span><span class="va">True</span>, sharey<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> j, ax <span class="kw">in</span> <span class="bu">enumerate</span>(axes.flat):</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> g <span class="op">==</span> j</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    ax.scatter(x_raw[m], y[m], s<span class="op">=</span><span class="dv">7</span>, alpha<span class="op">=</span><span class="fl">0.5</span>, color<span class="op">=</span>PALETTE[j], linewidths<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"</span><span class="sc">{</span>levels[j]<span class="sc">}</span><span class="ss"> (n=</span><span class="sc">{</span>n_g[j]<span class="sc">}</span><span class="ss">)"</span>, fontsize<span class="op">=</span><span class="fl">9.5</span>, color<span class="op">=</span>INK, loc<span class="op">=</span><span class="st">"left"</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax <span class="kw">in</span> axes[<span class="dv">1</span>]:</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">"equilibrium temp (K)"</span>)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax <span class="kw">in</span> axes[:, <span class="dv">0</span>]:</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">"ESI"</span>)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-display">
+<div id="fig-raw-unlogged" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-raw-unlogged-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="group_lasso_files/figure-html/fig-raw-unlogged-output-1.png" width="1092" height="585" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-raw-unlogged-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10.1: ESI against equilibrium temperature on the raw scale (no log), one panel per planet type. Compare with the log10 version below.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Because the planet equilibrium temperature (K) contains a wide range of values from ~1 K to ~7,800 K, the x-axis is stretched and the graph clusters together due to a few outlier planets whose temperatures are near the ~7,800 K range. Therefore, we will take the log10 of the equilibrium temperature.</p>
+<div id="cell-fig-raw" class="cell" data-execution_count="4">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="fl">5.4</span>), sharex<span class="op">=</span><span class="va">True</span>, sharey<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> j, ax <span class="kw">in</span> <span class="bu">enumerate</span>(axes.flat):</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> g <span class="op">==</span> j</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    ax.scatter(x[m], y[m], s<span class="op">=</span><span class="dv">7</span>, alpha<span class="op">=</span><span class="fl">0.5</span>, color<span class="op">=</span>PALETTE[j], linewidths<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"</span><span class="sc">{</span>levels[j]<span class="sc">}</span><span class="ss"> (n=</span><span class="sc">{</span>n_g[j]<span class="sc">}</span><span class="ss">)"</span>, fontsize<span class="op">=</span><span class="fl">9.5</span>, color<span class="op">=</span>INK, loc<span class="op">=</span><span class="st">"left"</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax <span class="kw">in</span> axes[<span class="dv">1</span>]:</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="er">\</span><span class="vs">log_</span><span class="op">{10}</span><span class="dv">$</span><span class="vs"> equilibrium temp </span><span class="kw">(</span><span class="vs">K</span><span class="kw">)</span><span class="vs">"</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax <span class="kw">in</span> axes[:, <span class="dv">0</span>]:</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">"ESI"</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-raw" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -568,7 +683,7 @@ window.Quarto = {
 <img src="group_lasso_files/figure-html/fig-raw-output-1.png" width="1091" height="585" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-raw-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10.1: ESI against log10 equilibrium temperature, one panel per planet type. Group sizes range from 8 to over 1,500 planets.
+Figure&nbsp;10.2: ESI against log10 equilibrium temperature, one panel per planet type. Group sizes range from 8 to over 1,500 planets.
 </figcaption>
 </figure>
 </div>
@@ -577,63 +692,102 @@ Figure&nbsp;10.1: ESI against log10 equilibrium temperature, one panel per plane
 </section>
 <section id="categorical-variables-and-interactions" class="level2" data-number="10.3">
 <h2 data-number="10.3" class="anchored" data-anchor-id="categorical-variables-and-interactions"><span class="header-section-number">10.3</span> Categorical variables and interactions</h2>
-<section id="a-flexible-curve-for-one-predictor" class="level3" data-number="10.3.1">
-<h3 data-number="10.3.1" class="anchored" data-anchor-id="a-flexible-curve-for-one-predictor"><span class="header-section-number">10.3.1</span> A flexible curve for one predictor</h3>
-<p>To let the effect of temperature be non-linear, we use a restricted cubic spline. With four knots the basis has three columns, <span class="math inline">\(x\)</span>, <span class="math inline">\(x'\)</span>, <span class="math inline">\(x''\)</span>. Tthe knots are fixed once and reused in every model, so the models differ only in <em>which coefficients are shared across groups</em>, not in the basis.</p>
-<div id="rcs-basis" class="cell" data-execution_count="4">
+<section id="implimenting-a-restricted-cubic-spline" class="level3" data-number="10.3.1">
+<h3 data-number="10.3.1" class="anchored" data-anchor-id="implimenting-a-restricted-cubic-spline"><span class="header-section-number">10.3.1</span> Implimenting a Restricted Cubic Spline</h3>
+<p>To let the effect of temperature be non-linear, we use a restricted cubic spline. With four knots the basis has three columns, <span class="math inline">\(x\)</span>, <span class="math inline">\(x'\)</span>, <span class="math inline">\(x''\)</span>. The knots are fixed once and reused in every model, so the models differ only in <strong>which coefficients are shared across groups</strong>, not in the basis.</p>
+<div id="rcs-basis" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rcs(v, knots):</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># restricted cubic spline basis: returns len(knots)-1 columns (x, x', x'', ...)</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> np.asarray(knots, <span class="bu">float</span>)<span class="op">;</span> k <span class="op">=</span> <span class="bu">len</span>(t)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    pos <span class="op">=</span> <span class="kw">lambda</span> u: np.maximum(u, <span class="fl">0.0</span>) <span class="op">**</span> <span class="dv">3</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    cols <span class="op">=</span> [v]</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(k <span class="op">-</span> <span class="dv">2</span>):</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        cols.append((pos(v <span class="op">-</span> t[j])</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>                     <span class="op">-</span> pos(v <span class="op">-</span> t[k <span class="op">-</span> <span class="dv">2</span>]) <span class="op">*</span> (t[k <span class="op">-</span> <span class="dv">1</span>] <span class="op">-</span> t[j]) <span class="op">/</span> (t[k <span class="op">-</span> <span class="dv">1</span>] <span class="op">-</span> t[k <span class="op">-</span> <span class="dv">2</span>])</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                     <span class="op">+</span> pos(v <span class="op">-</span> t[k <span class="op">-</span> <span class="dv">1</span>]) <span class="op">*</span> (t[k <span class="op">-</span> <span class="dv">2</span>] <span class="op">-</span> t[j]) <span class="op">/</span> (t[k <span class="op">-</span> <span class="dv">1</span>] <span class="op">-</span> t[k <span class="op">-</span> <span class="dv">2</span>]))</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>                    <span class="op">/</span> (t[k <span class="op">-</span> <span class="dv">1</span>] <span class="op">-</span> t[<span class="dv">0</span>]) <span class="op">**</span> <span class="dv">2</span>)</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.column_stack(cols)</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>knots <span class="op">=</span> np.quantile(x, [<span class="fl">0.05</span>, <span class="fl">0.35</span>, <span class="fl">0.65</span>, <span class="fl">0.95</span>])</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>B <span class="op">=</span> rcs(x, knots)</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"knots:"</span>, knots.<span class="bu">round</span>(<span class="dv">3</span>), <span class="st">"| basis columns:"</span>, B.shape[<span class="dv">1</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rcs(v, knots):</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># restricted cubic spline basis: returns len(knots)-1 columns (x, x', x'', ...)</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> np.asarray(knots, <span class="bu">float</span>)<span class="op">;</span> k <span class="op">=</span> <span class="bu">len</span>(t)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    pos <span class="op">=</span> <span class="kw">lambda</span> u: np.maximum(u, <span class="fl">0.0</span>) <span class="op">**</span> <span class="dv">3</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    cols <span class="op">=</span> [v]</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(k <span class="op">-</span> <span class="dv">2</span>):</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        cols.append((pos(v <span class="op">-</span> t[j])</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                     <span class="op">-</span> pos(v <span class="op">-</span> t[k <span class="op">-</span> <span class="dv">2</span>]) <span class="op">*</span> (t[k <span class="op">-</span> <span class="dv">1</span>] <span class="op">-</span> t[j]) <span class="op">/</span> (t[k <span class="op">-</span> <span class="dv">1</span>] <span class="op">-</span> t[k <span class="op">-</span> <span class="dv">2</span>])</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>                     <span class="op">+</span> pos(v <span class="op">-</span> t[k <span class="op">-</span> <span class="dv">1</span>]) <span class="op">*</span> (t[k <span class="op">-</span> <span class="dv">2</span>] <span class="op">-</span> t[j]) <span class="op">/</span> (t[k <span class="op">-</span> <span class="dv">1</span>] <span class="op">-</span> t[k <span class="op">-</span> <span class="dv">2</span>]))</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>                    <span class="op">/</span> (t[k <span class="op">-</span> <span class="dv">1</span>] <span class="op">-</span> t[<span class="dv">0</span>]) <span class="op">**</span> <span class="dv">2</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.column_stack(cols)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>knots <span class="op">=</span> np.quantile(x, [<span class="fl">0.05</span>, <span class="fl">0.35</span>, <span class="fl">0.65</span>, <span class="fl">0.95</span>])</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>B <span class="op">=</span> rcs(x, knots)</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"knots:"</span>, knots.<span class="bu">round</span>(<span class="dv">3</span>), <span class="st">"| basis columns:"</span>, B.shape[<span class="dv">1</span>])</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>knots: [2.184 2.754 2.956 3.21 ] | basis columns: 3</code></pre>
 </div>
 </div>
-</section>
-<section id="the-sharing-ladder" class="level3" data-number="10.3.2">
-<h3 data-number="10.3.2" class="anchored" data-anchor-id="the-sharing-ladder"><span class="header-section-number">10.3.2</span> The sharing ladder</h3>
 <p>Write <span class="math inline">\(b(x) = (x, x', x'')\)</span> for the spline basis and <span class="math inline">\(I_j\)</span> for the indicator of planet type <span class="math inline">\(j\)</span> (Jovian is the reference). The class notes walk up a ladder of models that share progressively less information between groups:</p>
-<p><strong>Fully shared</strong> (one curve for every planet type; 4 coefficients): <span class="math display">\[E[\text{ESI}\mid x] = \beta_0 + \beta_1 x + \beta_2 x' + \beta_3 x''\]</span></p>
+<p><strong>Fully shared</strong> (one curve for every planet type; 4 coefficients): <span class="math display">\[E[\text{ESI}\mid x] = \beta_0 + \beta_1 x + \beta_2 x' + \beta_3 x''\]</span> <span class="math display">\[E[\text{ESI} \mid \text{temp}] = \beta_0 + \beta_1 \text{temp} + \beta_2 \text{temp}' + \beta_3 \text{temp}''\]</span></p>
 <p><strong>Partial sharing</strong> (same shape, a different level for each type; 4 + 5 = 9 coefficients): <span class="math display">\[E[\text{ESI}\mid x, \text{type}] = \beta_0 + \beta_1 x + \beta_2 x' + \beta_3 x'' + \sum_{j=1}^{5}\gamma_j I_j\]</span></p>
+<p><span class="math display">\[
+\begin{align*}
+E[\text{ESI}\mid \text{temp}, \text{type}] &amp;= \beta_0 + \beta_1\,\text{temp} + \beta_2\,\text{temp}^{\prime} + \beta_3\,\text{temp}^{\prime\prime} \\
+&amp;\quad + \beta_4\,I(\text{Miniterran}) + \beta_5\,I(\text{Subterran}) + \beta_6\,I(\text{Terran}) \\
+&amp;\quad + \beta_7\,I(\text{Superterran}) + \beta_8\,I(\text{Neptunian})
+\end{align*}
+\]</span></p>
 <p><strong>Full interaction</strong> (every type gets its own curve; <span class="math inline">\(4 + 5 + 15 = 24\)</span> coefficients): <span class="math display">\[E[\text{ESI}\mid x, \text{type}] = \beta_0 + \sum_{m=1}^3 \beta_m b_m(x) + \sum_{j=1}^{5}\left[\gamma_j I_j + \sum_{m=1}^3 \delta_{jm}\, I_j\, b_m(x)\right]\]</span></p>
+<p><span class="math display">\[
+\begin{align*}
+E[\text{ESI}\mid \text{temp}, \text{type}] &amp;= \beta_0 + \beta_1\,\text{temp} + \beta_2\,\text{temp}^{\prime} + \beta_3\,\text{temp}^{\prime\prime} \\
+&amp;\quad + \beta_4\,I(\text{Miniterran}) + \beta_5\,\text{temp}\cdot I(\text{Miniterran}) + \beta_6\,\text{temp}^{\prime}\cdot I(\text{Miniterran}) + \beta_7\,\text{temp}^{\prime\prime}\cdot I(\text{Miniterran}) \\
+&amp;\quad + \beta_8\,I(\text{Subterran}) + \beta_9\,\text{temp}\cdot I(\text{Subterran}) + \beta_{10}\,\text{temp}^{\prime}\cdot I(\text{Subterran}) + \beta_{11}\,\text{temp}^{\prime\prime}\cdot I(\text{Subterran}) \\
+&amp;\quad + \beta_{12}\,I(\text{Terran}) + \beta_{13}\,\text{temp}\cdot I(\text{Terran}) + \beta_{14}\,\text{temp}^{\prime}\cdot I(\text{Terran}) + \beta_{15}\,\text{temp}^{\prime\prime}\cdot I(\text{Terran}) \\
+&amp;\quad + \beta_{16}\,I(\text{Superterran}) + \beta_{17}\,\text{temp}\cdot I(\text{Superterran}) + \beta_{18}\,\text{temp}^{\prime}\cdot I(\text{Superterran}) + \beta_{19}\,\text{temp}^{\prime\prime}\cdot I(\text{Superterran}) \\
+&amp;\quad + \beta_{20}\,I(\text{Neptunian}) + \beta_{21}\,\text{temp}\cdot I(\text{Neptunian}) + \beta_{22}\,\text{temp}^{\prime}\cdot I(\text{Neptunian}) + \beta_{23}\,\text{temp}^{\prime\prime}\cdot I(\text{Neptunian})
+\end{align*}
+\]</span></p>
+<p><strong>No sharing</strong> (one separate model per planet type; 4 coefficients each, 6 × 4 = 24 in total):</p>
+<p><span class="math display">\[
+\begin{align*}
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Miniterran}] &amp;= \beta^{(\text{Mini})}_0 + \beta^{(\text{Mini})}_1\,\text{temp} + \beta^{(\text{Mini})}_2\,\text{temp}^{\prime} + \beta^{(\text{Mini})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Subterran}] &amp;= \beta^{(\text{Sub})}_0 + \beta^{(\text{Sub})}_1\,\text{temp} + \beta^{(\text{Sub})}_2\,\text{temp}^{\prime} + \beta^{(\text{Sub})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Terran}] &amp;= \beta^{(\text{Ter})}_0 + \beta^{(\text{Ter})}_1\,\text{temp} + \beta^{(\text{Ter})}_2\,\text{temp}^{\prime} + \beta^{(\text{Ter})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Superterran}] &amp;= \beta^{(\text{Sup})}_0 + \beta^{(\text{Sup})}_1\,\text{temp} + \beta^{(\text{Sup})}_2\,\text{temp}^{\prime} + \beta^{(\text{Sup})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Neptunian}] &amp;= \beta^{(\text{Nep})}_0 + \beta^{(\text{Nep})}_1\,\text{temp} + \beta^{(\text{Nep})}_2\,\text{temp}^{\prime} + \beta^{(\text{Nep})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Jovian}] &amp;= \beta^{(\text{Jov})}_0 + \beta^{(\text{Jov})}_1\,\text{temp} + \beta^{(\text{Jov})}_2\,\text{temp}^{\prime} + \beta^{(\text{Jov})}_3\,\text{temp}^{\prime\prime}
+\end{align*}
+\]</span></p>
 <p>The <span class="math inline">\(\gamma_j\)</span> and <span class="math inline">\(\delta_{jm}\)</span> are the <em>interaction</em> coefficients: they say how type <span class="math inline">\(j\)</span> departs from the reference. For <span class="math inline">\(G\)</span> groups and a spline with <span class="math inline">\(p\)</span> terms, the interaction model spends <span class="math inline">\((G-1)(p+1)\)</span> extra coefficients, and each group’s curve is estimated from <strong>only that group’s rows</strong>.</p>
-<div id="cell-designs" class="cell" data-execution_count="5">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> treat_dummies(g):</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.eye(K)[g][:, :<span class="op">-</span><span class="dv">1</span>] <span class="co"># reference = last level (Jovian)</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> design(kind, B, g):</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    ones, T <span class="op">=</span> np.ones((<span class="bu">len</span>(B), <span class="dv">1</span>)), treat_dummies(g)</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> kind <span class="op">==</span> <span class="st">"shared"</span>:</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.hstack([ones, B])</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> kind <span class="op">==</span> <span class="st">"offset"</span>:</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.hstack([ones, B, T])</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> kind <span class="op">==</span> <span class="st">"interaction"</span>:</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.hstack([ones, B, T] <span class="op">+</span> [B <span class="op">*</span> T[:, [j]] <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K <span class="op">-</span> <span class="dv">1</span>)])</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">ValueError</span>(kind)</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>fits <span class="op">=</span> {k: sm.OLS(y, design(k, B, g)).fit() <span class="cf">for</span> k <span class="kw">in</span> [<span class="st">"shared"</span>, <span class="st">"offset"</span>, <span class="st">"interaction"</span>]}</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>pd.DataFrame({<span class="st">"model"</span>: <span class="bu">list</span>(fits),</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>              <span class="st">"coefficients"</span>: [<span class="bu">int</span>(f.df_model <span class="op">+</span> <span class="dv">1</span>) <span class="cf">for</span> f <span class="kw">in</span> fits.values()],</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>              <span class="st">"in-sample R2"</span>: [<span class="bu">round</span>(f.rsquared, <span class="dv">3</span>) <span class="cf">for</span> f <span class="kw">in</span> fits.values()],</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>              <span class="st">"sigma"</span>: [<span class="bu">round</span>(np.sqrt(f.scale), <span class="dv">4</span>) <span class="cf">for</span> f <span class="kw">in</span> fits.values()]})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-<div id="designs" class="cell-output cell-output-display" data-execution_count="38">
+<p>The groups within the categorical variable can be converted into indicator/dummy/binary variables</p>
+<div id="cell-designs" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># convert the groups within the categorical variable into indicator/dummy variables </span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> treat_dummies(g):</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># g holds one integer per planet, 0 to 5, for the six types.</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># np.eye(K) is the 6×6 identity matrix. </span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Indexing it with [g] picks row g[i] for each planet, so planet i gets a row with a 1 in its type’s position and 0s elsewhere. </span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># The result is an n×6 table of indicators.</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># [:, :-1] drops the last column (Jovian), leaving n×5. A planet that is Jovian is all zeros, which is what makes Jovian the reference level.</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.eye(K)[g][:, :<span class="op">-</span><span class="dv">1</span>] <span class="co"># reference group = last level (Jovian)</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="co"># builds the design matrix, the table of predictor columns, for one of the three models</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="co"># B is the spline basis (n×3: the columns temp, temp', temp'')</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co"># kind picks the model.</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> design(kind, B, g):</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ones is a column of 1s that supplies the intercept (n×1)</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    ones, T <span class="op">=</span> np.ones((<span class="bu">len</span>(B), <span class="dv">1</span>)), treat_dummies(g)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Fully sharing: hstack places arrays side by side: intercept + 3 spline columns = 4 columns</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> kind <span class="op">==</span> <span class="st">"shared"</span>:</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.hstack([ones, B])</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Partial sharing: the same plus the 5 indicators = 9 columns</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> kind <span class="op">==</span> <span class="st">"offset"</span>:</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.hstack([ones, B, T])</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Full interaction: the 9 columns above, plus the products of the spline columns and each indicator</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> kind <span class="op">==</span> <span class="st">"interaction"</span>:</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.hstack([ones, B, T] <span class="op">+</span> [B <span class="op">*</span> T[:, [j]] <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K <span class="op">-</span> <span class="dv">1</span>)])</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># If kind is any other string, stop with an error</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">ValueError</span>(kind)</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a><span class="co"># For each model name, build its design matrix, fit ordinary least squares to predict ESI (y), and store the fitted model in a dictionary under that name</span></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>fits <span class="op">=</span> {k: sm.OLS(y, design(k, B, g)).fit() <span class="cf">for</span> k <span class="kw">in</span> [<span class="st">"shared"</span>, <span class="st">"offset"</span>, <span class="st">"interaction"</span>]}</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>pd.DataFrame({<span class="st">"model"</span>: <span class="bu">list</span>(fits),</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>              <span class="st">"coefficients"</span>: [<span class="bu">int</span>(f.df_model <span class="op">+</span> <span class="dv">1</span>) <span class="cf">for</span> f <span class="kw">in</span> fits.values()],</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>              <span class="st">"in-sample R2"</span>: [<span class="bu">round</span>(f.rsquared, <span class="dv">3</span>) <span class="cf">for</span> f <span class="kw">in</span> fits.values()],</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>              <span class="st">"sigma"</span>: [<span class="bu">round</span>(np.sqrt(f.scale), <span class="dv">4</span>) <span class="cf">for</span> f <span class="kw">in</span> fits.values()]})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="designs" class="cell-output cell-output-display" data-execution_count="64">
 <div>
 
 
@@ -676,36 +830,36 @@ Figure&nbsp;10.1: ESI against log10 equilibrium temperature, one panel per plane
 </div>
 </div>
 <p>To plot each fitted curve we evaluate it over the observed temperature range of each group.</p>
-<div id="curve-helpers" class="cell" data-execution_count="6">
+<div id="curve-helpers" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>grid <span class="op">=</span> {j: np.linspace(x[g <span class="op">==</span> j].<span class="bu">min</span>(), x[g <span class="op">==</span> j].<span class="bu">max</span>(), <span class="dv">120</span>) <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K)}</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> ols_curves(kind, fit):</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> {}</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K):</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        xs <span class="op">=</span> grid[j]<span class="op">;</span> Bg <span class="op">=</span> rcs(xs, knots)<span class="op">;</span> gg <span class="op">=</span> np.full(<span class="bu">len</span>(xs), j)</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        sf <span class="op">=</span> fit.get_prediction(design(kind, Bg, gg)).summary_frame(alpha<span class="op">=</span><span class="fl">0.05</span>)</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        out[j] <span class="op">=</span> (xs, sf[<span class="st">"mean"</span>].to_numpy(), sf[<span class="st">"mean_ci_lower"</span>].to_numpy(), sf[<span class="st">"mean_ci_upper"</span>].to_numpy())</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> out</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># preparing the curves for plotting </span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>grid <span class="op">=</span> {j: np.linspace(x[g <span class="op">==</span> j].<span class="bu">min</span>(), x[g <span class="op">==</span> j].<span class="bu">max</span>(), <span class="dv">120</span>) <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K)}</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> ols_curves(kind, fit):</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> {}</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K):</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        xs <span class="op">=</span> grid[j]<span class="op">;</span> Bg <span class="op">=</span> rcs(xs, knots)<span class="op">;</span> gg <span class="op">=</span> np.full(<span class="bu">len</span>(xs), j)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        sf <span class="op">=</span> fit.get_prediction(design(kind, Bg, gg)).summary_frame(alpha<span class="op">=</span><span class="fl">0.05</span>)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        out[j] <span class="op">=</span> (xs, sf[<span class="st">"mean"</span>].to_numpy(), sf[<span class="st">"mean_ci_lower"</span>].to_numpy(), sf[<span class="st">"mean_ci_upper"</span>].to_numpy())</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> out</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
-<section id="fully-shared-one-curve-for-everyone" class="level3" data-number="10.3.3">
-<h3 data-number="10.3.3" class="anchored" data-anchor-id="fully-shared-one-curve-for-everyone"><span class="header-section-number">10.3.3</span> Fully shared: one curve for everyone</h3>
-<div id="cell-fig-shared" class="cell" data-execution_count="7">
+<section id="fully-shared-one-curve-for-everyone" class="level3" data-number="10.3.2">
+<h3 data-number="10.3.2" class="anchored" data-anchor-id="fully-shared-one-curve-for-everyone"><span class="header-section-number">10.3.2</span> Fully shared: one curve for everyone</h3>
+<div id="cell-fig-shared" class="cell" data-execution_count="8">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>cur <span class="op">=</span> ols_curves(<span class="st">"shared"</span>, fits[<span class="st">"shared"</span>])</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>xs, yh, lo, hi <span class="op">=</span> cur[<span class="dv">5</span>]</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> np.linspace(x.<span class="bu">min</span>(), x.<span class="bu">max</span>(), <span class="dv">200</span>)</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>sf <span class="op">=</span> fits[<span class="st">"shared"</span>].get_prediction(design(<span class="st">"shared"</span>, rcs(xs, knots), np.zeros(<span class="bu">len</span>(xs), <span class="bu">int</span>))).summary_frame()</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">6.2</span>, <span class="fl">3.8</span>))</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>ax.scatter(x, y, s<span class="op">=</span><span class="dv">5</span>, alpha<span class="op">=</span><span class="fl">0.25</span>, color<span class="op">=</span>MUTED, linewidths<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>ax.fill_between(xs, sf[<span class="st">"mean_ci_lower"</span>], sf[<span class="st">"mean_ci_upper"</span>], color<span class="op">=</span>INK, alpha<span class="op">=</span><span class="fl">0.2</span>, lw<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>ax.plot(xs, sf[<span class="st">"mean"</span>], color<span class="op">=</span>INK, lw<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="er">\</span><span class="vs">log_</span><span class="op">{10}</span><span class="dv">$</span><span class="vs"> equilibrium temp </span><span class="kw">(</span><span class="vs">K</span><span class="kw">)</span><span class="vs">"</span>)<span class="op">;</span> ax.set_ylabel(<span class="st">"ESI"</span>)</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>xs <span class="op">=</span> np.linspace(x.<span class="bu">min</span>(), x.<span class="bu">max</span>(), <span class="dv">200</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>sf <span class="op">=</span> fits[<span class="st">"shared"</span>].get_prediction(design(<span class="st">"shared"</span>, rcs(xs, knots), np.zeros(<span class="bu">len</span>(xs), <span class="bu">int</span>))).summary_frame()</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">6.2</span>, <span class="fl">3.8</span>))</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>ax.scatter(x, y, s<span class="op">=</span><span class="dv">5</span>, alpha<span class="op">=</span><span class="fl">0.25</span>, color<span class="op">=</span>MUTED, linewidths<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>ax.fill_between(xs, sf[<span class="st">"mean_ci_lower"</span>], sf[<span class="st">"mean_ci_upper"</span>], color<span class="op">=</span>PALETTE[<span class="dv">0</span>], alpha<span class="op">=</span><span class="fl">0.2</span>, lw<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>ax.plot(xs, sf[<span class="st">"mean"</span>], color<span class="op">=</span>PALETTE[<span class="dv">0</span>], lw<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="er">\</span><span class="vs">log_</span><span class="op">{10}</span><span class="dv">$</span><span class="vs"> equilibrium temp </span><span class="kw">(</span><span class="vs">K</span><span class="kw">)</span><span class="vs">"</span>)<span class="op">;</span> ax.set_ylabel(<span class="st">"ESI"</span>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-shared" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -714,27 +868,27 @@ Figure&nbsp;10.1: ESI against log10 equilibrium temperature, one panel per plane
 <img src="group_lasso_files/figure-html/fig-shared-output-1.png" width="620" height="388" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-shared-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10.2: Fully shared model: one temperature-ESI curve (with 95% confidence band) for all planet types.
+Figure&nbsp;10.3: Fully shared model: one temperature-ESI curve (with 95% confidence band) for all planet types.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="partial-sharing-same-shape-shifted" class="level3" data-number="10.3.4">
-<h3 data-number="10.3.4" class="anchored" data-anchor-id="partial-sharing-same-shape-shifted"><span class="header-section-number">10.3.4</span> Partial sharing: same shape, shifted</h3>
+<section id="partial-sharing-same-shape-shifted" class="level3" data-number="10.3.3">
+<h3 data-number="10.3.3" class="anchored" data-anchor-id="partial-sharing-same-shape-shifted"><span class="header-section-number">10.3.3</span> Partial sharing: same shape, shifted</h3>
 <p>Adding the type main effect, without interactions, gives parallel curves: same shape, different level.</p>
-<div id="cell-fig-offset" class="cell" data-execution_count="8">
+<div id="cell-fig-offset" class="cell" data-execution_count="9">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>cur <span class="op">=</span> ols_curves(<span class="st">"offset"</span>, fits[<span class="st">"offset"</span>])</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">6.6</span>, <span class="dv">4</span>))</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K):</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    xs, yh, lo, hi <span class="op">=</span> cur[j]</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    ax.plot(xs, yh, color<span class="op">=</span>PALETTE[j], lw<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span>levels[j])</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="er">\</span><span class="vs">log_</span><span class="op">{10}</span><span class="dv">$</span><span class="vs"> equilibrium temp </span><span class="kw">(</span><span class="vs">K</span><span class="kw">)</span><span class="vs">"</span>)<span class="op">;</span> ax.set_ylabel(<span class="st">"fitted ESI"</span>)</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>ax.legend(frameon<span class="op">=</span><span class="va">False</span>, ncol<span class="op">=</span><span class="dv">2</span>, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>cur <span class="op">=</span> ols_curves(<span class="st">"offset"</span>, fits[<span class="st">"offset"</span>])</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">6.6</span>, <span class="dv">4</span>))</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K):</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    xs, yh, lo, hi <span class="op">=</span> cur[j]</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    ax.plot(xs, yh, color<span class="op">=</span>PALETTE[j], lw<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span>levels[j])</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="er">\</span><span class="vs">log_</span><span class="op">{10}</span><span class="dv">$</span><span class="vs"> equilibrium temp </span><span class="kw">(</span><span class="vs">K</span><span class="kw">)</span><span class="vs">"</span>)<span class="op">;</span> ax.set_ylabel(<span class="st">"fitted ESI"</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>ax.legend(frameon<span class="op">=</span><span class="va">False</span>, ncol<span class="op">=</span><span class="dv">2</span>, fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-offset" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -743,44 +897,44 @@ Figure&nbsp;10.2: Fully shared model: one temperature-ESI curve (with 95% confid
 <img src="group_lasso_files/figure-html/fig-offset-output-1.png" width="654" height="405" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-offset-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10.3: Partial sharing: the planet-type main effect shifts a common curve up or down. The curves are parallel by construction.
+Figure&nbsp;10.4: Partial sharing: the planet-type main effect shifts a common curve up or down. The curves are parallel by construction.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="full-interaction-the-shape-differs-by-type" class="level3" data-number="10.3.5">
-<h3 data-number="10.3.5" class="anchored" data-anchor-id="full-interaction-the-shape-differs-by-type"><span class="header-section-number">10.3.5</span> Full interaction: the shape differs by type</h3>
+<section id="full-interaction-the-shape-differs-by-type" class="level3" data-number="10.3.4">
+<h3 data-number="10.3.4" class="anchored" data-anchor-id="full-interaction-the-shape-differs-by-type"><span class="header-section-number">10.3.4</span> Full interaction: the shape differs by type</h3>
 <p>Replacing <code>+</code> with <code>*</code> in the formula (here: multiplying every spline column by every type indicator) lets each type have its own curve. The figures shows one panel per group, fitted curve and 95% confidence band.</p>
-<div id="cell-fig-interaction" class="cell" data-execution_count="9">
+<div id="cell-fig-interaction" class="cell" data-execution_count="10">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> facet_curves(curve_sets, ylim<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1</span>), show_points<span class="op">=</span><span class="va">True</span>, figsize<span class="op">=</span>(<span class="fl">10.5</span>, <span class="fl">5.8</span>)):</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""curve_sets: list of dicts {label, curves{j:(xs,yh,lo,hi)}, color, ls, lw, band}."""</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">3</span>, figsize<span class="op">=</span>figsize, sharex<span class="op">=</span><span class="va">False</span>, sharey<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j, ax <span class="kw">in</span> <span class="bu">enumerate</span>(axes.flat):</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>        m <span class="op">=</span> g <span class="op">==</span> j</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> show_points:</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>            ax.scatter(x[m], y[m], s<span class="op">=</span><span class="dv">8</span>, alpha<span class="op">=</span><span class="fl">0.35</span>, color<span class="op">=</span>MUTED, linewidths<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> cs <span class="kw">in</span> curve_sets:</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>            xs, yh, lo, hi <span class="op">=</span> cs[<span class="st">"curves"</span>][j]</span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> cs.get(<span class="st">"band"</span>):</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>                ax.fill_between(xs, lo, hi, color<span class="op">=</span>cs[<span class="st">"color"</span>], alpha<span class="op">=</span><span class="fl">0.2</span>, lw<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>            ax.plot(xs, yh, color<span class="op">=</span>cs[<span class="st">"color"</span>], ls<span class="op">=</span>cs.get(<span class="st">"ls"</span>, <span class="st">"-"</span>), lw<span class="op">=</span>cs.get(<span class="st">"lw"</span>, <span class="dv">2</span>),</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>                    label<span class="op">=</span>cs[<span class="st">"label"</span>])</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>        ax.set_title(<span class="ss">f"</span><span class="sc">{</span>levels[j]<span class="sc">}</span><span class="ss"> (n=</span><span class="sc">{</span>n_g[j]<span class="sc">}</span><span class="ss">)"</span>, fontsize<span class="op">=</span><span class="fl">9.5</span>, color<span class="op">=</span>INK, loc<span class="op">=</span><span class="st">"left"</span>)</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>        ax.set_ylim(<span class="op">*</span>ylim)</span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> ax <span class="kw">in</span> axes[<span class="dv">1</span>]:</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>        ax.set_xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="er">\</span><span class="vs">log_</span><span class="op">{10}</span><span class="dv">$</span><span class="vs"> equilibrium temp </span><span class="kw">(</span><span class="vs">K</span><span class="kw">)</span><span class="vs">"</span>)</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> ax <span class="kw">in</span> axes[:, <span class="dv">0</span>]:</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>        ax.set_ylabel(<span class="st">"ESI"</span>)</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> fig, axes</span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>cur_int <span class="op">=</span> ols_curves(<span class="st">"interaction"</span>, fits[<span class="st">"interaction"</span>])</span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> facet_curves([{<span class="st">"label"</span>: <span class="st">"full interaction"</span>, <span class="st">"curves"</span>: cur_int,</span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>                           <span class="st">"color"</span>: PALETTE[<span class="dv">0</span>], <span class="st">"band"</span>: <span class="va">True</span>}])</span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> facet_curves(curve_sets, ylim<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1</span>), show_points<span class="op">=</span><span class="va">True</span>, figsize<span class="op">=</span>(<span class="fl">10.5</span>, <span class="fl">5.8</span>)):</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""curve_sets: list of dicts {label, curves{j:(xs,yh,lo,hi)}, color, ls, lw, band}."""</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">3</span>, figsize<span class="op">=</span>figsize, sharex<span class="op">=</span><span class="va">False</span>, sharey<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j, ax <span class="kw">in</span> <span class="bu">enumerate</span>(axes.flat):</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>        m <span class="op">=</span> g <span class="op">==</span> j</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> show_points:</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>            ax.scatter(x[m], y[m], s<span class="op">=</span><span class="dv">8</span>, alpha<span class="op">=</span><span class="fl">0.35</span>, color<span class="op">=</span>MUTED, linewidths<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> cs <span class="kw">in</span> curve_sets:</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>            xs, yh, lo, hi <span class="op">=</span> cs[<span class="st">"curves"</span>][j]</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> cs.get(<span class="st">"band"</span>):</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>                ax.fill_between(xs, lo, hi, color<span class="op">=</span>cs[<span class="st">"color"</span>], alpha<span class="op">=</span><span class="fl">0.2</span>, lw<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>            ax.plot(xs, yh, color<span class="op">=</span>cs[<span class="st">"color"</span>], ls<span class="op">=</span>cs.get(<span class="st">"ls"</span>, <span class="st">"-"</span>), lw<span class="op">=</span>cs.get(<span class="st">"lw"</span>, <span class="dv">2</span>),</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>                    label<span class="op">=</span>cs[<span class="st">"label"</span>])</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>        ax.set_title(<span class="ss">f"</span><span class="sc">{</span>levels[j]<span class="sc">}</span><span class="ss"> (n=</span><span class="sc">{</span>n_g[j]<span class="sc">}</span><span class="ss">)"</span>, fontsize<span class="op">=</span><span class="fl">9.5</span>, color<span class="op">=</span>INK, loc<span class="op">=</span><span class="st">"left"</span>)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>        ax.set_ylim(<span class="op">*</span>ylim)</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> ax <span class="kw">in</span> axes[<span class="dv">1</span>]:</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>        ax.set_xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="er">\</span><span class="vs">log_</span><span class="op">{10}</span><span class="dv">$</span><span class="vs"> equilibrium temp </span><span class="kw">(</span><span class="vs">K</span><span class="kw">)</span><span class="vs">"</span>)</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> ax <span class="kw">in</span> axes[:, <span class="dv">0</span>]:</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>        ax.set_ylabel(<span class="st">"ESI"</span>)</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> fig, axes</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>cur_int <span class="op">=</span> ols_curves(<span class="st">"interaction"</span>, fits[<span class="st">"interaction"</span>])</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> facet_curves([{<span class="st">"label"</span>: <span class="st">"full interaction"</span>, <span class="st">"curves"</span>: cur_int,</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>                           <span class="st">"color"</span>: PALETTE[<span class="dv">0</span>], <span class="st">"band"</span>: <span class="va">True</span>}])</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-display">
 <div id="fig-interaction" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -789,23 +943,23 @@ Figure&nbsp;10.3: Partial sharing: the planet-type main effect shifts a common c
 <img src="group_lasso_files/figure-html/fig-interaction-output-1.png" width="1147" height="629" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-interaction-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10.4: Full-interaction model: each planet type gets its own curve (95% confidence band, shaded). Compare the width of the bands for the large groups (bottom row) with the two smallest groups (top left).
+Figure&nbsp;10.5: Full-interaction model: each planet type gets its own curve (95% confidence band, shaded). Compare the width of the bands for the large groups (bottom row) with the two smallest groups (top left).
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 <p>The curves for the small groups are visibly less stable: wider confidence bands and more wiggle, because each group’s spline is estimated from its own data alone, with nothing borrowed from the other five groups. We can quantify that.</p>
-<div id="cell-ci-width" class="cell" data-execution_count="10">
+<div id="cell-ci-width" class="cell" data-execution_count="11">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>ci_width <span class="op">=</span> pd.DataFrame({</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"P_TYPE"</span>: levels, <span class="st">"n"</span>: n_g,</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"mean 95% CI width (full interaction)"</span>: [np.mean(cur_int[j][<span class="dv">3</span>] <span class="op">-</span> cur_int[j][<span class="dv">2</span>]).<span class="bu">round</span>(<span class="dv">3</span>) <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K)],</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>ci_width</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>ci_width <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"P_TYPE"</span>: levels, <span class="st">"n"</span>: n_g,</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"mean 95% CI width (full interaction)"</span>: [np.mean(cur_int[j][<span class="dv">3</span>] <span class="op">-</span> cur_int[j][<span class="dv">2</span>]).<span class="bu">round</span>(<span class="dv">3</span>) <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K)],</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>ci_width</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="ci-width" class="cell-output cell-output-display" data-execution_count="43">
+<div id="ci-width" class="cell-output cell-output-display" data-execution_count="69">
 <div>
 
 
@@ -862,28 +1016,28 @@ Figure&nbsp;10.4: Full-interaction model: each planet type gets its own curve (9
 </div>
 </div>
 </section>
-<section id="no-sharing-fully-separate-models" class="level3" data-number="10.3.6">
-<h3 data-number="10.3.6" class="anchored" data-anchor-id="no-sharing-fully-separate-models"><span class="header-section-number">10.3.6</span> No sharing: fully separate models</h3>
+<section id="no-sharing-fully-separate-models" class="level3" data-number="10.3.5">
+<h3 data-number="10.3.5" class="anchored" data-anchor-id="no-sharing-fully-separate-models"><span class="header-section-number">10.3.5</span> No sharing: fully separate models</h3>
 <p>At the other extreme we fit one model per group, each with its own residual variance. As in the notes, the <em>mean</em> model is the same as the full interaction model.</p>
-<div id="cell-fig-separate" class="cell" data-execution_count="11">
+<div id="cell-fig-separate" class="cell" data-execution_count="12">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>pred_sep <span class="op">=</span> np.empty(n)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>sigmas <span class="op">=</span> {}</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K):</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> g <span class="op">==</span> j</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    f_j <span class="op">=</span> sm.OLS(y[m], design(<span class="st">"shared"</span>, B[m], g[m])).fit()</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    pred_sep[m] <span class="op">=</span> f_j.predict(design(<span class="st">"shared"</span>, B[m], g[m]))</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    sigmas[levels[j]] <span class="op">=</span> np.sqrt(f_j.scale)</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>pred_int <span class="op">=</span> fits[<span class="st">"interaction"</span>].predict(design(<span class="st">"interaction"</span>, B, g))</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"identical predictions:"</span>, np.allclose(pred_sep, pred_int))</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">4.6</span>, <span class="fl">4.2</span>))</span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>ax.scatter(pred_sep, pred_int, s<span class="op">=</span><span class="dv">6</span>, alpha<span class="op">=</span><span class="fl">0.3</span>, color<span class="op">=</span>PALETTE[<span class="dv">0</span>], linewidths<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>lim <span class="op">=</span> [<span class="bu">min</span>(pred_sep.<span class="bu">min</span>(), pred_int.<span class="bu">min</span>()), <span class="bu">max</span>(pred_sep.<span class="bu">max</span>(), pred_int.<span class="bu">max</span>())]</span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>ax.plot(lim, lim, color<span class="op">=</span>PALETTE[<span class="dv">1</span>], ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="fl">1.2</span>)</span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"separate-model predictions"</span>)<span class="op">;</span> ax.set_ylabel(<span class="st">"interaction-model predictions"</span>)</span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>pred_sep <span class="op">=</span> np.empty(n)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>sigmas <span class="op">=</span> {}</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K):</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> g <span class="op">==</span> j</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    f_j <span class="op">=</span> sm.OLS(y[m], design(<span class="st">"shared"</span>, B[m], g[m])).fit()</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    pred_sep[m] <span class="op">=</span> f_j.predict(design(<span class="st">"shared"</span>, B[m], g[m]))</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    sigmas[levels[j]] <span class="op">=</span> np.sqrt(f_j.scale)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>pred_int <span class="op">=</span> fits[<span class="st">"interaction"</span>].predict(design(<span class="st">"interaction"</span>, B, g))</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"identical predictions:"</span>, np.allclose(pred_sep, pred_int))</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="fl">4.6</span>, <span class="fl">4.2</span>))</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>ax.scatter(pred_sep, pred_int, s<span class="op">=</span><span class="dv">6</span>, alpha<span class="op">=</span><span class="fl">0.3</span>, color<span class="op">=</span>PALETTE[<span class="dv">0</span>], linewidths<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>lim <span class="op">=</span> [<span class="bu">min</span>(pred_sep.<span class="bu">min</span>(), pred_int.<span class="bu">min</span>()), <span class="bu">max</span>(pred_sep.<span class="bu">max</span>(), pred_int.<span class="bu">max</span>())]</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>ax.plot(lim, lim, color<span class="op">=</span>PALETTE[<span class="dv">1</span>], ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="fl">1.2</span>)</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"separate-model predictions"</span>)<span class="op">;</span> ax.set_ylabel(<span class="st">"interaction-model predictions"</span>)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>identical predictions: True</code></pre>
@@ -895,7 +1049,7 @@ Figure&nbsp;10.4: Full-interaction model: each planet type gets its own curve (9
 <img src="group_lasso_files/figure-html/fig-separate-output-2.png" width="478" height="422" class="figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-separate-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10.5: Predictions from six fully separate models against predictions from the single full-interaction model. They coincide: with a full interaction, ‘no sharing’ and ‘full interaction’ are the same mean model.
+Figure&nbsp;10.6: Predictions from six fully separate models against predictions from the single full-interaction model. They coincide: with a full interaction, ‘no sharing’ and ‘full interaction’ are the same mean model.
 </figcaption>
 </figure>
 </div>
@@ -907,24 +1061,24 @@ Figure&nbsp;10.5: Predictions from six fully separate models against predictions
 <h2 data-number="10.4" class="anchored" data-anchor-id="the-need-for-group-specific-regularization"><span class="header-section-number">10.4</span> The need for group-specific regularization</h2>
 <ul>
 <li><strong>Sharing everything</strong> throws away real information. Planet types plainly differ in both level and shape.</li>
-<li><strong>Sharing nothing</strong> estimates <span class="math inline">\(p+1\)</span> coefficients for every type from that type’s rows alone. For a group with 8 planets this is hopeless, and even a few dozen is a lot.</li>
+<li><strong>Sharing nothing</strong> estimates <span class="math inline">\(p+1\)</span> coefficients for every type from that type’s rows alone.</li>
 <li><strong>Choosing by hand</strong> is unsatisfying when there are many groups. Each group could sit at its own point on the sharing spectrum, and the number of candidate structures explodes.</li>
 </ul>
-<p><strong>Regularization:</strong> reparameterize the model into a <em>global</em> block that carries a shared curve and a <em>deviation</em> block that carries each group’s departure from it, then penalize only the deviation block. Cross-validation chooses how much of each deviation survives, so the data decide how much each group shares.</p>
+<p><strong>Regularization:</strong> reparameterize the model into a <em>global mean</em> block that carries a shared curve and a <em>deviation</em> block that carries each group’s departure from the global mean, then penalize only the deviation block. Cross-validation chooses how much of each deviation survives, so the data decide how much each group shares.</p>
 <section id="key-implementation-detail-deviation-parameterization" class="level3" data-number="10.4.1">
 <h3 data-number="10.4.1" class="anchored" data-anchor-id="key-implementation-detail-deviation-parameterization"><span class="header-section-number">10.4.1</span> Key implementation detail: deviation parameterization</h3>
 <p>With treatment (reference-cell) coding, the interaction columns measure each group’s departure from one arbitrary <em>reference</em> group (here Jovian). Shrinking those coefficients shrinks every group toward the reference, not toward a sensible common curve. The class notes fix this with a <strong>deviation parameterization</strong>, in which the main-effect columns describe an <em>average</em> curve and the group columns describe departures from it.</p>
 <p>With <span class="math inline">\(k\)</span> levels and a reference level <span class="math inline">\(k\)</span>, the deviation features are <span class="math inline">\(D_j = I_j - I_k\)</span> for <span class="math inline">\(j = 1, \dots, k-1\)</span> (the <code>contr.sum</code> coding), and the intercept becomes the <em>unweighted</em> average of the group means. The notes then generalize to a <strong>population-mean</strong> version for unbalanced groups, using group proportions <span class="math inline">\(w_j\)</span>:</p>
 <p><span class="math display">\[D_j = I_j - \frac{w_j}{w_k}\, I_k, \qquad j = 1, \dots, k-1.\]</span></p>
 <p>With this coding the global curve is the <strong>proportion-weighted average curve</strong>, and <span class="math inline">\(\alpha_j\)</span> is group <span class="math inline">\(j\)</span>’s deviation from it. Group <span class="math inline">\(k\)</span>’s deviation is implied: <span class="math inline">\(\delta_k = -\sum_{j&lt;k} (w_j/w_k)\,\delta_j\)</span>. We use the population-mean version because our groups are so unbalanced. With plain sum-to-zero coding, a deviation in one tiny group would force an equal and opposite deviation in every other group, which is a strange constraint. With population weights, a tiny group moving only nudges the huge reference group a tiny amount. (With equal <span class="math inline">\(w_j\)</span> the two codings coincide.)</p>
-<div id="cell-deviation-coding" class="cell" data-execution_count="12">
+<div id="cell-deviation-coding" class="cell" data-execution_count="13">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># rows = planet types (levels), columns = the k-1 deviation features D_1..D_{k-1}</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>C_pop <span class="op">=</span> np.vstack([np.eye(K <span class="op">-</span> <span class="dv">1</span>), <span class="op">-</span>(w[:<span class="op">-</span><span class="dv">1</span>] <span class="op">/</span> w[<span class="op">-</span><span class="dv">1</span>])[<span class="va">None</span>, :]])</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(C_pop, index<span class="op">=</span>levels, columns<span class="op">=</span>[<span class="ss">f"D_</span><span class="sc">{</span>j<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> (</span><span class="sc">{</span>levels[j]<span class="sc">}</span><span class="ss">)"</span> <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K <span class="op">-</span> <span class="dv">1</span>)]).<span class="bu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># rows = planet types (levels), columns = the k-1 deviation features D_1..D_{k-1}</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>C_pop <span class="op">=</span> np.vstack([np.eye(K <span class="op">-</span> <span class="dv">1</span>), <span class="op">-</span>(w[:<span class="op">-</span><span class="dv">1</span>] <span class="op">/</span> w[<span class="op">-</span><span class="dv">1</span>])[<span class="va">None</span>, :]])</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(C_pop, index<span class="op">=</span>levels, columns<span class="op">=</span>[<span class="ss">f"D_</span><span class="sc">{</span>j<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> (</span><span class="sc">{</span>levels[j]<span class="sc">}</span><span class="ss">)"</span> <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K <span class="op">-</span> <span class="dv">1</span>)]).<span class="bu">round</span>(<span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
-<div id="deviation-coding" class="cell-output cell-output-display" data-execution_count="45">
+<div id="deviation-coding" class="cell-output cell-output-display" data-execution_count="71">
 <div>
 
 
@@ -995,24 +1149,24 @@ Figure&nbsp;10.5: Predictions from six fully separate models against predictions
 </div>
 </div>
 <p>Each <code>D_j</code> multiplies the group’s main-effect column <em>and</em> its three spline-interaction columns. The coefficients of those four columns, written <span class="math inline">\(\delta_j = (\delta_{j0}, \delta_{j1}, \delta_{j2}, \delta_{j3})\)</span>, are the deviation of group <span class="math inline">\(j\)</span>’s whole curve from the global curve. They form a natural <strong>group of four coefficients</strong>: either type <span class="math inline">\(j\)</span> follows the global curve, or it doesn’t. Keep this grouping in mind.</p>
-<div id="deviation-design" class="cell" data-execution_count="13">
+<div id="deviation-design" class="cell" data-execution_count="14">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> glob_design(B):</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.hstack([np.ones((<span class="bu">len</span>(B), <span class="dv">1</span>)), B])                 <span class="co"># global block: intercept + spline (4 cols)</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> dev_design(B, g):</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    D <span class="op">=</span> C_pop[g]                                                <span class="co"># n x (K-1)</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    base <span class="op">=</span> np.hstack([np.ones((<span class="bu">len</span>(B), <span class="dv">1</span>)), B])                 <span class="co"># [1, b1, b2, b3]</span></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.hstack([D[:, [j]] <span class="op">*</span> base <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K <span class="op">-</span> <span class="dv">1</span>)])  <span class="co"># n x 20; block j = columns 4j..4j+3</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>G <span class="op">=</span> glob_design(B)               <span class="co"># unpenalized (global) columns</span></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>Xd <span class="op">=</span> dev_design(B, g)            <span class="co"># penalized (deviation) columns</span></span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>J, KJ <span class="op">=</span> K <span class="op">-</span> <span class="dv">1</span>, <span class="dv">4</span>                 <span class="co"># 5 explicit groups of 4 coefficients</span></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"global columns:"</span>, G.shape[<span class="dv">1</span>], <span class="st">"| deviation columns:"</span>, Xd.shape[<span class="dv">1</span>])</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="co"># check: same column space as the full interaction model =&gt; same unpenalized fit</span></span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>full_dev <span class="op">=</span> sm.OLS(y, np.hstack([G, Xd])).fit()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> glob_design(B):</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.hstack([np.ones((<span class="bu">len</span>(B), <span class="dv">1</span>)), B])                 <span class="co"># global block: intercept + spline (4 cols)</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> dev_design(B, g):</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    D <span class="op">=</span> C_pop[g]                                                <span class="co"># n x (K-1)</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    base <span class="op">=</span> np.hstack([np.ones((<span class="bu">len</span>(B), <span class="dv">1</span>)), B])                 <span class="co"># [1, b1, b2, b3]</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.hstack([D[:, [j]] <span class="op">*</span> base <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(K <span class="op">-</span> <span class="dv">1</span>)])  <span class="co"># n x 20; block j = columns 4j..4j+3</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>G <span class="op">=</span> glob_design(B)               <span class="co"># unpenalized (global) columns</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>Xd <span class="op">=</span> dev_design(B, g)            <span class="co"># penalized (deviation) columns</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>J, KJ <span class="op">=</span> K <span class="op">-</span> <span class="dv">1</span>, <span class="dv">4</span>                 <span class="co"># 5 explicit groups of 4 coefficients</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"global columns:"</span>, G.shape[<span class="dv">1</span>], <span class="st">"| deviation columns:"</span>, Xd.shape[<span class="dv">1</span>])</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="co"># check: same column space as the full interaction model =&gt; same unpenalized fit</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>full_dev <span class="op">=</span> sm.OLS(y, np.hstack([G, Xd])).fit()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>global columns: 4 | deviation columns: 20</code></pre>

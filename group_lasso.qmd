@@ -35,6 +35,7 @@ import statsmodels.api as sm
 from statsmodels.nonparametric.smoothers_lowess import lowess
 from sklearn.linear_model import lasso_path
 from sklearn.model_selection import KFold
+from IPython.display import display
 
 plt.rcParams.update({
     "figure.dpi": 110, "axes.spines.top": False, "axes.spines.right": False,
@@ -56,23 +57,28 @@ Planet types are ordered by increasing mass, so the **last level, Jovian, is the
 #| label: load-data
 #| code-fold: True
 
-# loading the data
+# loading the data and taking the log of the planet equilibrium temp
 raw = pd.read_csv("habitable_worlds_catalog_trimmed.csv")
 planets = raw.dropna(subset=["P_ESI", "P_TEMP_EQUIL", "P_TYPE"]).copy()
 planets["logT"] = np.log10(planets["P_TEMP_EQUIL"])
 
-# specificy the level/categories of the categorical variable planet type
+# specify the level/categories of the categorical variable planet type
 levels = ["Miniterran", "Subterran", "Terran", "Superterran", "Neptunian", "Jovian"]
 K = len(levels)
 planets["P_TYPE"] = pd.Categorical(planets["P_TYPE"], categories=levels)
 planets = planets.reset_index(drop=True)
 
+# specify outcome var, numerical predictor var, and categorical predictor var
 x = planets["logT"].to_numpy()
 y = planets["P_ESI"].to_numpy()
-g = planets["P_TYPE"].cat.codes.to_numpy()      
+g = planets["P_TYPE"].cat.codes.to_numpy()  
+
 n = len(y)
 n_g = np.bincount(g, minlength=K)
 w = n_g / n 
+
+# preview the original data (all original columns)
+display(raw.head())
 
 # display the data
 print(f"Complete cases: {n}  (of {len(raw)} rows)")
@@ -81,6 +87,28 @@ pd.DataFrame({"P_TYPE": levels, "n": n_g, "proportion": w.round(4),
 ```
 
 The groups are badly unbalanced: one group has thousands of planets and another has fewer than ten.
+
+```{python}
+#| label: fig-raw-unlogged
+#| fig-cap: "ESI against equilibrium temperature on the raw scale (no log), one panel per planet type. Compare with the log10 version below."
+#| code-fold: True
+
+x_raw = planets["P_TEMP_EQUIL"].to_numpy()
+
+fig, axes = plt.subplots(2, 3, figsize=(10, 5.4), sharex=True, sharey=True)
+for j, ax in enumerate(axes.flat):
+    m = g == j
+    ax.scatter(x_raw[m], y[m], s=7, alpha=0.5, color=PALETTE[j], linewidths=0)
+    ax.set_title(f"{levels[j]} (n={n_g[j]})", fontsize=9.5, color=INK, loc="left")
+for ax in axes[1]:
+    ax.set_xlabel("equilibrium temp (K)")
+for ax in axes[:, 0]:
+    ax.set_ylabel("ESI")
+fig.tight_layout()
+plt.show()
+```
+
+Because the planet equilibrium temperature (K) contains a wide range of values from ~1 K to ~7,800 K, the x-axis is stretched and the graph clusters together due to a few outlier planets whose temperatures are near the ~7,800 K range. Therefore, we will take the log10 of the equilibrium temperature.
 
 ```{python}
 #| label: fig-raw
@@ -102,9 +130,9 @@ plt.show()
 
 ## Categorical variables and interactions
 
-### A flexible curve for one predictor
+### Implimenting a Restricted Cubic Spline
 
-To let the effect of temperature be non-linear, we use a restricted cubic spline. With four knots the basis has three columns, $x$, $x'$, $x''$. Tthe knots are fixed once and reused in every model, so the models differ only in *which coefficients are shared across groups*, not in the basis.
+To let the effect of temperature be non-linear, we use a restricted cubic spline. With four knots the basis has three columns, $x$, $x'$, $x''$. The knots are fixed once and reused in every model, so the models differ only in **which coefficients are shared across groups**, not in the basis.
 
 ```{python}
 #| label: rcs-basis
@@ -127,39 +155,87 @@ B = rcs(x, knots)
 print("knots:", knots.round(3), "| basis columns:", B.shape[1])
 ```
 
-### The sharing ladder
-
 Write $b(x) = (x, x', x'')$ for the spline basis and $I_j$ for the indicator of planet type $j$ (Jovian is the reference). The class notes walk up a ladder of models that share progressively less information between groups:
 
 **Fully shared** (one curve for every planet type; 4 coefficients):
 $$E[\text{ESI}\mid x] = \beta_0 + \beta_1 x + \beta_2 x' + \beta_3 x''$$
+$$E[\text{ESI} \mid \text{temp}] = \beta_0 + \beta_1 \text{temp} + \beta_2 \text{temp}' + \beta_3 \text{temp}''$$
 
 **Partial sharing** (same shape, a different level for each type; 4 + 5 = 9 coefficients):
 $$E[\text{ESI}\mid x, \text{type}] = \beta_0 + \beta_1 x + \beta_2 x' + \beta_3 x'' + \sum_{j=1}^{5}\gamma_j I_j$$
 
+$$
+\begin{align*}
+E[\text{ESI}\mid \text{temp}, \text{type}] &= \beta_0 + \beta_1\,\text{temp} + \beta_2\,\text{temp}^{\prime} + \beta_3\,\text{temp}^{\prime\prime} \\
+&\quad + \beta_4\,I(\text{Miniterran}) + \beta_5\,I(\text{Subterran}) + \beta_6\,I(\text{Terran}) \\
+&\quad + \beta_7\,I(\text{Superterran}) + \beta_8\,I(\text{Neptunian})
+\end{align*}
+$$
+
 **Full interaction** (every type gets its own curve; $4 + 5 + 15 = 24$ coefficients):
 $$E[\text{ESI}\mid x, \text{type}] = \beta_0 + \sum_{m=1}^3 \beta_m b_m(x) + \sum_{j=1}^{5}\left[\gamma_j I_j + \sum_{m=1}^3 \delta_{jm}\, I_j\, b_m(x)\right]$$
 
+$$
+\begin{align*}
+E[\text{ESI}\mid \text{temp}, \text{type}] &= \beta_0 + \beta_1\,\text{temp} + \beta_2\,\text{temp}^{\prime} + \beta_3\,\text{temp}^{\prime\prime} \\
+&\quad + \beta_4\,I(\text{Miniterran}) + \beta_5\,\text{temp}\cdot I(\text{Miniterran}) + \beta_6\,\text{temp}^{\prime}\cdot I(\text{Miniterran}) + \beta_7\,\text{temp}^{\prime\prime}\cdot I(\text{Miniterran}) \\
+&\quad + \beta_8\,I(\text{Subterran}) + \beta_9\,\text{temp}\cdot I(\text{Subterran}) + \beta_{10}\,\text{temp}^{\prime}\cdot I(\text{Subterran}) + \beta_{11}\,\text{temp}^{\prime\prime}\cdot I(\text{Subterran}) \\
+&\quad + \beta_{12}\,I(\text{Terran}) + \beta_{13}\,\text{temp}\cdot I(\text{Terran}) + \beta_{14}\,\text{temp}^{\prime}\cdot I(\text{Terran}) + \beta_{15}\,\text{temp}^{\prime\prime}\cdot I(\text{Terran}) \\
+&\quad + \beta_{16}\,I(\text{Superterran}) + \beta_{17}\,\text{temp}\cdot I(\text{Superterran}) + \beta_{18}\,\text{temp}^{\prime}\cdot I(\text{Superterran}) + \beta_{19}\,\text{temp}^{\prime\prime}\cdot I(\text{Superterran}) \\
+&\quad + \beta_{20}\,I(\text{Neptunian}) + \beta_{21}\,\text{temp}\cdot I(\text{Neptunian}) + \beta_{22}\,\text{temp}^{\prime}\cdot I(\text{Neptunian}) + \beta_{23}\,\text{temp}^{\prime\prime}\cdot I(\text{Neptunian})
+\end{align*}
+$$
+
+**No sharing** (one separate model per planet type; 4 coefficients each, 6 × 4 = 24 in total):
+
+$$
+\begin{align*}
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Miniterran}] &= \beta^{(\text{Mini})}_0 + \beta^{(\text{Mini})}_1\,\text{temp} + \beta^{(\text{Mini})}_2\,\text{temp}^{\prime} + \beta^{(\text{Mini})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Subterran}] &= \beta^{(\text{Sub})}_0 + \beta^{(\text{Sub})}_1\,\text{temp} + \beta^{(\text{Sub})}_2\,\text{temp}^{\prime} + \beta^{(\text{Sub})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Terran}] &= \beta^{(\text{Ter})}_0 + \beta^{(\text{Ter})}_1\,\text{temp} + \beta^{(\text{Ter})}_2\,\text{temp}^{\prime} + \beta^{(\text{Ter})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Superterran}] &= \beta^{(\text{Sup})}_0 + \beta^{(\text{Sup})}_1\,\text{temp} + \beta^{(\text{Sup})}_2\,\text{temp}^{\prime} + \beta^{(\text{Sup})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Neptunian}] &= \beta^{(\text{Nep})}_0 + \beta^{(\text{Nep})}_1\,\text{temp} + \beta^{(\text{Nep})}_2\,\text{temp}^{\prime} + \beta^{(\text{Nep})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Jovian}] &= \beta^{(\text{Jov})}_0 + \beta^{(\text{Jov})}_1\,\text{temp} + \beta^{(\text{Jov})}_2\,\text{temp}^{\prime} + \beta^{(\text{Jov})}_3\,\text{temp}^{\prime\prime}
+\end{align*}
+$$
+
 The $\gamma_j$ and $\delta_{jm}$ are the *interaction* coefficients: they say how type $j$ departs from the reference. For $G$ groups and a spline with $p$ terms, the interaction model spends $(G-1)(p+1)$ extra coefficients, and each group's curve is estimated from **only that group's rows**.
+
+The groups within the categorical variable can be converted into indicator/dummy/binary variables
 
 ```{python}
 #| label: designs
-#| code-fold: True
 
+# convert the groups within the categorical variable into indicator/dummy variables 
 def treat_dummies(g):
-    return np.eye(K)[g][:, :-1] # reference = last level (Jovian)
+    # g holds one integer per planet, 0 to 5, for the six types.
+    # np.eye(K) is the 6×6 identity matrix. 
+    # Indexing it with [g] picks row g[i] for each planet, so planet i gets a row with a 1 in its type’s position and 0s elsewhere. 
+    # The result is an n×6 table of indicators.
+    # [:, :-1] drops the last column (Jovian), leaving n×5. A planet that is Jovian is all zeros, which is what makes Jovian the reference level.
+    return np.eye(K)[g][:, :-1] # reference group = last level (Jovian)
 
+# builds the design matrix, the table of predictor columns, for one of the three models
+# B is the spline basis (n×3: the columns temp, temp', temp'')
+# kind picks the model.
 def design(kind, B, g):
+    # ones is a column of 1s that supplies the intercept (n×1)
     ones, T = np.ones((len(B), 1)), treat_dummies(g)
+    # Fully sharing: hstack places arrays side by side: intercept + 3 spline columns = 4 columns
     if kind == "shared":
         return np.hstack([ones, B])
+    # Partial sharing: the same plus the 5 indicators = 9 columns
     if kind == "offset":
         return np.hstack([ones, B, T])
+    # Full interaction: the 9 columns above, plus the products of the spline columns and each indicator
     if kind == "interaction":
         return np.hstack([ones, B, T] + [B * T[:, [j]] for j in range(K - 1)])
+    # If kind is any other string, stop with an error
     raise ValueError(kind)
 
+# For each model name, build its design matrix, fit ordinary least squares to predict ESI (y), and store the fitted model in a dictionary under that name
 fits = {k: sm.OLS(y, design(k, B, g)).fit() for k in ["shared", "offset", "interaction"]}
+
 pd.DataFrame({"model": list(fits),
               "coefficients": [int(f.df_model + 1) for f in fits.values()],
               "in-sample R2": [round(f.rsquared, 3) for f in fits.values()],
@@ -171,6 +247,8 @@ To plot each fitted curve we evaluate it over the observed temperature range of 
 ```{python}
 #| label: curve-helpers
 #| code-fold: True
+
+# preparing the curves for plotting 
 
 grid = {j: np.linspace(x[g == j].min(), x[g == j].max(), 120) for j in range(K)}
 
@@ -190,14 +268,12 @@ def ols_curves(kind, fit):
 #| fig-cap: "Fully shared model: one temperature-ESI curve (with 95% confidence band) for all planet types."
 #| code-fold: True
 
-cur = ols_curves("shared", fits["shared"])
-xs, yh, lo, hi = cur[5]
 xs = np.linspace(x.min(), x.max(), 200)
 sf = fits["shared"].get_prediction(design("shared", rcs(xs, knots), np.zeros(len(xs), int))).summary_frame()
 fig, ax = plt.subplots(figsize=(6.2, 3.8))
 ax.scatter(x, y, s=5, alpha=0.25, color=MUTED, linewidths=0)
-ax.fill_between(xs, sf["mean_ci_lower"], sf["mean_ci_upper"], color=INK, alpha=0.2, lw=0)
-ax.plot(xs, sf["mean"], color=INK, lw=2)
+ax.fill_between(xs, sf["mean_ci_lower"], sf["mean_ci_upper"], color=PALETTE[0], alpha=0.2, lw=0)
+ax.plot(xs, sf["mean"], color=PALETTE[0], lw=2)
 ax.set_xlabel(r"$\log_{10}$ equilibrium temp (K)"); ax.set_ylabel("ESI")
 plt.show()
 ```
@@ -300,10 +376,10 @@ plt.show()
 ## The need for group-specific regularization
 
 - **Sharing everything** throws away real information. Planet types plainly differ in both level and shape.
-- **Sharing nothing** estimates $p+1$ coefficients for every type from that type's rows alone. For a group with 8 planets this is hopeless, and even a few dozen is a lot.
+- **Sharing nothing** estimates $p+1$ coefficients for every type from that type's rows alone.
 - **Choosing by hand** is unsatisfying when there are many groups. Each group could sit at its own point on the sharing spectrum, and the number of candidate structures explodes.
 
-**Regularization:** reparameterize the model into a *global* block that carries a shared curve and a *deviation* block that carries each group's departure from it, then penalize only the deviation block. Cross-validation chooses how much of each deviation survives, so the data decide how much each group shares.
+**Regularization:** reparameterize the model into a *global mean* block that carries a shared curve and a *deviation* block that carries each group's departure from the global mean, then penalize only the deviation block. Cross-validation chooses how much of each deviation survives, so the data decide how much each group shares.
 
 ### Key implementation detail: deviation parameterization
 
