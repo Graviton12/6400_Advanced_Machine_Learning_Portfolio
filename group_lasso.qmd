@@ -1,6 +1,6 @@
 # Group Lasso
 
-**Paper Title:** Why group-specific regularization? Motivating the group lasso
+**Paper Title:** A fast unified algorithm for solving group-lasso penalize learning problems
 
 ## Motivation
 
@@ -36,6 +36,7 @@ from statsmodels.nonparametric.smoothers_lowess import lowess
 from sklearn.linear_model import lasso_path
 from sklearn.model_selection import KFold
 from IPython.display import display
+from sklearn.linear_model import Lasso
 
 plt.rcParams.update({
     "figure.dpi": 110, "axes.spines.top": False, "axes.spines.right": False,
@@ -242,6 +243,11 @@ pd.DataFrame({"model": list(fits),
               "sigma": [round(np.sqrt(f.scale), 4) for f in fits.values()]})
 ```
 
+- $y$ is the $n \times 1$ vector of ESI values.
+- $\mathbf 1$ is the $n\times 1$ column of ones (ones).
+- $B = [\,b_1\; b_2\; b_3\,]$ is the $n \times 3$ spline basis, with columns $\text{temp}$, $\text{temp}'$, $\text{temp}''$.
+- $T = [\,t_1\; t_2\; t_3\; t_4\; t_5\,]$ is the $n \times 5$ indicator table (treat_dummies). Column $t_j$ is 1 for planets of type $j$ and 0 otherwise. Jovian is the all-zero reference.
+
 To plot each fitted curve we evaluate it over the observed temperature range of each group.
 
 ```{python}
@@ -379,9 +385,24 @@ plt.show()
 - **Sharing nothing** estimates $p+1$ coefficients for every type from that type's rows alone.
 - **Choosing by hand** is unsatisfying when there are many groups. Each group could sit at its own point on the sharing spectrum, and the number of candidate structures explodes.
 
-**Regularization:** reparameterize the model into a *global mean* block that carries a shared curve and a *deviation* block that carries each group's departure from the global mean, then penalize only the deviation block. Cross-validation chooses how much of each deviation survives, so the data decide how much each group shares.
+**Regularization:** reparameterize the model into a *global mean* block that carries a shared curve. This global mean describes the overall mean for all groups of the categorical variable. the model is also reparameterized into the *deviation* block which decribes the difference between each group's conditonal mean from the global mean, then penalizes the deviation block. Cross-validation chooses how much of each deviation survives, so the data decide how much each group shares.
 
-### Key implementation detail: deviation parameterization
+- The design matrix is rebuilt with contr.sum, so the columns split into two blocks:
+    - **Global mean block columns:** the spline columns, which now describe the average curve across the groups.
+    - **Deviation block columns:** the main-effect columns plus the interaction columns. These describe how each group departs from the average curve.
+
+**Note:** The penalty doesn’t target the groups that differ most. It charges a price for any deviation from the shared curve, and a deviation survives only if the data justify the cost of keeping the features for the group which deviates from the global mean. 
+
+### Penalty factor
+
+In langauges like R, the `glmnet` package uses `penalty.factor` which is set to 0 for the global mean columns and 1 for the deviation columns. The notes build this vector from `attr(X, "assign")` in R instead of hard-coding column positions. The effect is that only the deviations get shrunk. The notes describe the two extremes:
+
+- As $\lambda$ → 0, the deviations are unrestricted and you recover the full-interaction model (every group has its own curve).
+- As $\lambda$ → ∞, every deviation is driven to zero and every group collapses onto the single shared curve.
+
+Cross-validation picks a $\lambda$ somewhere in between.
+
+### Using deviation parameterization
 
 With treatment (reference-cell) coding, the interaction columns measure each group's departure from one arbitrary *reference* group (here Jovian). Shrinking those coefficients shrinks every group toward the reference, not toward a sensible common curve. The class notes fix this with a **deviation parameterization**, in which the main-effect columns describe an *average* curve and the group columns describe departures from it.
 
@@ -389,7 +410,7 @@ With $k$ levels and a reference level $k$, the deviation features are $D_j = I_j
 
 $$D_j = I_j - \frac{w_j}{w_k}\, I_k, \qquad j = 1, \dots, k-1.$$
 
-With this coding the global curve is the **proportion-weighted average curve**, and $\alpha_j$ is group $j$'s deviation from it. Group $k$'s deviation is implied: $\delta_k = -\sum_{j<k} (w_j/w_k)\,\delta_j$. We use the population-mean version because our groups are so unbalanced. With plain sum-to-zero coding, a deviation in one tiny group would force an equal and opposite deviation in every other group, which is a strange constraint. With population weights, a tiny group moving only nudges the huge reference group a tiny amount. (With equal $w_j$ the two codings coincide.)
+With this coding the global curve is the **proportion-weighted average curve**, and $\alpha_j$ is group $j$'s deviation from it. Group $k$'s deviation is implied: $\delta_k = -\sum_{j<k} (w_j/w_k)\,\delta_j$. We use the population-mean version because our groups are so unbalanced. With plain sum-to-zero coding, a deviation in one tiny group would force an equal and opposite deviation in every other group, which is not a practical constraint. With population weights, a tiny group moving only nudges the huge reference group a tiny amount. (With equal $w_j$)
 
 ```{python}
 #| label: deviation-coding
@@ -400,7 +421,7 @@ C_pop = np.vstack([np.eye(K - 1), -(w[:-1] / w[-1])[None, :]])
 pd.DataFrame(C_pop, index=levels, columns=[f"D_{j+1} ({levels[j]})" for j in range(K - 1)]).round(3)
 ```
 
-Each `D_j` multiplies the group's main-effect column *and* its three spline-interaction columns. The coefficients of those four columns, written $\delta_j = (\delta_{j0}, \delta_{j1}, \delta_{j2}, \delta_{j3})$, are the deviation of group $j$'s whole curve from the global curve. They form a natural **group of four coefficients**: either type $j$ follows the global curve, or it doesn't. Keep this grouping in mind.
+Each `D_j` multiplies the group's main-effect column *and* its three spline-interaction columns. The coefficients of those four columns, written $\delta_j = (\delta_{j0}, \delta_{j1}, \delta_{j2}, \delta_{j3})$, are the deviation of group $j$'s whole curve from the global curve. They form a natural **group of four coefficients**: either type $j$ follows the global curve, or it doesn't. 
 
 ```{python}
 #| label: deviation-design
@@ -423,3 +444,223 @@ print("global columns:", G.shape[1], "| deviation columns:", Xd.shape[1])
 full_dev = sm.OLS(y, np.hstack([G, Xd])).fit()
 
 ```
+
+```{python}
+#| label: partial-penalty-helpers
+def project_out(Gm, M):
+    """Residualize M on the (unpenalized) global columns."""
+    return M - Gm @ np.linalg.lstsq(Gm, M, rcond=None)[0]
+
+def cv_path(fit_path, lam_grid, Gm, Xdm, yv, folds, return_oof=True):
+    """K-fold CV along a lambda path. fit_path(G, Xd, y, lams) -> (p x L) deviation coefficients."""
+    L = len(lam_grid)
+    err = np.zeros((len(folds), L)); oof_pred = np.zeros((len(yv), L))
+    for f, (tr, te) in enumerate(folds):
+        Bt = fit_path(Gm[tr], Xdm[tr], yv[tr], lam_grid)                    # p x L
+        Gam = np.linalg.lstsq(Gm[tr], yv[tr][:, None] - Xdm[tr] @ Bt, rcond=None)[0]   # 4 x L
+        pr = Gm[te] @ Gam + Xdm[te] @ Bt                                    # n_te x L
+        oof_pred[te] = pr
+        err[f] = ((yv[te][:, None] - pr) ** 2).mean(0)
+    mean, se = err.mean(0), err.std(0, ddof=1) / np.sqrt(len(folds))
+    i_min = int(mean.argmin())
+    i_1se = int(np.where(mean <= mean[i_min] + se[i_min])[0][0])            # largest lambda within 1 SE
+    return {"mean": mean, "se": se, "i_min": i_min, "i_1se": i_1se, "oof": oof_pred}
+
+def fit_full(fit_path, lam_grid, Gm, Xdm, yv):
+    """Full-data deviation coefficients along the path, plus re-estimated global coefficients."""
+    Bt = fit_path(Gm, Xdm, yv, lam_grid)
+    Gam = np.linalg.lstsq(Gm, yv[:, None] - Xdm @ Bt, rcond=None)[0]
+    return Gam, Bt
+```
+
+### Using Lasso
+
+The lasso minimizes the least-squares loss plus an $\ell_1$ penalty on the coefficients where $k$ is the number of groups of the categorical variable, $\lambda > 0$, and $\lVert\beta^{(k)}\rVert_2 = \sqrt{\sum_{j \in I_k} \beta_j^2}$,
+
+$$\hat\beta(\lambda) = \arg\min_\beta \;\frac{1}{2}\lVert y - X\beta\rVert_2^2 + \lambda \,\lVert\beta^{(k)}\rVert_2.$$
+$$\hat\beta(\lambda) = \arg\min_\beta \;\frac{1}{2}\lVert y - X\beta\rVert_2^2 + \sqrt{p_k} \,\lVert\beta^{(k)}\rVert_2.$$
+
+where here the penalty is applied **only to the deviation coefficients**. Separate penalty factors can be applied to each coefficient. This is a number that multiplies lambda to allow differential shrinkage. Can be 0 for some variables, which implies no shrinkage, and that variable is always included in the model. As $\lambda$ grows, deviation coefficients are pulled to zero and, unlike ridge, can be set *exactly* to zero. At $\lambda = 0$ we recover the full-interaction model, and at large $\lambda$ every deviation is zero, so every group collapses onto the shared global curve. Cross-validation picks a $\lambda$ in between. A group can be *fully pooled*, or a group *can not be pooled* where its deviation coefficients are left untouched, or a group can be *partially pooled* keeps some deviation terms and loses others.
+
+**Limitation:** a plain lasso does not guarantee that a whole group is zeroed together. Therefore, a **group lasso penalty** is needed
+
+```{python}
+#| label: lasso-fit
+#| code-fold: True
+
+# 10 fixed folds, reused by every method so the comparisons are fair
+K_FOLDS = 10
+kf = KFold(K_FOLDS, shuffle=True, random_state=42)
+folds = list(kf.split(y))
+
+def lasso_fit_path(Gm, Xdm, yv, lams):
+    yr, Xr = project_out(Gm, yv), project_out(Gm, Xdm)
+    s = np.sqrt((Xr ** 2).mean(0))                                   # standardize penalized columns
+    model = Lasso(fit_intercept=False, precompute=True, warm_start=True,
+                  tol=1e-9, max_iter=2_000_000)
+    coefs = np.empty((Xr.shape[1], len(lams)))
+    for l, lam in enumerate(lams):                                   # lams decrease, so each fit warm-starts
+        model.set_params(alpha=lam)
+        model.fit(Xr / s, yr)
+        coefs[:, l] = model.coef_
+    return coefs / s[:, None]                                        # back to original column scale
+
+def lasso_lambda_max(Gm, Xdm, yv):
+    yr, Xr = project_out(Gm, yv), project_out(Gm, Xdm)
+    s = np.sqrt((Xr ** 2).mean(0))
+    return np.abs((Xr / s).T @ yr).max() / len(yv)
+
+lam_max_l = lasso_lambda_max(G, Xd, y)
+lams_l = lam_max_l * np.logspace(0, -4, 100)
+
+cv_l = cv_path(lasso_fit_path, lams_l, G, Xd, y, folds)
+Gam_l, Beta_l = fit_full(lasso_fit_path, lams_l, G, Xd, y)
+print(f"lasso: lambda_min = {lams_l[cv_l['i_min']]:.2e}, lambda_1se = {lams_l[cv_l['i_1se']]:.2e}  (lambda_max = {lam_max_l:.2e})")
+```
+
+```{python}
+#| label: oof-baselines
+#| code-fold: True
+
+# out-of-fold predictions for the unpenalized models, using the same folds as the lasso
+def oof_unpenalized(kind):
+    pred = np.empty(n)
+    X = design(kind, B, g)
+    for tr, te in folds:
+        beta = np.linalg.lstsq(X[tr], y[tr], rcond=None)[0]
+        pred[te] = X[te] @ beta
+    return pred
+
+oof = {k: oof_unpenalized(k) for k in ["shared", "offset", "interaction"]}
+
+def mse_by_group(pred):
+    return np.array([np.mean((y[g == j] - pred[g == j]) ** 2) for j in range(K)])
+```
+
+```{python}
+#| label: fig-lasso-cv
+#| fig-cap: "Cross-validation curve for the lasso on the deviation block. The horizontal lines mark the CV error of the two extremes of the ladder: the shared fit (large lambda) and the full interaction fit (lambda near 0). The vertical lines mark lambda_min (solid) and lambda_1se (dashed)."
+def plot_cv(cv, lams, title):
+    fig, ax = plt.subplots(figsize=(6.6, 3.8))
+    lx = np.log10(lams)
+    ax.fill_between(lx, cv["mean"] - cv["se"], cv["mean"] + cv["se"], color=PALETTE[0], alpha=0.25, lw=0)
+    ax.plot(lx, cv["mean"], color=PALETTE[0], lw=2)
+    ax.axhline(np.mean((y - oof["shared"]) ** 2), color=MUTED, ls="--", lw=1.1)
+    ax.axhline(np.mean((y - oof["interaction"]) ** 2), color=INK, ls=":", lw=1.1)
+    ax.axvline(lx[cv["i_min"]], color=PALETTE[1], lw=1.2)
+    ax.axvline(lx[cv["i_1se"]], color=PALETTE[1], lw=1.2, ls="--")
+    ax.text(lx[0], np.mean((y - oof["shared"]) ** 2), " shared", color=MUTED, va="bottom", ha="left", fontsize=8)
+    ax.text(lx[-1], np.mean((y - oof["interaction"]) ** 2), "interaction ", color=INK, va="top", ha="right", fontsize=8)
+    ax.set_xlabel(r"$\log_{10}\lambda$"); ax.set_ylabel("10-fold CV MSE"); ax.set_title(title, loc="left", fontsize=10)
+    ax.invert_xaxis()
+    return fig, ax
+
+fig, ax = plot_cv(cv_l, lams_l, "Lasso (deviation block penalized)")
+plt.show()
+```
+
+We visualize lasso by plotting the **coefficient paths of the deviation columns only**, since the global columns are never shrunk. Here we color the coefficients by the planet-type group they belong to and rescale each by its column's standard deviation, so the y-axis is in ESI units and the four-coefficient blocks are comparable.
+
+```{python}
+#| label: fig-lasso-path
+#| fig-cap: "Lasso coefficient paths for the 20 deviation coefficients, colored by planet type (the sixth type, Jovian, is implied by the other five). Each curve is one coefficient; the dotted vertical lines mark lambda_1se (left) and lambda_min (right). Within a color the four coefficients leave zero at different values of lambda."
+sd_d = Xd.std(0)
+
+def plot_paths(Beta, lams, title, cv=None):
+    fig, ax = plt.subplots(figsize=(6.8, 4))
+    lx = np.log10(lams)
+    for j in range(J):
+        for c in range(KJ):
+            ax.plot(lx, Beta[4 * j + c] * sd_d[4 * j + c], color=PALETTE[j], lw=1.2, alpha=0.9,
+                    label=levels[j] if c == 0 else None)
+    ax.axhline(0, color=MUTED, lw=0.8, ls="--")
+    if cv is not None:
+        ax.axvline(lx[cv["i_min"]], color=INK, lw=1, ls=":")
+        ax.axvline(lx[cv["i_1se"]], color=INK, lw=1, ls=":")
+    ax.set_xlabel(r"$\log_{10}\lambda$"); ax.set_ylabel(r"coefficient $\times$ column SD (ESI units)")
+    ax.set_title(title, loc="left", fontsize=10)
+    ax.invert_xaxis(); ax.legend(frameon=False, ncol=2, fontsize=8)
+    return fig, ax
+
+plot_paths(Beta_l, lams_l, "Lasso: deviation coefficient paths", cv_l); plt.show()
+```
+
+At a given $\lambda$ we can reconstruct each group's four-coefficient deviation (including the implied sixth group) and summarize it: how many of its coefficients are nonzero, and how far, in ESI units, its fitted curve sits from the shared curve (root-mean-square over that group's own planets).
+
+```{python}
+#| label: group-summary
+
+def group_deltas(beta):
+    d5 = beta.reshape(J, KJ)
+    implied = -(w[:-1] / w[-1]) @ d5 # deviation of the reference level
+    return np.vstack([d5, implied])
+
+def summarize(Beta, i, tol=1e-10):
+    d = group_deltas(Beta[:, i])
+    rows = []
+    for j in range(K):
+        m = g == j
+        dev = d[j, 0] + B[m] @ d[j, 1:]
+        rows.append((int((np.abs(d[j]) > tol).sum()), float(np.sqrt(np.mean(dev ** 2)))))
+    return rows
+
+def summary_table(Beta, cv, lams):
+    out = pd.DataFrame({"P_TYPE": levels, "n": n_g})
+    for tag, i in [("lambda_min", cv["i_min"]), ("lambda_1se", cv["i_1se"])]:
+        s = summarize(Beta, i)
+        out[f"nonzero coefs ({tag})"] = [a for a, _ in s]
+        out[f"RMS deviation, ESI ({tag})"] = [round(b, 4) for _, b in s]
+    return out
+
+summary_table(Beta_l, cv_l, lams_l)
+```
+
+Even at the CV-selected $\lambda$, which is a small fraction of $\lambda_{\max}$, the lasso has already made a real decision about the small groups: Subterran keeps only 2 of its 4 deviation coefficients, and Miniterran keeps 3. 
+
+The key feature of the lasso is that it zeroes coefficients **one at a time**. Within a single planet type it may keep the shift but drop the curvature terms, or the reverse. The lasso knows nothing about the fact that the four columns for a type are one logical unit. If our question is "does planet type $j$ need its own curve, yes or no?", the lasso doesn't answer it. It gives a partial answer for every group, and, because the lasso picks columns by their individual correlation with the residual, groups with more columns (or more strongly correlated columns) have an easier time entering.
+
+## The Group Lasso
+
+The group lasso penalizes the Euclidean (L2) norm of each group of coefficients instead of the individual coefficients, with $J$ groups $X_j$ of size $K_j$. This allows for sparsity and variable selection at the group level.
+
+$$Q(\beta) = \frac{1}{2n}\lVert y - X\beta\rVert_2^2 + \lambda \sum_{j=1}^{J} \sqrt{K_j}\,\lVert\beta_j\rVert_2.$$
+
+Because the penalty acts on $\lVert\beta_j\rVert_2$, the solution has the **all-or-nothing** property: for any $\lambda$, either every coefficient in group $j$ is nonzero, or all are exactly zero. In our setting the groups are the four deviation coefficients of each planet type, so "group $j$ is zero" means planet type $j$ is **completely pooled onto the shared curve**, a clean, automatic version of the sharing decision. The $\sqrt{K_j}$ factor compensates for groups of different sizes (here all groups have $K_j = 4$).
+
+### Sparsity of Weights
+
+Instead of zeroing out individual coefficients like Lasso, Graoup lasso zeros out whole groups of coefficients together. This is useful when features naturally belong together, like the several dummy columns that come from one categorical variable. This can be visualized as "corners" along the axes of coefficents such that an entire group lands on zero at once.
+
+For implimenting sparity of weights, Lasso regression sets individual coefficients equal to zero while Ridge regression shrinks coefficients near zero. This can be visualized in the following diagram:
+
+![Figure 1: Lasso regression (left) and Ridge regression (right) where Lasso is not differentiable at the corners along the axes while Ridge is differentiable everywhere.](images/sparsity-of-weights.png)
+
+#### The setup:
+
+You're fitting a model with two coefficients, $\beta_1$ and $\beta_2$ (the two axes). You want to find the best values for them, but with a limit on how large they can be. That limit is called regularization, and it stops the model from overfitting.
+
+#### The red ellipses (the error):
+
+These are like contour lines on a topographic map. The black dot labeled β̂ is the best possible answer if you had no limits at all. It has the lowest error. The farther you move from that dot, the higher the error gets, which is why the ellipses grow outward.
+
+#### The blue shapes (the budget/constraint):
+
+The blue shape is the "allowed zone." You must pick coefficients inside it.
+
+- Left (Lasso): a diamond, constraint region $|\beta_1| + |\beta_2| ≤ t$
+- Right (Ridge): a circle, constraint region $\beta_1^2 + \beta_2^2 ≤ t^2$
+
+#### What happens:
+
+The unconstrained best answer (the dot) sits outside the blue zone, so you can't use it. Instead, you settle for the point in the blue zone that has the lowest error. Visually, that is where the growing red ellipses first touch the blue shape.
+
+#### Why the shape matters:
+
+The diamond has sharp corners, and those corners sit exactly on the axes. An ellipse coming in from the side will very often hit a corner first. At a corner on the β₂ axis, β₁ = 0. So that coefficient is exactly zero, which means the feature is dropped from the model. That's "sparsity."
+The circle is smooth with no corners. The ellipse touches it at some random-looking point, and it would be a big coincidence for that point to land exactly on an axis. So Ridge shrinks both coefficients toward zero but rarely makes either one exactly zero.
+
+That's what the text above the figure means: Lasso's non-differentiable corners along the axes are likely to be the contact point, while Ridge's smooth circle almost never is.
+
+We can also visualize the geometry for Lasso, Group Lasso, and Ridge on three dimensions. In Group Lasso in particular, the first two weights $\beta_{11}, \beta_{12}$ are in group and the third weight $\beta_2$ is in one group. Because on the plane $\beta_{11}\beta_2$ or the plane $\beta_{12}\beta_2$ , there are still non-differentiable corners along the axes, there is a big chance of contact along the axes. 
+
+![Figure 2: (a)–(d) ℓ1-penalty, (e)–(h) group lasso penalty and (i)–(l) ℓ2-penalty.](images/group-lasso-ridge-lasso.png)

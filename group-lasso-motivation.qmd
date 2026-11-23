@@ -1,0 +1,730 @@
+---
+title: "Why group-specific regularization? Motivating the group lasso"
+jupyter: python3
+execute:
+  warning: false
+  message: false
+---
+
+## Overview {#sec-overview}
+
+Many models contain a **categorical variable** that is allowed to *interact* with a continuous predictor. Coding the categorical variable takes several columns; coding its interactions with a flexible (spline) effect takes even more. Those columns belong together: they are all different ways of asking one question, "does this group behave differently from the others?"
+
+This chapter motivates the **group lasso** (@Yuan2006; computational treatment in @Breheny2015) in four steps:
+
+1. Introduce a categorical variable, and its interactions, into a regression model (@sec-interactions).
+2. Show why we need *group-specific regularization* once some groups are small (@sec-need).
+3. Show what the **lasso** can and cannot do about it (@sec-lasso).
+4. Show how the **group lasso** fixes the part the lasso gets wrong (@sec-grouplasso).
+
+The structure and plots follow the Interactions chapter of the class notes ([tgstewart.cloud/ipm/interactions.html](https://tgstewart.cloud/ipm/interactions.html)), in particular its sections on group-specific non-linear relationships, group-specific regularization, and lasso regression. The notes use NHANES (`Age` predicting blood pressure, with `Race1` as the grouping variable). Here the same ideas are rebuilt in Python on an exoplanet catalog:
+
+| Role | NHANES (class notes) | This chapter |
+|---|---|---|
+| Outcome | `BPSysAve` | `P_ESI`, the Earth Similarity Index |
+| Continuous predictor | `Age` | $\log_{10}$ equilibrium temperature (`P_TEMP_EQUIL`) |
+| Grouping variable | `Race1` (5 levels) | `P_TYPE`, planet type (6 levels) |
+
+## Setup and data {#sec-data}
+
+```{python}
+#| label: setup
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from statsmodels.nonparametric.smoothers_lowess import lowess
+from sklearn.linear_model import lasso_path
+from sklearn.model_selection import KFold
+
+plt.rcParams.update({
+    "figure.dpi": 110, "axes.spines.top": False, "axes.spines.right": False,
+    "axes.grid": True, "grid.color": "#e6e6e3", "grid.linewidth": 0.6,
+    "axes.edgecolor": "#8a8a85", "axes.labelcolor": "#2b2b2a",
+    "xtick.color": "#52514e", "ytick.color": "#52514e", "font.size": 9,
+})
+INK, MUTED = "#2b2b2a", "#8a8a85"
+# fixed categorical order (one colour per planet type, never reassigned)
+PALETTE = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#6250d6"]
+```
+
+We keep planets with a recorded ESI, equilibrium temperature, and planet type. Planet types are ordered by increasing mass, so the **last level, Jovian, is the largest group and serves as the reference level** throughout.
+
+```{python}
+#| label: load-data
+raw = pd.read_csv("habitable_worlds_catalog_trimmed.csv")
+planets = raw.dropna(subset=["P_ESI", "P_TEMP_EQUIL", "P_TYPE"]).copy()
+planets["logT"] = np.log10(planets["P_TEMP_EQUIL"])
+
+levels = ["Miniterran", "Subterran", "Terran", "Superterran", "Neptunian", "Jovian"]
+K = len(levels)
+planets["P_TYPE"] = pd.Categorical(planets["P_TYPE"], categories=levels)
+planets = planets.reset_index(drop=True)
+
+x = planets["logT"].to_numpy()
+y = planets["P_ESI"].to_numpy()
+g = planets["P_TYPE"].cat.codes.to_numpy()      # 0..5
+n = len(y)
+n_g = np.bincount(g, minlength=K)
+w = n_g / n                                       # group proportions
+
+print(f"Complete cases: {n}  (of {len(raw)} rows)")
+pd.DataFrame({"P_TYPE": levels, "n": n_g, "proportion": w.round(4),
+              "mean ESI": [y[g == j].mean().round(3) for j in range(K)]})
+```
+
+Like `Race1` in the class notes, the groups are badly unbalanced: one group has thousands of planets and another has fewer than ten. Keep these counts in mind; they drive everything that follows.
+
+```{python}
+#| label: fig-raw
+#| fig-cap: "ESI against log10 equilibrium temperature, one panel per planet type. Group sizes range from 8 to over 1,500 planets."
+fig, axes = plt.subplots(2, 3, figsize=(10, 5.4), sharex=True, sharey=True)
+for j, ax in enumerate(axes.flat):
+    m = g == j
+    ax.scatter(x[m], y[m], s=7, alpha=0.5, color=PALETTE[j], linewidths=0)
+    ax.set_title(f"{levels[j]} (n={n_g[j]})", fontsize=9.5, color=INK, loc="left")
+for ax in axes[1]:
+    ax.set_xlabel(r"$\log_{10}$ equilibrium temp (K)")
+for ax in axes[:, 0]:
+    ax.set_ylabel("ESI")
+fig.tight_layout()
+plt.show()
+```
+
+## Categorical variables and interactions {#sec-interactions}
+
+### A flexible curve for one predictor
+
+To let the effect of temperature be non-linear, we use a restricted cubic spline (the same basis as `rcs()` in R's `rms`, used throughout the class notes). With four knots the basis has three columns, $x$, $x'$, $x''$. As in the notes, the knots are fixed once and reused in every model, so the models differ only in *which coefficients are shared across groups*, not in the basis.
+
+```{python}
+#| label: rcs-basis
+def rcs(v, knots):
+    """Harrell restricted cubic spline basis: returns len(knots)-1 columns (x, x', x'', ...)."""
+    t = np.asarray(knots, float); k = len(t)
+    pos = lambda u: np.maximum(u, 0.0) ** 3
+    cols = [v]
+    for j in range(k - 2):
+        cols.append((pos(v - t[j])
+                     - pos(v - t[k - 2]) * (t[k - 1] - t[j]) / (t[k - 1] - t[k - 2])
+                     + pos(v - t[k - 1]) * (t[k - 2] - t[j]) / (t[k - 1] - t[k - 2]))
+                    / (t[k - 1] - t[0]) ** 2)
+    return np.column_stack(cols)
+
+knots = np.quantile(x, [0.05, 0.35, 0.65, 0.95])
+B = rcs(x, knots)
+print("knots:", knots.round(3), "| basis columns:", B.shape[1])
+```
+
+### The sharing ladder
+
+Write $b(x) = (x, x', x'')$ for the spline basis and $I_j$ for the indicator of planet type $j$ (Jovian is the reference). The class notes walk up a ladder of models that share progressively less information between groups:
+
+**Fully shared** (one curve for every planet type; 4 coefficients):
+$$E[\text{ESI}\mid x] = \beta_0 + \beta_1 x + \beta_2 x' + \beta_3 x''$$
+
+**Partial sharing** (same shape, a different level for each type; 4 + 5 = 9 coefficients):
+$$E[\text{ESI}\mid x, \text{type}] = \beta_0 + \beta_1 x + \beta_2 x' + \beta_3 x'' + \sum_{j=1}^{5}\gamma_j I_j$$
+
+**Full interaction** (every type gets its own curve; $4 + 5 + 15 = 24$ coefficients):
+$$E[\text{ESI}\mid x, \text{type}] = \beta_0 + \sum_{m=1}^3 \beta_m b_m(x) + \sum_{j=1}^{5}\left[\gamma_j I_j + \sum_{m=1}^3 \delta_{jm}\, I_j\, b_m(x)\right]$$
+
+The $\gamma_j$ and $\delta_{jm}$ are the *interaction* coefficients: they say how type $j$ departs from the reference. For $G$ groups and a spline with $p$ terms, the interaction model spends $(G-1)(p+1)$ extra coefficients, and each group's curve is estimated from **only that group's rows**.
+
+```{python}
+#| label: designs
+def treat_dummies(g):
+    return np.eye(K)[g][:, :-1]                    # reference = last level (Jovian)
+
+def design(kind, B, g):
+    ones, T = np.ones((len(B), 1)), treat_dummies(g)
+    if kind == "shared":
+        return np.hstack([ones, B])
+    if kind == "offset":
+        return np.hstack([ones, B, T])
+    if kind == "interaction":
+        return np.hstack([ones, B, T] + [B * T[:, [j]] for j in range(K - 1)])
+    raise ValueError(kind)
+
+fits = {k: sm.OLS(y, design(k, B, g)).fit() for k in ["shared", "offset", "interaction"]}
+pd.DataFrame({"model": list(fits),
+              "coefficients": [int(f.df_model + 1) for f in fits.values()],
+              "in-sample R2": [round(f.rsquared, 3) for f in fits.values()],
+              "sigma": [round(np.sqrt(f.scale), 4) for f in fits.values()]})
+```
+
+To plot each fitted curve we evaluate it over the observed temperature range of each group (extrapolating a group's curve far outside its data would only show nonsense).
+
+```{python}
+#| label: curve-helpers
+grid = {j: np.linspace(x[g == j].min(), x[g == j].max(), 120) for j in range(K)}
+
+def ols_curves(kind, fit):
+    out = {}
+    for j in range(K):
+        xs = grid[j]; Bg = rcs(xs, knots); gg = np.full(len(xs), j)
+        sf = fit.get_prediction(design(kind, Bg, gg)).summary_frame(alpha=0.05)
+        out[j] = (xs, sf["mean"].to_numpy(), sf["mean_ci_lower"].to_numpy(), sf["mean_ci_upper"].to_numpy())
+    return out
+```
+
+### Fully shared: one curve for everyone
+
+```{python}
+#| label: fig-shared
+#| fig-cap: "Fully shared model: one temperature-ESI curve (with 95% confidence band) for all planet types."
+cur = ols_curves("shared", fits["shared"])
+xs, yh, lo, hi = cur[5]
+xs = np.linspace(x.min(), x.max(), 200)
+sf = fits["shared"].get_prediction(design("shared", rcs(xs, knots), np.zeros(len(xs), int))).summary_frame()
+fig, ax = plt.subplots(figsize=(6.2, 3.8))
+ax.scatter(x, y, s=5, alpha=0.25, color=MUTED, linewidths=0)
+ax.fill_between(xs, sf["mean_ci_lower"], sf["mean_ci_upper"], color=INK, alpha=0.2, lw=0)
+ax.plot(xs, sf["mean"], color=INK, lw=2)
+ax.set_xlabel(r"$\log_{10}$ equilibrium temp (K)"); ax.set_ylabel("ESI")
+plt.show()
+```
+
+### Partial sharing: same shape, shifted
+
+Adding the type main effect, without interactions, gives parallel curves: same shape, different level. This is the non-linear analogue of the "uniformly higher baseline" picture from the information-sharing chapter.
+
+```{python}
+#| label: fig-offset
+#| fig-cap: "Partial sharing: the planet-type main effect shifts a common curve up or down. The curves are parallel by construction."
+cur = ols_curves("offset", fits["offset"])
+fig, ax = plt.subplots(figsize=(6.6, 4))
+for j in range(K):
+    xs, yh, lo, hi = cur[j]
+    ax.plot(xs, yh, color=PALETTE[j], lw=2, label=levels[j])
+ax.set_xlabel(r"$\log_{10}$ equilibrium temp (K)"); ax.set_ylabel("fitted ESI")
+ax.legend(frameon=False, ncol=2, fontsize=8)
+plt.show()
+```
+
+### Full interaction: the shape differs by type
+
+Replacing `+` with `*` in the formula (here: multiplying every spline column by every type indicator) lets each type have its own curve. This is the analogue of the notes' `Predict(fit_int_race, Age, Race1)` figure: one panel per group, fitted curve and 95% confidence band.
+
+```{python}
+#| label: fig-interaction
+#| fig-cap: "Full-interaction model: each planet type gets its own curve (95% confidence band, shaded). Compare the width of the bands for the large groups (bottom row) with the two smallest groups (top left)."
+def facet_curves(curve_sets, ylim=(0, 1), show_points=True, figsize=(10.5, 5.8)):
+    """curve_sets: list of dicts {label, curves{j:(xs,yh,lo,hi)}, color, ls, lw, band}."""
+    fig, axes = plt.subplots(2, 3, figsize=figsize, sharex=False, sharey=True)
+    for j, ax in enumerate(axes.flat):
+        m = g == j
+        if show_points:
+            ax.scatter(x[m], y[m], s=8, alpha=0.35, color=MUTED, linewidths=0)
+        for cs in curve_sets:
+            xs, yh, lo, hi = cs["curves"][j]
+            if cs.get("band"):
+                ax.fill_between(xs, lo, hi, color=cs["color"], alpha=0.2, lw=0)
+            ax.plot(xs, yh, color=cs["color"], ls=cs.get("ls", "-"), lw=cs.get("lw", 2),
+                    label=cs["label"])
+        ax.set_title(f"{levels[j]} (n={n_g[j]})", fontsize=9.5, color=INK, loc="left")
+        ax.set_ylim(*ylim)
+    for ax in axes[1]:
+        ax.set_xlabel(r"$\log_{10}$ equilibrium temp (K)")
+    for ax in axes[:, 0]:
+        ax.set_ylabel("ESI")
+    return fig, axes
+
+cur_int = ols_curves("interaction", fits["interaction"])
+fig, axes = facet_curves([{"label": "full interaction", "curves": cur_int,
+                           "color": PALETTE[0], "band": True}])
+fig.tight_layout(); plt.show()
+```
+
+The curves for the small groups are visibly less stable: wider confidence bands and more wiggle, because each group's spline is estimated from its own data alone, with nothing borrowed from the other five groups. We can quantify that.
+
+```{python}
+#| label: ci-width
+ci_width = pd.DataFrame({
+    "P_TYPE": levels, "n": n_g,
+    "mean 95% CI width (full interaction)": [np.mean(cur_int[j][3] - cur_int[j][2]).round(3) for j in range(K)],
+})
+ci_width
+```
+
+### No sharing: fully separate models
+
+At the other extreme we fit one model per group, each with its own residual variance. As in the notes, the *mean* model is the same as the full interaction model.
+
+```{python}
+#| label: fig-separate
+#| fig-cap: "Predictions from six fully separate models against predictions from the single full-interaction model. They coincide: with a full interaction, 'no sharing' and 'full interaction' are the same mean model."
+pred_sep = np.empty(n)
+sigmas = {}
+for j in range(K):
+    m = g == j
+    f_j = sm.OLS(y[m], design("shared", B[m], g[m])).fit()
+    pred_sep[m] = f_j.predict(design("shared", B[m], g[m]))
+    sigmas[levels[j]] = np.sqrt(f_j.scale)
+pred_int = fits["interaction"].predict(design("interaction", B, g))
+print("identical predictions:", np.allclose(pred_sep, pred_int))
+
+fig, ax = plt.subplots(figsize=(4.6, 4.2))
+ax.scatter(pred_sep, pred_int, s=6, alpha=0.3, color=PALETTE[0], linewidths=0)
+lim = [min(pred_sep.min(), pred_int.min()), max(pred_sep.max(), pred_int.max())]
+ax.plot(lim, lim, color=PALETTE[1], ls="--", lw=1.2)
+ax.set_xlabel("separate-model predictions"); ax.set_ylabel("interaction-model predictions")
+plt.show()
+```
+
+The only difference is the variance: the interaction model has one pooled $\sigma$, the separate models have six.
+
+```{python}
+#| label: sigmas
+pd.DataFrame({"P_TYPE": levels, "n": n_g, "separate sigma": [round(sigmas[l], 4) for l in levels]})
+```
+
+### Checking the fit: residuals by group
+
+As in the notes, we look at residuals against the predictor within each group, with a lowess smooth, to see whether the interaction model leaves structure behind.
+
+```{python}
+#| label: fig-resid
+#| fig-cap: "Residuals of the full-interaction model against temperature, by planet type, with a lowess smooth."
+resid = y - pred_int
+fig, axes = plt.subplots(2, 3, figsize=(10.5, 5.6), sharey=True)
+for j, ax in enumerate(axes.flat):
+    m = g == j
+    ax.scatter(x[m], resid[m], s=8, alpha=0.35, color=PALETTE[j], linewidths=0)
+    ax.axhline(0, color=MUTED, ls="--", lw=1)
+    if m.sum() > 10:
+        lw_ = lowess(resid[m], x[m], frac=0.5)
+        ax.plot(lw_[:, 0], lw_[:, 1], color=INK, lw=1.8)
+    ax.set_title(f"{levels[j]} (n={n_g[j]})", fontsize=9.5, color=INK, loc="left")
+for ax in axes[1]:
+    ax.set_xlabel(r"$\log_{10}$ equilibrium temp (K)")
+for ax in axes[:, 0]:
+    ax.set_ylabel("residual")
+fig.tight_layout(); plt.show()
+```
+
+## The need for group-specific regularization {#sec-need}
+
+So far the *analyst* has chosen a rung of the ladder by hand. Cross-validation (10 folds, shared across every model in this chapter) tells us how the three nested mean models fare out of sample, overall and group by group.
+
+```{python}
+#| label: cv-ladder
+K_FOLDS = 10
+kf = KFold(K_FOLDS, shuffle=True, random_state=42)
+folds = list(kf.split(y))
+
+def oof_unpenalized(kind):
+    pred = np.empty(n)
+    X = design(kind, B, g)
+    for tr, te in folds:
+        beta = np.linalg.lstsq(X[tr], y[tr], rcond=None)[0]
+        pred[te] = X[te] @ beta
+    return pred
+
+oof = {k: oof_unpenalized(k) for k in ["shared", "offset", "interaction"]}
+
+def mse_by_group(pred):
+    return np.array([np.mean((y[g == j] - pred[g == j]) ** 2) for j in range(K)])
+
+ladder = pd.DataFrame({"model": ["fully shared", "partial sharing (offset)", "full interaction"],
+                       "CV MSE": [np.mean((y - oof[k]) ** 2) for k in ["shared", "offset", "interaction"]]})
+ladder["CV MSE"] = ladder["CV MSE"].round(5)
+ladder
+```
+
+The overall number hides the story. Broken out by group:
+
+```{python}
+#| label: fig-cv-by-group
+#| fig-cap: "Out-of-fold mean squared error by planet type for the three unpenalized models. Moving from the shared fit to the interaction fit helps the large groups, but the picture for the smallest groups is much less favourable."
+fig, ax = plt.subplots(figsize=(7.4, 3.8))
+width = 0.26
+for i, (k, lab, col) in enumerate([("shared", "fully shared", MUTED),
+                                    ("offset", "offset", PALETTE[2]),
+                                    ("interaction", "full interaction", PALETTE[0])]):
+    ax.bar(np.arange(K) + (i - 1) * width, mse_by_group(oof[k]), width * 0.92, label=lab, color=col)
+ax.set_xticks(range(K)); ax.set_xticklabels([f"{l}\n(n={c})" for l, c in zip(levels, n_g)])
+ax.set_ylabel("out-of-fold MSE"); ax.set_yscale("log"); ax.legend(frameon=False)
+plt.show()
+```
+
+```{python}
+#| label: cv-by-group-table
+pd.DataFrame({"P_TYPE": levels, "n": n_g,
+              "shared": mse_by_group(oof["shared"]).round(5),
+              "offset": mse_by_group(oof["offset"]).round(5),
+              "interaction": mse_by_group(oof["interaction"]).round(5)})
+```
+
+Moving from the shared fit to the interaction fit helps the four large groups a great deal (for Terran the out-of-fold MSE falls from about 0.016 to about 0.002), but it does **not** help the two smallest groups. For Subterran (n = 69) the interaction fit is *worse* than even the fully shared fit, and for Miniterran (n = 8) it is slightly worse too. The partial-sharing (offset) model is the best of the three for both of them. (The Miniterran numbers rest on only eight planets, so treat them as very noisy.)
+
+This is the tension that motivates the rest of the chapter:
+
+- **Sharing everything** throws away real information. Planet types plainly differ in both level and shape.
+- **Sharing nothing** estimates $p+1$ coefficients for every type from that type's rows alone. For a group with 8 planets this is hopeless, and even a few dozen is a lot.
+- **Choosing by hand** is unsatisfying when there are many groups. Each group could sit at its own point on the sharing spectrum, and the number of candidate structures explodes.
+
+**Regularization offers a third way:** reparameterize the model into a *global* block that carries a shared curve and a *deviation* block that carries each group's departure from it, then penalize only the deviation block. Cross-validation chooses how much of each deviation survives, so the data decide how much each group shares.
+
+### Key implementation detail: deviation parameterization
+
+With treatment (reference-cell) coding, the interaction columns measure each group's departure from one arbitrary *reference* group (here Jovian). Shrinking those coefficients shrinks every group toward the reference, not toward a sensible common curve. The class notes fix this with a **deviation parameterization**, in which the main-effect columns describe an *average* curve and the group columns describe departures from it.
+
+With $k$ levels and a reference level $k$, the deviation features are $D_j = I_j - I_k$ for $j = 1, \dots, k-1$ (the `contr.sum` coding), and the intercept becomes the *unweighted* average of the group means. The notes then generalize to a **population-mean** version for unbalanced groups, using group proportions $w_j$:
+
+$$D_j = I_j - \frac{w_j}{w_k}\, I_k, \qquad j = 1, \dots, k-1.$$
+
+With this coding the global curve is the **proportion-weighted average curve**, and $\alpha_j$ is group $j$'s deviation from it. Group $k$'s deviation is implied: $\delta_k = -\sum_{j<k} (w_j/w_k)\,\delta_j$. We use the population-mean version because our groups are so unbalanced. With plain sum-to-zero coding, a deviation in one tiny group would force an equal and opposite deviation in every other group, which is a strange constraint. With population weights, a tiny group moving only nudges the huge reference group a tiny amount. (With equal $w_j$ the two codings coincide.)
+
+```{python}
+#| label: deviation-coding
+# rows = planet types (levels), columns = the k-1 deviation features D_1..D_{k-1}
+C_pop = np.vstack([np.eye(K - 1), -(w[:-1] / w[-1])[None, :]])
+pd.DataFrame(C_pop, index=levels, columns=[f"D_{j+1} ({levels[j]})" for j in range(K - 1)]).round(3)
+```
+
+Each `D_j` multiplies the group's main-effect column *and* its three spline-interaction columns. The coefficients of those four columns, written $\delta_j = (\delta_{j0}, \delta_{j1}, \delta_{j2}, \delta_{j3})$, are the deviation of group $j$'s whole curve from the global curve. They form a natural **group of four coefficients**: either type $j$ follows the global curve, or it doesn't. Keep this grouping in mind.
+
+```{python}
+#| label: deviation-design
+def glob_design(B):
+    return np.hstack([np.ones((len(B), 1)), B])                 # global block: intercept + spline (4 cols)
+
+def dev_design(B, g):
+    D = C_pop[g]                                                # n x (K-1)
+    base = np.hstack([np.ones((len(B), 1)), B])                 # [1, b1, b2, b3]
+    return np.hstack([D[:, [j]] * base for j in range(K - 1)])  # n x 20; block j = columns 4j..4j+3
+
+G = glob_design(B)               # unpenalized (global) columns
+Xd = dev_design(B, g)            # penalized (deviation) columns
+J, KJ = K - 1, 4                 # 5 explicit groups of 4 coefficients
+print("global columns:", G.shape[1], "| deviation columns:", Xd.shape[1])
+
+# check: same column space as the full interaction model => same unpenalized fit
+full_dev = sm.OLS(y, np.hstack([G, Xd])).fit()
+print("same fitted values as the treatment-coded interaction model:",
+      np.allclose(full_dev.fittedvalues, fits["interaction"].fittedvalues))
+```
+
+### Key implementation detail: penalize only the deviation block
+
+`glmnet` does this with `penalty.factor` (0 for the global columns, 1 for the deviation columns). `scikit-learn` has no such argument, but the same thing can be done exactly with the Frisch–Waugh idea: the unpenalized coefficients can be profiled out by projecting the global columns out of $y$ and of the deviation columns, fitting the penalty on the residualized data, and then re-estimating the global coefficients by least squares given the penalized fit. In code:
+
+```{python}
+#| label: partial-penalty-helpers
+def project_out(Gm, M):
+    """Residualize M on the (unpenalized) global columns."""
+    return M - Gm @ np.linalg.lstsq(Gm, M, rcond=None)[0]
+
+def cv_path(fit_path, lam_grid, Gm, Xdm, yv, folds, return_oof=True):
+    """K-fold CV along a lambda path. fit_path(G, Xd, y, lams) -> (p x L) deviation coefficients."""
+    L = len(lam_grid)
+    err = np.zeros((len(folds), L)); oof_pred = np.zeros((len(yv), L))
+    for f, (tr, te) in enumerate(folds):
+        Bt = fit_path(Gm[tr], Xdm[tr], yv[tr], lam_grid)                    # p x L
+        Gam = np.linalg.lstsq(Gm[tr], yv[tr][:, None] - Xdm[tr] @ Bt, rcond=None)[0]   # 4 x L
+        pr = Gm[te] @ Gam + Xdm[te] @ Bt                                    # n_te x L
+        oof_pred[te] = pr
+        err[f] = ((yv[te][:, None] - pr) ** 2).mean(0)
+    mean, se = err.mean(0), err.std(0, ddof=1) / np.sqrt(len(folds))
+    i_min = int(mean.argmin())
+    i_1se = int(np.where(mean <= mean[i_min] + se[i_min])[0][0])            # largest lambda within 1 SE
+    return dict(mean=mean, se=se, i_min=i_min, i_1se=i_1se, oof=oof_pred)
+
+def fit_full(fit_path, lam_grid, Gm, Xdm, yv):
+    """Full-data deviation coefficients along the path, plus re-estimated global coefficients."""
+    Bt = fit_path(Gm, Xdm, yv, lam_grid)
+    Gam = np.linalg.lstsq(Gm, yv[:, None] - Xdm @ Bt, rcond=None)[0]
+    return Gam, Bt
+```
+
+## The lasso {#sec-lasso}
+
+The lasso (@Tibshirani1996) minimizes the least-squares loss plus an $\ell_1$ penalty on the coefficients,
+
+$$\hat\beta(\lambda) = \arg\min_\beta \;\frac{1}{2n}\lVert y - X\beta\rVert_2^2 + \lambda \sum_{m} |\beta_m|,$$
+
+where here the penalty is applied **only to the deviation coefficients**. As $\lambda$ grows, deviation coefficients are pulled to zero and, unlike ridge, can be set *exactly* to zero. At $\lambda = 0$ we recover the full-interaction model, and at large $\lambda$ every deviation is zero, so every group collapses onto the shared global curve. Cross-validation picks a $\lambda$ in between.
+
+```{python}
+#| label: lasso-fit
+def lasso_fit_path(Gm, Xdm, yv, lams):
+    yr, Xr = project_out(Gm, yv), project_out(Gm, Xdm)
+    s = np.sqrt((Xr ** 2).mean(0))                                   # standardize penalized columns
+    _, coefs, _ = lasso_path(Xr / s, yr, alphas=lams, tol=1e-10, max_iter=200000)
+    return coefs / s[:, None]                                        # back to original column scale
+
+def lasso_lambda_max(Gm, Xdm, yv):
+    yr, Xr = project_out(Gm, yv), project_out(Gm, Xdm)
+    s = np.sqrt((Xr ** 2).mean(0))
+    return np.abs((Xr / s).T @ yr).max() / len(yv)
+
+lam_max_l = lasso_lambda_max(G, Xd, y)
+lams_l = lam_max_l * np.logspace(0, -4, 100)
+
+cv_l = cv_path(lasso_fit_path, lams_l, G, Xd, y, folds)
+Gam_l, Beta_l = fit_full(lasso_fit_path, lams_l, G, Xd, y)
+print(f"lasso: lambda_min = {lams_l[cv_l['i_min']]:.2e}, lambda_1se = {lams_l[cv_l['i_1se']]:.2e}  (lambda_max = {lam_max_l:.2e})")
+```
+
+```{python}
+#| label: fig-lasso-cv
+#| fig-cap: "Cross-validation curve for the lasso on the deviation block. The horizontal lines mark the CV error of the two extremes of the ladder: the shared fit (large lambda) and the full interaction fit (lambda near 0). The vertical lines mark lambda_min (solid) and lambda_1se (dashed)."
+def plot_cv(cv, lams, title):
+    fig, ax = plt.subplots(figsize=(6.6, 3.8))
+    lx = np.log10(lams)
+    ax.fill_between(lx, cv["mean"] - cv["se"], cv["mean"] + cv["se"], color=PALETTE[0], alpha=0.25, lw=0)
+    ax.plot(lx, cv["mean"], color=PALETTE[0], lw=2)
+    ax.axhline(np.mean((y - oof["shared"]) ** 2), color=MUTED, ls="--", lw=1.1)
+    ax.axhline(np.mean((y - oof["interaction"]) ** 2), color=INK, ls=":", lw=1.1)
+    ax.axvline(lx[cv["i_min"]], color=PALETTE[1], lw=1.2)
+    ax.axvline(lx[cv["i_1se"]], color=PALETTE[1], lw=1.2, ls="--")
+    ax.text(lx[0], np.mean((y - oof["shared"]) ** 2), " shared", color=MUTED, va="bottom", ha="left", fontsize=8)
+    ax.text(lx[-1], np.mean((y - oof["interaction"]) ** 2), "interaction ", color=INK, va="top", ha="right", fontsize=8)
+    ax.set_xlabel(r"$\log_{10}\lambda$"); ax.set_ylabel("10-fold CV MSE"); ax.set_title(title, loc="left", fontsize=10)
+    ax.invert_xaxis()
+    return fig, ax
+
+fig, ax = plot_cv(cv_l, lams_l, "Lasso (deviation block penalized)")
+plt.show()
+```
+
+The notes visualize ridge and lasso by plotting the **coefficient paths of the deviation columns only**, since the global columns are never shrunk. Here we color the coefficients by the planet-type group they belong to and rescale each by its column's standard deviation, so the y-axis is in ESI units and the four-coefficient blocks are comparable.
+
+```{python}
+#| label: fig-lasso-path
+#| fig-cap: "Lasso coefficient paths for the 20 deviation coefficients, colored by planet type (the sixth type, Jovian, is implied by the other five). Each curve is one coefficient; the dotted vertical lines mark lambda_1se (left) and lambda_min (right). Within a color the four coefficients leave zero at different values of lambda."
+sd_d = Xd.std(0)
+
+def plot_paths(Beta, lams, title, cv=None):
+    fig, ax = plt.subplots(figsize=(6.8, 4))
+    lx = np.log10(lams)
+    for j in range(J):
+        for c in range(KJ):
+            ax.plot(lx, Beta[4 * j + c] * sd_d[4 * j + c], color=PALETTE[j], lw=1.2, alpha=0.9,
+                    label=levels[j] if c == 0 else None)
+    ax.axhline(0, color=MUTED, lw=0.8, ls="--")
+    if cv is not None:
+        ax.axvline(lx[cv["i_min"]], color=INK, lw=1, ls=":")
+        ax.axvline(lx[cv["i_1se"]], color=INK, lw=1, ls=":")
+    ax.set_xlabel(r"$\log_{10}\lambda$"); ax.set_ylabel(r"coefficient $\times$ column SD (ESI units)")
+    ax.set_title(title, loc="left", fontsize=10)
+    ax.invert_xaxis(); ax.legend(frameon=False, ncol=2, fontsize=8)
+    return fig, ax
+
+plot_paths(Beta_l, lams_l, "Lasso: deviation coefficient paths", cv_l); plt.show()
+```
+
+### What the lasso decided, group by group
+
+At a given $\lambda$ we can reconstruct each group's four-coefficient deviation (including the implied sixth group) and summarize it: how many of its coefficients are nonzero, and how far, in ESI units, its fitted curve sits from the shared curve (root-mean-square over that group's own planets).
+
+```{python}
+#| label: group-summary
+def group_deltas(beta):
+    d5 = beta.reshape(J, KJ)
+    implied = -(w[:-1] / w[-1]) @ d5                      # deviation of the reference level
+    return np.vstack([d5, implied])
+
+def summarize(Beta, i, tol=1e-10):
+    d = group_deltas(Beta[:, i])
+    rows = []
+    for j in range(K):
+        m = g == j
+        dev = d[j, 0] + B[m] @ d[j, 1:]
+        rows.append((int((np.abs(d[j]) > tol).sum()), float(np.sqrt(np.mean(dev ** 2)))))
+    return rows
+
+def summary_table(Beta, cv, lams):
+    out = pd.DataFrame({"P_TYPE": levels, "n": n_g})
+    for tag, i in [("lambda_min", cv["i_min"]), ("lambda_1se", cv["i_1se"])]:
+        s = summarize(Beta, i)
+        out[f"nonzero coefs ({tag})"] = [a for a, _ in s]
+        out[f"RMS deviation, ESI ({tag})"] = [round(b, 4) for _, b in s]
+    return out
+
+summary_table(Beta_l, cv_l, lams_l)
+```
+
+Even at the CV-selected $\lambda$, which is a small fraction of $\lambda_{\max}$, the lasso has already made a real decision about the small groups: Subterran keeps only 2 of its 4 deviation coefficients, and Miniterran keeps 3. In the next section we will see that this is where the lasso earns its prediction gains. For Subterran, the lasso keeps a level shift and the deviation on the last spline term but sets its deviations on the linear term and the first nonlinear term exactly to zero, which is a partial-sharing structure in the spirit of the offset model that was best for that group above.
+
+The key feature of the lasso is that it zeroes coefficients **one at a time**. Within a single planet type it may keep the shift but drop the curvature terms, or the reverse. The lasso knows nothing about the fact that the four columns for a type are one logical unit. If our question is "does planet type $j$ need its own curve, yes or no?", the lasso doesn't answer it. It gives a partial answer for every group, and, because the lasso picks columns by their individual correlation with the residual, groups with more columns (or more strongly correlated columns) have an easier time entering.
+
+## The group lasso {#sec-grouplasso}
+
+The group lasso (@Yuan2006) penalizes the Euclidean norm of each group of coefficients instead of the individual coefficients. Following the notation of @Breheny2015, with $J$ groups $X_j$ of size $K_j$,
+
+$$Q(\beta) = \frac{1}{2n}\lVert y - X\beta\rVert_2^2 + \lambda \sum_{j=1}^{J} \sqrt{K_j}\,\lVert\beta_j\rVert_2.$$
+
+Because the penalty acts on $\lVert\beta_j\rVert_2$, the solution has the **all-or-nothing** property: for any $\lambda$, either every coefficient in group $j$ is nonzero, or all are exactly zero. In our setting the groups are the four deviation coefficients of each planet type, so "group $j$ is zero" means planet type $j$ is **completely pooled onto the shared curve**, a clean, automatic version of the sharing decision. The $\sqrt{K_j}$ factor compensates for groups of different sizes (here all groups have $K_j = 4$).
+
+### Algorithm: group descent with orthonormalized groups
+
+@Breheny2015 show that if each group $X_j$ is first **orthonormalized**, so $n^{-1}X_j^\top X_j = I$, the one-group problem has a closed form and coordinate descent applies group by group. Take the eigendecomposition $n^{-1}X_j^\top X_j = Q_j\Lambda_jQ_j^\top$ and transform
+
+$$\tilde X_j = X_j Q_j \Lambda_j^{-1/2}, \qquad \beta_j = Q_j\Lambda_j^{-1/2}\tilde\beta_j,$$
+
+so the fit can be done on the orthonormal scale and transformed back. The one-group solution is the **multivariate soft-thresholding operator**
+
+$$S(z,\lambda) = \left(1 - \frac{\lambda}{\lVert z\rVert}\right)_+ z,$$
+
+which shortens the vector $z$ toward 0 by $\lambda$ and sets it exactly to 0 if $\lVert z\rVert\le\lambda$. Algorithm 1 of the paper is then a loop over groups: compute $z_j = \tilde X_j^\top r/n + \tilde\beta_j$, update $\tilde\beta_j \leftarrow S(z_j, \lambda\sqrt{K_j})$, and update the residual $r$. (Orthonormalization also means the penalty is on the scale of the linear predictor, a property @Simon2011 argue is the right standardization for the group lasso.)
+
+```{python}
+#| label: group-lasso-algorithm
+def orthonormalize_groups(Gm, Xdm, yv):
+    """Project out the global block, then orthonormalize each group (n^-1 X_j'X_j = I)."""
+    n_ = len(yv)
+    yr, Xr = project_out(Gm, yv), project_out(Gm, Xdm)
+    Xt, T = [], []
+    for j in range(J):
+        Xj = Xr[:, KJ * j: KJ * (j + 1)]
+        evals, Q = np.linalg.eigh(Xj.T @ Xj / n_)
+        assert evals.min() > 1e-10, "rank-deficient group"
+        Tj = Q / np.sqrt(evals)                                       # Q Lambda^{-1/2}
+        Xt.append(Xj @ Tj); T.append(Tj)
+    return yr, Xt, T
+
+def group_lasso_lambda_max(Gm, Xdm, yv):
+    yr, Xt, _ = orthonormalize_groups(Gm, Xdm, yv)
+    return max(np.linalg.norm(Xt[j].T @ yr / len(yv)) / np.sqrt(KJ) for j in range(J))
+
+def group_lasso_path(Gm, Xdm, yv, lams, tol=1e-10, max_iter=20000):
+    """Group descent (Breheny & Huang, Algorithm 1) over a decreasing lambda path with warm starts."""
+    n_ = len(yv)
+    yr, Xt, T = orthonormalize_groups(Gm, Xdm, yv)
+    bt = [np.zeros(KJ) for _ in range(J)]
+    r = yr.copy()
+    path = np.zeros((J * KJ, len(lams)))
+    for l, lam in enumerate(lams):
+        lam_j = lam * np.sqrt(KJ)
+        for _ in range(max_iter):
+            max_change = 0.0
+            for j in range(J):
+                z = Xt[j].T @ r / n_ + bt[j]
+                nz = np.linalg.norm(z)
+                new = np.zeros(KJ) if nz <= lam_j else (1.0 - lam_j / nz) * z   # multivariate soft-threshold
+                d = new - bt[j]
+                if d.any():
+                    r -= Xt[j] @ d
+                    bt[j] = new
+                    max_change = max(max_change, np.abs(d).max())
+            if max_change < tol:
+                break
+        for j in range(J):
+            path[KJ * j: KJ * (j + 1), l] = T[j] @ bt[j]               # back to the original scale
+    return path
+
+lam_max_g = group_lasso_lambda_max(G, Xd, y)
+lams_g = lam_max_g * np.logspace(0, -3.5, 80)
+
+cv_g = cv_path(group_lasso_path, lams_g, G, Xd, y, folds)
+Gam_g, Beta_g = fit_full(group_lasso_path, lams_g, G, Xd, y)
+print(f"group lasso: lambda_min = {lams_g[cv_g['i_min']]:.2e}, lambda_1se = {lams_g[cv_g['i_1se']]:.2e}  (lambda_max = {lam_max_g:.2e})")
+```
+
+```{python}
+#| label: fig-gl-cv
+#| fig-cap: "Cross-validation curve for the group lasso, with the CV error of the two ladder extremes for reference."
+fig, ax = plot_cv(cv_g, lams_g, "Group lasso (deviation block penalized by group)")
+plt.show()
+```
+
+### The same paths, now all-or-nothing
+
+Compare the coefficient paths with the lasso's. Each color is one planet type, and its four coefficients now **enter the model together** at the same value of $\lambda$, which is the signature of the group penalty.
+
+```{python}
+#| label: fig-gl-path
+#| fig-cap: "Group lasso coefficient paths for the 20 deviation coefficients, colored by planet type. The four coefficients within a color become nonzero at the same lambda: each planet type is either pooled onto the shared curve or free to deviate. The dotted vertical lines mark lambda_1se (left) and lambda_min (right)."
+plot_paths(Beta_g, lams_g, "Group lasso: deviation coefficient paths", cv_g); plt.show()
+```
+
+```{python}
+#| label: gl-summary
+summary_table(Beta_g, cv_g, lams_g)
+```
+
+The `nonzero coefs` column now takes only the values 0 or 4: each planet type is either pooled (0) or free (4). At $\lambda_{\min}$ the group lasso lets every type deviate. At the more conservative $\lambda_{1se}$ it pools Miniterran (n = 8) and Neptunian completely onto the shared curve, and keeps the other three explicit types. The sixth type, Jovian, is implied by the other five through the population-weighted constraint, so it is nonzero whenever any other type deviates.
+
+### Fitted curves: what each approach does to each group
+
+```{python}
+#| label: fig-compare-curves
+#| fig-cap: "Fitted curves by planet type: fully shared (grey), full interaction (black), lasso at lambda_min (orange) and group lasso at lambda_min (blue)."
+def reg_curves(Gam, Beta, i):
+    out = {}
+    for j in range(K):
+        xs = grid[j]; Bg = rcs(xs, knots); gg = np.full(len(xs), j)
+        yh = glob_design(Bg) @ Gam[:, i] + dev_design(Bg, gg) @ Beta[:, i]
+        out[j] = (xs, yh, None, None)
+    return out
+
+cur_shared = ols_curves("shared", fits["shared"])
+sets = [
+    {"label": "shared", "curves": cur_shared, "color": MUTED, "ls": "--", "lw": 1.6},
+    {"label": "full interaction", "curves": cur_int, "color": INK, "lw": 1.3},
+    {"label": "lasso (lambda_min)", "curves": reg_curves(Gam_l, Beta_l, cv_l["i_min"]), "color": PALETTE[1], "lw": 2},
+    {"label": "group lasso (lambda_min)", "curves": reg_curves(Gam_g, Beta_g, cv_g["i_min"]), "color": PALETTE[0], "lw": 2},
+]
+fig, axes = facet_curves(sets, show_points=False)
+axes[0, 0].legend(frameon=False, fontsize=7.5, loc="upper left")
+fig.tight_layout(); plt.show()
+```
+
+### How well does each approach predict?
+
+Finally, the out-of-fold error, overall and by group, at the cross-validated $\lambda$. (The folds are the same for every method. The $\lambda$ was chosen on those same folds, so the regularized numbers are slightly optimistic.)
+
+```{python}
+#| label: final-comparison
+methods = {
+    "fully shared": oof["shared"],
+    "full interaction": oof["interaction"],
+    "lasso (lambda_min)": cv_l["oof"][:, cv_l["i_min"]],
+    "lasso (lambda_1se)": cv_l["oof"][:, cv_l["i_1se"]],
+    "group lasso (lambda_min)": cv_g["oof"][:, cv_g["i_min"]],
+    "group lasso (lambda_1se)": cv_g["oof"][:, cv_g["i_1se"]],
+}
+comp = pd.DataFrame({"method": list(methods),
+                     "overall CV MSE": [np.mean((y - p) ** 2).round(5) for p in methods.values()]})
+for j in range(K):
+    comp[f"{levels[j]} (n={n_g[j]})"] = [np.mean((y[g == j] - p[g == j]) ** 2).round(5) for p in methods.values()]
+comp
+```
+
+```{python}
+#| label: fig-final-by-group
+#| fig-cap: "Out-of-fold MSE by planet type, relative to the fully shared model (values below 1 mean the method beats the shared fit for that group)."
+fig, ax = plt.subplots(figsize=(7.8, 3.9))
+show = [("full interaction", INK), ("lasso (lambda_min)", PALETTE[1]), ("group lasso (lambda_min)", PALETTE[0])]
+base = mse_by_group(methods["fully shared"])
+for i, (m, col) in enumerate(show):
+    ax.bar(np.arange(K) + (i - 1) * 0.26, mse_by_group(methods[m]) / base, 0.24, label=m, color=col)
+ax.axhline(1, color=MUTED, ls="--", lw=1)
+ax.set_xticks(range(K)); ax.set_xticklabels([f"{l}\n(n={c})" for l, c in zip(levels, n_g)])
+ax.set_ylabel("MSE relative to fully shared"); ax.legend(frameon=False, fontsize=8)
+plt.show()
+```
+
+Three things to notice (all with the caveat that this is one dataset, one set of folds, and a tiny Miniterran group):
+
+1. **Overall error barely separates the regularized fits from the full interaction model**, because the four large groups dominate the average and they want their own curves. The gains and losses are in the small groups.
+2. **The lasso is the clear winner for the small groups here.** For Subterran, the lasso's out-of-fold MSE is under a third of the full-interaction value, and for Miniterran it is less than half. It gets there by zeroing *some* of a group's deviation coefficients (keeping the shift, dropping slopes), which is exactly the in-between structure the offset model suggested.
+3. **The group lasso trades that flexibility for a cleaner decision.** Because a group is all-or-nothing, a type's level shift and its shape terms are kept or dropped together. At $\lambda_{\min}$ every type is kept, so the small groups are barely helped. At $\lambda_{1se}$ the group lasso pools Miniterran and Neptunian completely and Subterran improves (to about 0.010 from 0.019), but the large groups give up some accuracy. What we gain is an *interpretable, group-level answer* to "which planet types need their own curve?"
+
+So in this example the group lasso is not a free prediction win. Its value is the question it answers, and how it answers it: one decision per group, with the whole group's coefficients treated as one unit. Whether that is the right unit depends on the problem. If the level shift and the shape of a type's curve should be decided separately, as the Subterran result suggests, one can split each type's deviation into two groups, a level group and a shape group; the same algorithm applies unchanged.
+
+## Takeaways {#sec-takeaways}
+
+- A categorical variable and its interactions with a flexible effect create **groups of columns** that belong together; each group's curve is estimated from that group's rows alone.
+- When groups are unbalanced, the full-interaction model is unstable for small groups, while the fully shared model ignores real differences. Choosing a rung of the sharing ladder by hand does not scale.
+- Reparameterizing into a **global block** and a **deviation block**, and penalizing only the deviations, lets cross-validation set how much each group shares.
+- The **lasso** can do this, but it shrinks and zeros the deviation coefficients **one by one**, so a group's curve can be half-pooled: here, Subterran keeps a level shift but loses its slopes. That flexibility paid off in predictions for the small groups.
+- The **group lasso** penalizes each group's coefficients together, so each planet type is either completely pooled onto the shared curve or free to deviate. The algorithm is a simple loop of closed-form multivariate soft-thresholding updates once the groups are orthonormalized. It gives a clean group-level answer, at some cost in flexibility for this particular grouping.
+- The lasso and group lasso both shrink large coefficients along with small ones, since the rate of penalization does not change with the size of the coefficients. The nonconvex **group MCP** and **group SCAD** penalties relax the penalty for large groups, and the efficient group descent algorithms for them are the subject of @Breheny2015, which the following chapters build on.
+
+## References {.unnumbered}
+
+::: {#refs}
+:::

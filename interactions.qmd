@@ -1,0 +1,571 @@
+# Interactions Homework Problems
+
+## Task 1:
+
+**Task 1.** Pick a dataset with a continuous outcome, a continuous predictor, and a multi-level categorical grouping variable (NHANES with a different outcome/predictor pair than used in this chapter is fine, as is an outside dataset). Fit the full/partial/no-sharing ladder from this chapter (fully shared, shared-shape offset, full interaction, fully separate) and report which point on the spectrum the data support using cross-validated MSE.
+
+Fit the following ladders:
+
+- Fully shared: P_ESI ~ rcs(T, knots) (done)
+- Shared-shape offset: P_ESI ~ rcs(T, knots) + P_TYPE
+- Full interaction: P_ESI ~ rcs(T, knots) * P_TYPE
+- Fully separate: fit a separate model per P_TYPE level and pool the test errors
+
+### Understanding the data: 
+
+The dataset contains two predictor variables, one correpsonding to the planet equilibrium temperature in Kelvin (K), and another corresponding the type of planet based on its compostion where the groups of the categorical variable include: Miniterran, Subterran, Terran, Superterran, Neptunian, and Jovian. We are interested in predicting the ESI which is the Earth-Like Similarity Index based on the planet's temperature and planet type. We typically associate terranian planets to be more Earth-Like since they are rocky planets like Earth. However, since the ESI is not computed or measured using this metric, we will determine if this feature plays a role in predicting the ESI score of the planet. The ESI score is continuous and ranegs from 0 to 1. 
+
+| Variable | Variable Name |
+|---|---|
+| Continuous outcome |`P_ESI`, the Earth Similarity Index |
+| Continuous predictor | `P_TEMP_EQUIL`, planet equilibrium temperature |
+| Categorical predictor with multi-level categories | `P_TYPE`, planet type (6 levels) |
+
+```{r}
+#| message: false
+#| warning: false
+
+# imports
+library(rms)
+library(dplyr)
+library(glmnet)
+library(plotly)
+library(knitr)
+
+# load the data
+df <- read.csv("habitable_worlds_catalog_trimmed.csv")
+# drop columns
+df <- df[, !(names(df) %in% c("P_MASS", "P_RADIUS", "P_PERIOD", "P_SEMI_MAJOR_AXIS"))]  
+# drop any row with empty value
+df <- na.omit(df)
+# view the data
+head(df,10)
+```
+
+```{r}
+# drop the observation column correpsonding to planet name
+df <- df[, !(names(df) %in% c("P_NAME"))] 
+
+# display the shape of the dataste
+dim(df)
+```
+
+There are n = 5,358 planets in this study with a total of two predictors and one outcome variable.
+
+```{r}
+Hmisc::describe(df[, c("P_ESI", "P_TEMP_EQUIL", "P_TYPE")])
+```
+
+### Visualizing the data:
+
+Visualizing the distribtuion for planet temperature to determine whether its suitable for applying a restricted cubic spline. 
+
+```{r}
+#| message: false
+library(ggplot2)
+
+summary(df$P_TEMP_EQUIL)
+
+ggplot(df, aes(P_TEMP_EQUIL)) +
+  geom_histogram(bins = 50, fill = "steelblue", color = "white") +
+  labs(x = "Equilibrium temperature (K)", y = "Count")
+
+# make P_TYPE an ordered factor so legends and facets follow size order
+df$P_TYPE <- factor(df$P_TYPE,
+  levels = c("Miniterran", "Subterran", "Terran",
+             "Superterran", "Neptunian", "Jovian"))
+
+ggplot(df, aes(P_TEMP_EQUIL, P_ESI, color = P_TYPE)) +
+  geom_point(alpha = 0.3, size = 0.8) +
+  geom_smooth(se = FALSE, method = "loess", span = 0.75) +
+  labs(x = "Equilibrium temperature (K)",
+       y = "Earth Similarity Index (ESI)",
+       color = "Planet type")
+```
+
+**What the plot shows:**
+
+1. Strong nonlinearity. For the rocky and mid-sized types (Terran, Superterran, Subterran, Miniterran), ESI drops steeply from about 0.85-0.95 at low temperatures (under ~400 K) and then flattens into a plateau near 0.28 for everything above ~1,000 K. A straight line would fit this badly, so the spline is justified.
+2. The curves differ in shape, not just level. The Terran and Superterran curves start high and decay to a plateau. The Neptunian curve starts lower (around 0.45), has a small hump, then declines slowly to about 0.2. The Jovian curve is different again: it rises to a peak around 0.25 near 400 K, then declines toward 0.05-0.1. Those are different shapes, which points toward the interaction or fully separate models rather than the offset model.
+3. The groups converge in one region. The Terran-like types all collapse onto the same plateau (~0.28) above 1,000 K. So over most of the temperature range these groups look identical, and the differences are concentrated at low temperature, where the data are sparse.
+
+### Take the Log Transform of Planet Equilibrium Temperature:
+
+```{r}
+df$log_temp <- log10(df$P_TEMP_EQUIL)
+
+summary(df$log_temp)
+
+ggplot(df, aes(log_temp)) +
+  geom_histogram(bins = 50, fill = "steelblue", color = "white") +
+  labs(x = "log10 equilibrium temperature (K)", y = "Count")
+
+ggplot(df, aes(P_TEMP_EQUIL, P_ESI, color = P_TYPE)) +
+  geom_point(alpha = 0.3, size = 0.8) +
+  geom_smooth(se = FALSE, method = "loess", span = 0.75) +
+  scale_x_log10(breaks = c(10, 100, 300, 1000, 3000)) +
+  labs(x = "Equilibrium temperature (K, log scale)",
+       y = "Earth Similarity Index (ESI)",
+       color = "Planet type")
+       
+```
+
+### Fully Shared:
+
+Ignores the planet type completely.
+
+$$E[\text{ESI} \mid \text{temp}] = \beta_0 + \beta_1 \text{temp} + \beta_2 \text{temp}' + \beta_3 \text{temp}''$$
+
+```{r}
+
+# Predict() needs to know the range of each predictor
+dd <- datadist(df)
+options(datadist = "dd")
+
+# define the knots for the cubic spline
+temp_knots <- attr(rcs(df$log_temp, 4), "parms")
+
+# fit the fully shared model
+fit_shared <- ols(P_ESI ~ rcs(log_temp, temp_knots), data = df)
+
+# print statistics
+print(fit_shared)
+
+# plot the lof of planet temp vs ESI
+ggplot(Predict(fit_shared, log_temp))
+
+```
+
+### Shared-shape offset (Partial sharing):
+
+Planet type introduces a main effect but with no interaction with planet equilibrium temperature.
+$$
+\begin{align*}
+E[\text{ESI}\mid \text{temp}, \text{type}] &= \beta_0 + \beta_1\,\text{temp} + \beta_2\,\text{temp}^{\prime} + \beta_3\,\text{temp}^{\prime\prime} \\
+&\quad + \beta_4\,I(\text{Miniterran}) + \beta_5\,I(\text{Subterran}) + \beta_6\,I(\text{Terran}) \\
+&\quad + \beta_7\,I(\text{Superterran}) + \beta_8\,I(\text{Neptunian})
+\end{align*}
+$$
+
+```{r}
+# fit the partial sharing model
+fit_offset <- ols(P_ESI ~ rcs(log_temp, temp_knots) + P_TYPE, data = df)
+print(fit_offset)
+
+# plot the lof of planet temp vs ESI
+ggplot(Predict(fit_offset, log_temp, P_TYPE))
+```
+
+### Full interaction:
+
+Planet tpye interacts fully with the planet equilibrium temperature.
+$$
+\begin{align*}
+E[\text{ESI}\mid \text{temp}, \text{type}] &= \beta_0 + \beta_1\,\text{temp} + \beta_2\,\text{temp}^{\prime} + \beta_3\,\text{temp}^{\prime\prime} \\
+&\quad + \beta_4\,I(\text{Miniterran}) + \beta_5\,\text{temp}\cdot I(\text{Miniterran}) + \beta_6\,\text{temp}^{\prime}\cdot I(\text{Miniterran}) + \beta_7\,\text{temp}^{\prime\prime}\cdot I(\text{Miniterran}) \\
+&\quad + \beta_8\,I(\text{Subterran}) + \beta_9\,\text{temp}\cdot I(\text{Subterran}) + \beta_{10}\,\text{temp}^{\prime}\cdot I(\text{Subterran}) + \beta_{11}\,\text{temp}^{\prime\prime}\cdot I(\text{Subterran}) \\
+&\quad + \beta_{12}\,I(\text{Terran}) + \beta_{13}\,\text{temp}\cdot I(\text{Terran}) + \beta_{14}\,\text{temp}^{\prime}\cdot I(\text{Terran}) + \beta_{15}\,\text{temp}^{\prime\prime}\cdot I(\text{Terran}) \\
+&\quad + \beta_{16}\,I(\text{Superterran}) + \beta_{17}\,\text{temp}\cdot I(\text{Superterran}) + \beta_{18}\,\text{temp}^{\prime}\cdot I(\text{Superterran}) + \beta_{19}\,\text{temp}^{\prime\prime}\cdot I(\text{Superterran}) \\
+&\quad + \beta_{20}\,I(\text{Neptunian}) + \beta_{21}\,\text{temp}\cdot I(\text{Neptunian}) + \beta_{22}\,\text{temp}^{\prime}\cdot I(\text{Neptunian}) + \beta_{23}\,\text{temp}^{\prime\prime}\cdot I(\text{Neptunian})
+\end{align*}
+$$
+
+```{r}
+# fit the full sharing model
+fit_full_int <- ols(P_ESI ~ rcs(log_temp, temp_knots) * P_TYPE, data = df)
+print(fit_full_int)
+
+# plot the lof of planet temp vs ESI
+ggplot(Predict(fit_full_int, log_temp, P_TYPE))
+```
+
+### Fully separate (No Sharing):
+
+Each planet type has its own model.
+
+$$
+\begin{align*}
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Miniterran}] &= \beta^{(\text{Mini})}_0 + \beta^{(\text{Mini})}_1\,\text{temp} + \beta^{(\text{Mini})}_2\,\text{temp}^{\prime} + \beta^{(\text{Mini})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Subterran}] &= \beta^{(\text{Sub})}_0 + \beta^{(\text{Sub})}_1\,\text{temp} + \beta^{(\text{Sub})}_2\,\text{temp}^{\prime} + \beta^{(\text{Sub})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Terran}] &= \beta^{(\text{Ter})}_0 + \beta^{(\text{Ter})}_1\,\text{temp} + \beta^{(\text{Ter})}_2\,\text{temp}^{\prime} + \beta^{(\text{Ter})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Superterran}] &= \beta^{(\text{Sup})}_0 + \beta^{(\text{Sup})}_1\,\text{temp} + \beta^{(\text{Sup})}_2\,\text{temp}^{\prime} + \beta^{(\text{Sup})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Neptunian}] &= \beta^{(\text{Nep})}_0 + \beta^{(\text{Nep})}_1\,\text{temp} + \beta^{(\text{Nep})}_2\,\text{temp}^{\prime} + \beta^{(\text{Nep})}_3\,\text{temp}^{\prime\prime} \\
+E[\text{ESI}\mid \text{temp}, \text{type}=\text{Jovian}] &= \beta^{(\text{Jov})}_0 + \beta^{(\text{Jov})}_1\,\text{temp} + \beta^{(\text{Jov})}_2\,\text{temp}^{\prime} + \beta^{(\text{Jov})}_3\,\text{temp}^{\prime\prime}
+\end{align*}
+$$
+
+```{r}
+# fit each model
+fit_mini <- ols(P_ESI ~ rcs(log_temp, temp_knots),
+                data = df |> filter(P_TYPE == "Miniterran"))
+fit_sub  <- ols(P_ESI ~ rcs(log_temp, temp_knots),
+                data = df |> filter(P_TYPE == "Subterran"))
+fit_ter  <- ols(P_ESI ~ rcs(log_temp, temp_knots),
+                data = df |> filter(P_TYPE == "Terran"))
+fit_sup  <- ols(P_ESI ~ rcs(log_temp, temp_knots),
+                data = df |> filter(P_TYPE == "Superterran"))
+fit_nep  <- ols(P_ESI ~ rcs(log_temp, temp_knots),
+                data = df |> filter(P_TYPE == "Neptunian"))
+fit_jov  <- ols(P_ESI ~ rcs(log_temp, temp_knots),
+                data = df |> filter(P_TYPE == "Jovian"))
+
+print(fit_ter)
+```
+
+```{r}
+# plot each curve
+rng <- function(t) range(df$log_temp[df$P_TYPE == t])
+grid <- function(t) seq(rng(t)[1], rng(t)[2], length.out = 100)
+
+pred_sep <- bind_rows(
+  as.data.frame(Predict(fit_mini, log_temp = grid("Miniterran")))  |> mutate(P_TYPE = "Miniterran"),
+  as.data.frame(Predict(fit_sub,  log_temp = grid("Subterran")))   |> mutate(P_TYPE = "Subterran"),
+  as.data.frame(Predict(fit_ter,  log_temp = grid("Terran")))      |> mutate(P_TYPE = "Terran"),
+  as.data.frame(Predict(fit_sup,  log_temp = grid("Superterran"))) |> mutate(P_TYPE = "Superterran"),
+  as.data.frame(Predict(fit_nep,  log_temp = grid("Neptunian")))   |> mutate(P_TYPE = "Neptunian"),
+  as.data.frame(Predict(fit_jov,  log_temp = grid("Jovian")))      |> mutate(P_TYPE = "Jovian")
+)
+
+pred_sep$P_TYPE <- factor(pred_sep$P_TYPE, levels = levels(df$P_TYPE))
+
+ggplot(pred_sep, aes(log_temp, yhat, color = P_TYPE)) +
+  geom_line() +
+  labs(x = "log10 equilibrium temperature (K)",
+       y = "Predicted ESI")
+```
+
+### Cross validated MSE Comparison:
+
+```{r}
+#| code-fold: True
+
+# random seed which makes the random shuffle reproducible
+set.seed(1)
+# set up a 10-fold cross validation
+K <- 10
+# creates a set of vectors as long as the data and shuffles it. The result assigns each planet to one of 10 folds at random, with roughly equal fold sizes
+folds <- sample(rep(1:K, length.out = nrow(df)))
+
+# MSE on held-out rows for one fold, for each rung. For fold k, the test set is the planets assigned to k and the training set is everyone else
+# Models are fit on train only and judged on test, which they've never seen
+fold_mse <- function(k) {
+  train <- df[folds != k, ]
+  test  <- df[folds == k, ]
+  # turns predictions into squared errors against the true ESI values
+  sq <- function(pred) (test$P_ESI - pred)^2
+  
+  # fully sharing
+  m1 <- lm(P_ESI ~ rcs(log_temp, temp_knots), data = train)
+  # partial sharing
+  m2 <- lm(P_ESI ~ rcs(log_temp, temp_knots) + P_TYPE, data = train)
+  # full interaction 
+  m3 <- lm(P_ESI ~ rcs(log_temp, temp_knots) * P_TYPE, data = train)
+
+  # fully separate: one model per type, predict that type's test rows
+  pred4 <- rep(NA_real_, nrow(test))
+  for (t in levels(df$P_TYPE)) {
+    tr <- train[train$P_TYPE == t, ]
+    idx <- test$P_TYPE == t
+    if (any(idx)) {
+      m <- lm(P_ESI ~ rcs(log_temp, temp_knots), data = tr)
+      pred4[idx] <- predict(m, newdata = test[idx, ])
+    }
+  }
+
+  # For each model, it predicts the test rows, squares the errors, and averages them. That's the MSE for this fold
+  c(shared   = mean(sq(predict(m1, test))),
+    offset   = mean(sq(predict(m2, test))),
+    full_int = mean(sq(predict(m3, test))),
+    separate = mean(sq(pred4)))
+}
+
+# Runs fold_mse for folds 1 to 10 and stacks the results into a 4 × 10 matrix where k=10 (rows are models, columns are folds)
+cv_res <- sapply(1:K, fold_mse) 
+cv_table <- data.frame(
+  Model  = c("Fully shared", "Shared-shape offset",
+             "Full interaction", "Fully separate"),
+  CV_MSE = rowMeans(cv_res),
+  SE     = apply(cv_res, 1, sd) / sqrt(K)
+)
+knitr::kable(cv_table, digits = 5)
+
+# CV_MSE is the average of each model's 10 fold-MSE. SE is the standard deviation across folds divided by sqrt(10), which tells us how much that average would wobble with a different set of folds
+```
+
+### Conclusions:
+
+- Based on the CV MSE comparisons across the fully shared, partially shared, fully interacting, and fully seperated models, ignoring planet type is clearly worst. Adding a per-type offset cuts CV MSE from 0.0116 to 0.0045, a drop of about 61%. The gap is many times larger than either SE. So planet type matters
+- Letting the curve shape differ by type helps further. Going from offset to full interaction drops MSE from 0.0045 to 0.0034 (about 24%). The gap of 0.0011 is several SEs wide, so it's a real improvement, not noise.
+- The Full interaction and fully separate models are identical in their CV MSE. With the same knots, an interaction model rcs(x) * type estimates a separate set of coefficients for every type, which is the same fit as running six separate regressions. The point predictions are the same, so the CV MSE is the same. The two only differ in inference, because the interaction model pools one residual variance across groups while the separate models each estimate their own.
+
+## Task 2:
+
+**Task 2.** Fit a group-specific response surface: two continuous predictors, additive-in-group vs. interactive-in-group (`rcs(x1,4)*rcs(x2,4) + group` vs. `rcs(x1,4)*rcs(x2,4)*group`). Compare CV-MSE between the two, and produce at least one `plotly` surface per group for the interactive model.
+
+1. Pick two continuous predictors and one grouping variable (log temperature, log radius, planet type).
+2. Fit the additive and the interactive versions.
+3. Use CV-MSE to decide whether letting the surface shape differ by group is worth the extra parameters.
+4. Make one 3D surface per group from the interactive model.
+
+**Note:** 
+
+- **Additive-in-group (rcs(x1,4) * rcs(x2,4) + group)**: every group has the same surface shape, but each group's surface can be shifted up or down by a constant. Think of one landscape, with Jovians' copy lifted or lowered.
+- **Interactive-in-group (rcs(x1,4) * rcs(x2,4) * group)**: every group gets its own surface, with its own hills and valleys. This is like fitting a separate landscape per group (just as in 9.1, with two groups the interaction model and fully separate models make the same predictions).
+
+Two continuous predictors, log10 equilibrium temperature and log10 planet radius, with planet type as the group. Compare additive-in-group (`+ P_TYPE`) with interactive-in-group (`* P_TYPE`).
+
+### Data Setup
+
+```{r}
+#| message: false
+df2 <- read.csv("habitable_worlds_catalog_trimmed.csv") |>
+  dplyr::select(P_ESI, P_TEMP_EQUIL, P_RADIUS, P_TYPE) |>
+  na.omit()
+
+df2$P_TYPE <- factor(df2$P_TYPE,
+  levels = c("Miniterran", "Subterran", "Terran",
+             "Superterran", "Neptunian", "Jovian"))
+df2$log_temp <- log10(df2$P_TEMP_EQUIL)
+df2$log_rad  <- log10(df2$P_RADIUS)
+
+# group sizes before filtering (report these in the write-up)
+nrow(df2)
+table(df2$P_TYPE)
+
+# keep only planet types with enough planets to estimate a 16-coefficient surface
+min_n <- 100   # adjust after checking the rank table
+keep  <- names(which(table(df2$P_TYPE) >= min_n))
+df2   <- df2 |> filter(P_TYPE %in% keep) |> droplevels()
+
+# group sizes after filtering
+nrow(df2)
+table(df2$P_TYPE)
+
+# datadist must come AFTER the filtering
+dd2 <- datadist(df2)
+options(datadist = "dd2")
+```
+
+### The Additive-in-group Model vs. Interactive-in-group Model
+
+Let $T = \log_{10}(\text{temp})$ and $R = \log_{10}(\text{radius})$. Each restricted cubic spline with 4 knots contributes three basis terms, $T_1 = T,\ T_2 = T',\ T_3 = T''$ and $R_1 = R,\ R_2 = R',\ R_3 = R''$. The tensor-product surface `rcs(log_temp, 4) * rcs(log_rad, 4)` is
+
+$$
+f(T, R) = \beta_0 + \sum_{i=1}^{3} \beta_i\, T_i + \sum_{j=1}^{3} \beta_{3+j}\, R_j + \sum_{i=1}^{3}\sum_{j=1}^{3} \beta_{ij}\, T_i R_j
+$$
+
+which has $1 + 3 + 3 + 9 = 16$ coefficients.
+
+**Additive-in-group.** All planet types share one surface shape, shifted by a constant for each type:
+
+$$
+\begin{align*}
+E[\text{ESI} \mid T, R, g] &= f(T, R) + \sum_{j=2}^{6} \gamma_j\, I(g = j) \\
+V[\text{ESI} \mid T, R, g] &= \sigma^2
+\end{align*}
+$$
+
+This has $16 + 5 = 21$ parameters.
+
+**Interactive-in-group.** Each planet type has its own surface:
+
+$$
+\begin{align*}
+E[\text{ESI} \mid T, R, g] &= f_g(T, R) \\
+V[\text{ESI} \mid T, R, g] &= \sigma^2
+\end{align*}
+$$
+
+```{r}
+fit_surf_add <- ols(P_ESI ~ rcs(log_temp, 4) * rcs(log_rad, 4) + P_TYPE, data = df2)
+fit_surf_int <- ols(P_ESI ~ rcs(log_temp, 4) * rcs(log_rad, 4) * P_TYPE, data = df2)
+
+print(fit_surf_add)
+print(fit_surf_int)
+```
+
+### Cross validated MSE Comparison:
+
+```{r}
+
+set.seed(42)
+K <- 10
+fold_id <- sample(rep(1:K, length.out = nrow(df2)))
+
+cv_mse_add <- rep(NA_real_, K)
+cv_mse_int <- rep(NA_real_, K)
+
+for (k in 1:K) {
+  train <- df2[fold_id != k, ]
+  test  <- df2[fold_id == k, ]
+
+  fit_add_k <- ols(P_ESI ~ rcs(log_temp, 4) * rcs(log_rad, 4) + P_TYPE, data = train)
+  fit_int_k <- ols(P_ESI ~ rcs(log_temp, 4) * rcs(log_rad, 4) * P_TYPE, data = train)
+
+  cv_mse_add[k] <- mean((predict(fit_add_k, test) - test$P_ESI)^2)
+  cv_mse_int[k] <- mean((predict(fit_int_k, test) - test$P_ESI)^2)
+}
+
+anyNA(c(cv_mse_add, cv_mse_int))   # should be FALSE
+
+data.frame(
+  Model  = c("Additive-in-group (+ P_TYPE)", "Interactive-in-group (* P_TYPE)"),
+  CV_MSE = c(mean(cv_mse_add), mean(cv_mse_int)),
+  SE     = c(sd(cv_mse_add), sd(cv_mse_int)) / sqrt(K)
+) |> knitr::kable(digits = 5)
+
+# paired difference (same folds): positive = interactive is better
+d <- cv_mse_add - cv_mse_int
+c(mean_diff = mean(d), se_diff = sd(d) / sqrt(K))
+```
+
+### Interactive surfaces (interactive-in-group model)
+
+Each panel shows one planet type's fitted ESI surface (red-blue), with the observed planets of that type as black points.
+
+```{r}
+#| message: false
+library(plotly)
+
+rdb <- list(c(0, "steelblue"), c(0.5, "white"), c(1, "firebrick"))
+
+# like make_scene() in the notes: builds the grid, predicts, and draws one group's surface
+make_surface <- function(g, fit, n = 40) {
+  d <- df2[df2$P_TYPE == g, ]
+
+  # grid over THIS type's own range (types occupy very different regions)
+  t_seq <- seq(quantile(d$log_temp, 0.02), quantile(d$log_temp, 0.98), length.out = n)
+  r_seq <- seq(quantile(d$log_rad,  0.02), quantile(d$log_rad,  0.98), length.out = n)
+  grid  <- expand.grid(log_temp = t_seq, log_rad = r_seq)
+  grid$P_TYPE <- factor(g, levels = levels(df2$P_TYPE))
+
+  # plotly wants rows of z = y (radius) and columns = x (temperature), hence t()
+  z <- t(matrix(predict(fit, grid), nrow = n))
+
+  plot_ly() |>
+    add_surface(x = t_seq, y = r_seq, z = z,
+                colorscale = rdb, showscale = FALSE, opacity = 0.9) |>
+    add_markers(data = d, x = ~log_temp, y = ~log_rad, z = ~P_ESI,
+                marker = list(size = 2, color = "black"),
+                opacity = 0.5, showlegend = FALSE) |>
+    layout(title = paste0(g, " (n = ", nrow(d), "): interactive-in-group fit"),
+           scene = list(xaxis = list(title = "log10 temp (K)"),
+                        yaxis = list(title = "log10 radius (Earth radii)"),
+                        zaxis = list(title = "ESI")))
+}
+
+# one named plot per planet type, like p_int_A and p_int_B in the notes
+groups <- levels(df2$P_TYPE)
+p_int  <- setNames(lapply(groups, make_surface, fit = fit_surf_int), groups)
+```
+```{r}
+p_int[["Terran"]]
+p_int[["Superterran"]]
+p_int[["Neptunian"]]
+p_int[["Jovian"]]
+```
+
+### Additive-in-group surfaces
+
+Same layout, but now every panel comes from a model that assumes all planet types share one surface shape, shifted up or down by a constant per type.
+
+```{r}
+#| message: false
+library(plotly)
+
+# colors, same as the notes
+rdb <- list(c(0, "steelblue"), c(0.5, "white"), c(1, "firebrick"))
+
+# Terran
+
+# 1. grid of temperature and radius values (use the range of Terran planets)
+d_ter   <- df2[df2$P_TYPE == "Terran", ]
+temp_g  <- seq(min(d_ter$log_temp), max(d_ter$log_temp), length.out = 40)
+rad_g   <- seq(min(d_ter$log_rad),  max(d_ter$log_rad),  length.out = 40)
+grid_ter <- expand.grid(log_temp = temp_g, log_rad = rad_g)
+
+# 2. tell the grid which group it is (same as grid2g_A in the notes)
+grid_ter$P_TYPE <- factor("Terran", levels = levels(df2$P_TYPE))
+
+# 3. predict from the ADDITIVE model and reshape to a matrix
+z_add_ter <- matrix(predict(fit_surf_add, grid_ter), nrow = 40)
+
+# 4. plot (t() flips the matrix so temp is on the x axis)
+p_add_ter <- plot_ly(x = ~temp_g, y = ~rad_g, z = ~t(z_add_ter),
+                     colorscale = rdb, showscale = FALSE) |>
+  add_surface(opacity = 0.9) |>
+  add_markers(data = d_ter, x = ~log_temp, y = ~log_rad, z = ~P_ESI,
+              marker = list(size = 2, color = "black"),
+              opacity = 0.5, inherit = FALSE) |>
+  layout(title = "Terran: additive-in-group fit")
+
+p_add_ter
+
+# Superterran
+
+d_sup    <- df2[df2$P_TYPE == "Superterran", ]
+temp_g   <- seq(min(d_sup$log_temp), max(d_sup$log_temp), length.out = 40)
+rad_g    <- seq(min(d_sup$log_rad),  max(d_sup$log_rad),  length.out = 40)
+grid_sup <- expand.grid(log_temp = temp_g, log_rad = rad_g)
+grid_sup$P_TYPE <- factor("Superterran", levels = levels(df2$P_TYPE))
+
+z_add_sup <- matrix(predict(fit_surf_add, grid_sup), nrow = 40)
+
+p_add_sup <- plot_ly(x = ~temp_g, y = ~rad_g, z = ~t(z_add_sup),
+                     colorscale = rdb, showscale = FALSE) |>
+  add_surface(opacity = 0.9) |>
+  add_markers(data = d_sup, x = ~log_temp, y = ~log_rad, z = ~P_ESI,
+              marker = list(size = 2, color = "black"),
+              opacity = 0.5, inherit = FALSE) |>
+  layout(title = "Superterran: additive-in-group fit")
+
+p_add_sup
+
+# Neptunian
+
+d_nep    <- df2[df2$P_TYPE == "Neptunian", ]
+temp_g   <- seq(min(d_nep$log_temp), max(d_nep$log_temp), length.out = 40)
+rad_g    <- seq(min(d_nep$log_rad),  max(d_nep$log_rad),  length.out = 40)
+grid_nep <- expand.grid(log_temp = temp_g, log_rad = rad_g)
+grid_nep$P_TYPE <- factor("Neptunian", levels = levels(df2$P_TYPE))
+
+z_add_nep <- matrix(predict(fit_surf_add, grid_nep), nrow = 40)
+
+p_add_nep <- plot_ly(x = ~temp_g, y = ~rad_g, z = ~t(z_add_nep),
+                     colorscale = rdb, showscale = FALSE) |>
+  add_surface(opacity = 0.9) |>
+  add_markers(data = d_nep, x = ~log_temp, y = ~log_rad, z = ~P_ESI,
+              marker = list(size = 2, color = "black"),
+              opacity = 0.5, inherit = FALSE) |>
+  layout(title = "Neptunian: additive-in-group fit")
+
+p_add_nep
+
+# Jovian
+
+d_jov    <- df2[df2$P_TYPE == "Jovian", ]
+temp_g   <- seq(min(d_jov$log_temp), max(d_jov$log_temp), length.out = 40)
+rad_g    <- seq(min(d_jov$log_rad),  max(d_jov$log_rad),  length.out = 40)
+grid_jov <- expand.grid(log_temp = temp_g, log_rad = rad_g)
+grid_jov$P_TYPE <- factor("Jovian", levels = levels(df2$P_TYPE))
+
+z_add_jov <- matrix(predict(fit_surf_add, grid_jov), nrow = 40)
+
+p_add_jov <- plot_ly(x = ~temp_g, y = ~rad_g, z = ~t(z_add_jov),
+                     colorscale = rdb, showscale = FALSE) |>
+  add_surface(opacity = 0.9) |>
+  add_markers(data = d_jov, x = ~log_temp, y = ~log_rad, z = ~P_ESI,
+              marker = list(size = 2, color = "black"),
+              opacity = 0.5, inherit = FALSE) |>
+  layout(title = "Jovian: additive-in-group fit")
+
+p_add_jov
+```
+
+## Task 3:
+
+**Task 3.** Reparameterize the group predictor with sum-to-zero contrasts (`contr.sum`) as in this chapter, build the global/deviation `penalty.factor` vector via `attr(X, "assign")`, and fit both ridge and lasso. Report, at the cross-validated $\lambda$, which groups' curves get pulled essentially back to the shared curve and which remain distinct.
+
+## Task 4:
+
+**Task 4.** One-paragraph conclusion: does your dataset support a fully shared, fully separate, or regularized in-between model for the grouping variable you chose? Justify using both predictive evidence (CV-MSE across the ladder and the regularized fit) and interpretive evidence (which groups' coefficients/curves shrank the most, and whether that tracked group size, distinctiveness of the group's curve, or something else — be honest if the pattern doesn't look clean).

@@ -28,6 +28,7 @@ book:
       - bayes_lasso.qmd
     - part: "Interactions"
       chapters:
+      - interactions.qmd
       - group_lasso.qmd
     - summary.qmd
     - references.qmd
