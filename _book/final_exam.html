@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>12&nbsp; Identifying the Importance and Effects of Categorical Predictors in a Regression Model – ds6400_portfolio</title>
+<title>12&nbsp; The Importance &amp; Effects of Categorical Predictors in a Regression Model – ds6400_portfolio</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -26,10 +26,45 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="site_libs/quarto-nav/headroom.min.js"></script>
 <script src="site_libs/clipboard/clipboard.min.js"></script>
 <script src="site_libs/quarto-search/autocomplete.umd.js"></script>
@@ -76,6 +111,12 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
@@ -118,7 +159,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./final_exam.html">Final Exam</a></li><li class="breadcrumb-item"><a href="./final_exam.html"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Identifying the Importance and Effects of Categorical Predictors in a Regression Model</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./final_exam.html">Final Exam</a></li><li class="breadcrumb-item"><a href="./final_exam.html"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">The Importance &amp; Effects of Categorical Predictors in a Regression Model</span></a></li></ol></nav>
         <a class="flex-grow-1" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -272,7 +313,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./final_exam.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Identifying the Importance and Effects of Categorical Predictors in a Regression Model</span></span></a>
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">The Importance &amp; Effects of Categorical Predictors in a Regression Model</span></span></a>
   </div>
 </li>
       </ul>
@@ -328,9 +369,17 @@ window.Quarto = {
   <li><a href="#research-question" id="toc-research-question" class="nav-link active" data-scroll-target="#research-question"><span class="header-section-number">12.1</span> Research Question:</a></li>
   <li><a href="#methodology" id="toc-methodology" class="nav-link" data-scroll-target="#methodology"><span class="header-section-number">12.2</span> Methodology:</a>
   <ul class="collapse">
-  <li><a href="#simulation-study" id="toc-simulation-study" class="nav-link" data-scroll-target="#simulation-study"><span class="header-section-number">12.2.1</span> Simulation Study:</a></li>
+  <li><a href="#simulation-study-steps" id="toc-simulation-study-steps" class="nav-link" data-scroll-target="#simulation-study-steps"><span class="header-section-number">12.2.1</span> Simulation Study Steps:</a></li>
   <li><a href="#regularization" id="toc-regularization" class="nav-link" data-scroll-target="#regularization"><span class="header-section-number">12.2.2</span> Regularization:</a></li>
   <li><a href="#parameterization" id="toc-parameterization" class="nav-link" data-scroll-target="#parameterization"><span class="header-section-number">12.2.3</span> Parameterization:</a></li>
+  <li><a href="#visualizations" id="toc-visualizations" class="nav-link" data-scroll-target="#visualizations"><span class="header-section-number">12.2.4</span> Visualizations:</a></li>
+  </ul></li>
+  <li><a href="#simulation-1---simulation-study-tutz-gertheiss-2016" id="toc-simulation-1---simulation-study-tutz-gertheiss-2016" class="nav-link" data-scroll-target="#simulation-1---simulation-study-tutz-gertheiss-2016"><span class="header-section-number">12.3</span> Simulation 1 - Simulation Study Tutz &amp; Gertheiss (2016)</a>
+  <ul class="collapse">
+  <li><a href="#data-generation-model" id="toc-data-generation-model" class="nav-link" data-scroll-target="#data-generation-model"><span class="header-section-number">12.3.1</span> Data Generation Model:</a></li>
+  <li><a href="#method-1---ordinary-lasso" id="toc-method-1---ordinary-lasso" class="nav-link" data-scroll-target="#method-1---ordinary-lasso"><span class="header-section-number">12.3.2</span> Method 1 - Ordinary Lasso:</a></li>
+  <li><a href="#method-2--" id="toc-method-2--" class="nav-link" data-scroll-target="#method-2--"><span class="header-section-number">12.3.3</span> Method 2 - …:</a></li>
+  <li><a href="#method-3--" id="toc-method-3--" class="nav-link" data-scroll-target="#method-3--"><span class="header-section-number">12.3.4</span> Method 3 - …:</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -338,9 +387,9 @@ window.Quarto = {
 <!-- main -->
 <main class="content" id="quarto-document-content" tabindex="-1">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./final_exam.html">Final Exam</a></li><li class="breadcrumb-item"><a href="./final_exam.html"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Identifying the Importance and Effects of Categorical Predictors in a Regression Model</span></a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="Breadcrumbs"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./final_exam.html">Final Exam</a></li><li class="breadcrumb-item"><a href="./final_exam.html"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">The Importance &amp; Effects of Categorical Predictors in a Regression Model</span></a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">Identifying the Importance and Effects of Categorical Predictors in a Regression Model</span></h1>
+<h1 class="title"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">The Importance &amp; Effects of Categorical Predictors in a Regression Model</span></h1>
 </div>
 
 
@@ -361,8 +410,8 @@ window.Quarto = {
 <h2 data-number="12.1" class="anchored" data-anchor-id="research-question"><span class="header-section-number">12.1</span> Research Question:</h2>
 <p>The aim of this study is to examine two key questions:</p>
 <ol type="1">
-<li><strong>Variable selection:</strong> Can a method correctly identify which categorical predictors matter?</li>
-<li><strong>Category fusion:</strong> Can a method correctly identify categories that have identical effects?</li>
+<li><strong>Variable selection:</strong> Can a method correctly identify which categorical predictors matter, in other words, which categorical variables are kept in the model?</li>
+<li><strong>Category fusion:</strong> Can a method correctly identify categories that have identical effects, in other words, which levels of a categorical variable belong together?</li>
 </ol>
 </section>
 <section id="methodology" class="level2" data-number="12.2">
@@ -373,9 +422,25 @@ window.Quarto = {
 <li>one fusion-encouraging method from Tutz &amp; Gertheiss (2016)</li>
 <li>a third method of our own design, or another one from Tutz &amp; Gertheiss (2016)</li>
 </ol>
-<section id="simulation-study" class="level3" data-number="12.2.1">
-<h3 data-number="12.2.1" class="anchored" data-anchor-id="simulation-study"><span class="header-section-number">12.2.1</span> Simulation Study:</h3>
-<p>This study will conduct a simulation study where data will be generated using a data generation model. Appropriate regularization and parameterization choices will be made based on the simulated data. The regularization method will be based on what we have chosen and what was chosen within the Tutz &amp; Gertheiss (2016) paper.</p>
+<section id="simulation-study-steps" class="level3" data-number="12.2.1">
+<h3 data-number="12.2.1" class="anchored" data-anchor-id="simulation-study-steps"><span class="header-section-number">12.2.1</span> Simulation Study Steps:</h3>
+<p><strong>Data Generation Model</strong></p>
+<ol type="1">
+<li>Generate a simulated dataset where we know the truth using a data generation model.</li>
+</ol>
+<p><strong>Model Estimation</strong></p>
+<ol start="2" type="1">
+<li>Fit each regularization method to it using methods of our choice and methods highlighted in the Tutz &amp; Gertheiss (2016) paper.</li>
+<li>Conduct parameterization on the categorical variables.</li>
+<li>Conduct paramter tuning to tune the values of parameters for a given method.</li>
+</ol>
+<p><strong>Result Evaluation</strong></p>
+<ol start="4" type="1">
+<li>Evaluate each fit against the truth.</li>
+<li>Repeat the simulation 500 times with fresh simulated data.</li>
+<li>Highlight the difference between predictive performance, variable-selection performance, and recovery of the underlying category structure</li>
+<li>Create visualizations to visually compare the performance of each method.</li>
+</ol>
 </section>
 <section id="regularization" class="level3" data-number="12.2.2">
 <h3 data-number="12.2.2" class="anchored" data-anchor-id="regularization"><span class="header-section-number">12.2.2</span> Regularization:</h3>
@@ -406,7 +471,7 @@ window.Quarto = {
 <td>Yes</td>
 <td>Individual <span class="math inline">\(\beta_j\)</span> (L1)</td>
 <td><span class="math inline">\(\lambda\)</span></td>
-<td>Selects individual dummy columns. Can drop levels but cannot merge them directly, and may keep only part of a group.</td>
+<td>Selects individual dummy columns. Sets <span class="math inline">\(\beta_j\)</span> coefficients to be exactly zero but cannot merge them directly, and arbitrarily keeps some levels and not others of a given categorical variable.</td>
 </tr>
 <tr class="even">
 <td>Ridge</td>
@@ -414,7 +479,7 @@ window.Quarto = {
 <td>No</td>
 <td>Individual <span class="math inline">\(\beta_j\)</span> (L2)</td>
 <td><span class="math inline">\(\lambda\)</span></td>
-<td>Shrinks all level effects but never selects or fuses.</td>
+<td>Shrinks <span class="math inline">\(\beta_j\)</span> coefficients of a given categorical variable towards zero (with no parameterization) but never fuses.</td>
 </tr>
 <tr class="odd">
 <td>Elastic net</td>
@@ -422,7 +487,7 @@ window.Quarto = {
 <td>Yes</td>
 <td>Blend of L1 and L2</td>
 <td><span class="math inline">\(\lambda\)</span>, <span class="math inline">\(\alpha\)</span></td>
-<td>Like lasso but tends to keep or drop correlated columns together (grouping effect). Still no direct fusion.</td>
+<td>Kepps or drops correlated columns (correlated levels of a given categorical variable) together (grouping effect). Therefore, will keep or drop a given categorical variable but never fuses.</td>
 </tr>
 <tr class="even">
 <td>Bayesian lasso</td>
@@ -430,7 +495,7 @@ window.Quarto = {
 <td>Not in the posterior mean (zeros require a threshold or interval rule)</td>
 <td>Individual <span class="math inline">\(\beta_j\)</span> through the prior</td>
 <td>Prior scale <span class="math inline">\(\lambda\)</span></td>
-<td>Same structure as lasso, plus posterior uncertainty for each level effect.</td>
+<td>Same structure as lasso, plus posterior uncertainty for each level.</td>
 </tr>
 <tr class="odd">
 <td>Principal Component Regression (PCR)</td>
@@ -438,15 +503,15 @@ window.Quarto = {
 <td>In PC space yes, in <span class="math inline">\(\beta\)</span> space no</td>
 <td>Linear combinations of <span class="math inline">\(\beta\)</span></td>
 <td><span class="math inline">\(k\)</span> (number of components)</td>
-<td>Components mix levels and factors together, so it neither selects predictors nor fuses levels in an interpretable way.</td>
+<td>Components mix levels and categorical variables together, so it neither selects predictors nor fuses levels in an interpretable way.</td>
 </tr>
 <tr class="even">
 <td>Group lasso</td>
-<td><span class="math inline">\(\lambda\sum_g w_g\lVert\beta_g\rVert_2\)</span>, with one group <span class="math inline">\(g\)</span> per factor</td>
+<td><span class="math inline">\(\lambda\sum_g w_g\lVert\beta_g\rVert_2\)</span>, with one group <span class="math inline">\(g\)</span> per categorical variable</td>
 <td>Yes, for whole groups</td>
 <td>Blocks of coefficients</td>
 <td><span class="math inline">\(\lambda\)</span> (and group weights <span class="math inline">\(w_g\)</span>)</td>
-<td>Variable selection. A whole factor is in or out, but levels inside a selected factor are not fused.</td>
+<td>Variable selection. A given categorical variable is in or out, but levels inside a selected categorical variable are not fused.</td>
 </tr>
 <tr class="odd">
 <td>Fusion</td>
@@ -454,7 +519,7 @@ window.Quarto = {
 <td>Yes, in the differences (not in <span class="math inline">\(\beta\)</span> itself)</td>
 <td>Differences between level effects</td>
 <td><span class="math inline">\(\lambda\)</span> (and weights <span class="math inline">\(w_{jk}\)</span>)</td>
-<td>Category fusion. Equal level effects become exactly equal, and a factor drops out only if all its levels are fused together.</td>
+<td>Category fusion. Equal level effects become exactly equal, and a categorical variable drops out only if all its levels are fused together.</td>
 </tr>
 </tbody>
 </table>
@@ -518,6 +583,320 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
+</section>
+<section id="visualizations" class="level3" data-number="12.2.4">
+<h3 data-number="12.2.4" class="anchored" data-anchor-id="visualizations"><span class="header-section-number">12.2.4</span> Visualizations:</h3>
+<p>Visuals to comapre performance of each method can include:</p>
+<ol type="1">
+<li>Partial effect plots</li>
+<li>Partial dependent plots</li>
+<li>Individual conditional expectation plots</li>
+<li>Acumulated local effect plots</li>
+</ol>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Vocabulary Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Regression coefficient or (<span class="math inline">\(\beta\)</span>) coefficient:</strong> a number saying how much a predictor’s level shifts/affects the outcome.</li>
+<li><strong>Sparsity:</strong> many coefficients being exactly zero.</li>
+<li><strong>Shrinkage:</strong> coefficient estimates pulled toward zero to reduce overfitting.</li>
+<li><strong>Overfitting:</strong> a model fitting on noise in the training data rather than true datapoints, which makes it predict new data poorly.</li>
+</ul>
+</div>
+</div>
+</section>
+</section>
+<section id="simulation-1---simulation-study-tutz-gertheiss-2016" class="level2" data-number="12.3">
+<h2 data-number="12.3" class="anchored" data-anchor-id="simulation-1---simulation-study-tutz-gertheiss-2016"><span class="header-section-number">12.3</span> Simulation 1 - Simulation Study Tutz &amp; Gertheiss (2016)</h2>
+<section id="data-generation-model" class="level3" data-number="12.3.1">
+<h3 data-number="12.3.1" class="anchored" data-anchor-id="data-generation-model"><span class="header-section-number">12.3.1</span> Data Generation Model:</h3>
+<p>The data generation model will be a standard linear regression model with 3 categorical variables: <span class="math inline">\(X_1\)</span>, <span class="math inline">\(X_2\)</span>, and <span class="math inline">\(X_3\)</span></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Categorical variable</th>
+<th>Number of Levels</th>
+<th>Levels</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(X_1\)</span></td>
+<td>3</td>
+<td>1 - 3</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(X_2\)</span></td>
+<td>10</td>
+<td>1 - 10</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(X_3\)</span></td>
+<td>20</td>
+<td>1 - 20</td>
+</tr>
+</tbody>
+</table>
+<p>The true linear model is represented by:</p>
+<p><span id="eq-dgm"><span class="math display">\[
+Y = 0.5\,I_{(X_2 \in \{1\})} + 1\,I_{(X_2 \in \{2,3\})} + 1.75\,I_{(X_2 \in \{4,5,6\})} + 2.75\,I_{(X_2 \in \{7,8,9,10\})} + \epsilon, \qquad \epsilon \sim N(0,1)
+\tag{12.1}\]</span></span></p>
+<div id="c97bdc9b" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Imports</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Random data generator</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">1</span>) <span class="co"># seed 1</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">200</span> <span class="co"># observations</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Each row gets a randomly chosen level, where all levels equally likely</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>X1 <span class="op">=</span> pd.Categorical(rng.integers(<span class="dv">1</span>, <span class="dv">4</span>,  size<span class="op">=</span>n), categories<span class="op">=</span><span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">4</span>))) <span class="co"># draws 200 independent random whole numbers. Each is a number from 1 to 4</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>X2 <span class="op">=</span> pd.Categorical(rng.integers(<span class="dv">1</span>, <span class="dv">11</span>, size<span class="op">=</span>n), categories<span class="op">=</span><span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">11</span>))) <span class="co"># draws 200 independent random whole numbers. Each is a number from 1 to 10</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>X3 <span class="op">=</span> pd.Categorical(rng.integers(<span class="dv">1</span>, <span class="dv">21</span>, size<span class="op">=</span>n), categories<span class="op">=</span><span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">21</span>))) <span class="co"># draws 200 independent random whole numbers. Each is a number from 1 to 20</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># True average of Y for levels 1 - 10 of X2</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># The true average for X2 for level 1 --&gt; 0.5</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># The true average for X2 for levels 2, 3 --&gt; 1</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># The true average for X2 for levels 4, 5, 6 --&gt; 1.75</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># The true average for X2 for levels 7, 8, 9, 10 --&gt; 2.75</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>effect_by_level <span class="op">=</span> np.array([<span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="fl">1.75</span>, <span class="fl">1.75</span>, <span class="fl">1.75</span>, <span class="fl">2.75</span>, <span class="fl">2.75</span>, <span class="fl">2.75</span>, <span class="fl">2.75</span>])</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="co"># True average --&gt; converts each row's level into a position number starting at 0 (ex. level 1 --&gt; index 0) and looksup true average of that level from array using the Index</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>true_average <span class="op">=</span> effect_by_level[X2.codes]</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Noise --&gt; draw 200 indepdendent random numbers from a standard norm dist with loc=0 (mean=0) and scale=1 (standard dev=1)</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>noise <span class="op">=</span> rng.normal(loc<span class="op">=</span><span class="dv">0</span>, scale<span class="op">=</span><span class="dv">1</span>, size<span class="op">=</span>n)</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Y = true average for that row's level of X2 + noise</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>Y <span class="op">=</span> true_average <span class="op">+</span> noise</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Build dataframe</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> pd.DataFrame({<span class="st">"X1"</span>: X1, <span class="st">"X2"</span>: X2, <span class="st">"X3"</span>: X3, <span class="st">"Y"</span>: Y})</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>data.head()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">X1</th>
+<th data-quarto-table-cell-role="th">X2</th>
+<th data-quarto-table-cell-role="th">X3</th>
+<th data-quarto-table-cell-role="th">Y</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>2</td>
+<td>6</td>
+<td>3</td>
+<td>2.012901</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>2</td>
+<td>7</td>
+<td>12</td>
+<td>1.967001</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>3</td>
+<td>2</td>
+<td>3</td>
+<td>1.668047</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>3</td>
+<td>5</td>
+<td>8</td>
+<td>3.534698</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>1</td>
+<td>9</td>
+<td>14</td>
+<td>2.440312</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="13bd225f" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Display only: how the truth differs from the noise (</span><span class="al">NOTE</span><span class="co">: the methods never see this table)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>truth_vs_noise <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"X2"</span>: X2,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"True Average Y"</span>: true_average,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Observed Y"</span>: Y,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Noise"</span>: noise,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>truth_vs_noise.head().<span class="bu">round</span>(<span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">X2</th>
+<th data-quarto-table-cell-role="th">True Average Y</th>
+<th data-quarto-table-cell-role="th">Observed Y</th>
+<th data-quarto-table-cell-role="th">Noise</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>6</td>
+<td>1.75</td>
+<td>2.01</td>
+<td>0.26</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>7</td>
+<td>2.75</td>
+<td>1.97</td>
+<td>-0.78</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>2</td>
+<td>1.00</td>
+<td>1.67</td>
+<td>0.67</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>5</td>
+<td>1.75</td>
+<td>3.53</td>
+<td>1.78</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>9</td>
+<td>2.75</td>
+<td>2.44</td>
+<td>-0.31</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>A single simulated dataset has <span class="math inline">\(\text{N} = 200\)</span> observations so it hav 200 rows. Each row gets its own independent noise draw <span class="math inline">\(\epsilon \sim N(0,1)\)</span></p>
+<p>This dataset will be simulated 500 times. So across 500 simulated datasets: * Observations (rows): 200 rows × 500 = 100,000 rows * Noise values (<span class="math inline">\(\epsilon\)</span>): 100,000 (one per row)</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Understadning the Model
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Each <span class="math inline">\(I_{(X_2 \in \{level\})}\)</span> is an indicator variable equals 1 if the condition inside is true for that row and 0 otherwise.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Indicator</th>
+<th>Equals 1 when…</th>
+<th>Levels of <span class="math inline">\(X_2\)</span> covered</th>
+<th>Equivalent in dummy variables (<span class="math inline">\(D_k = I(X_2 = k)\)</span>)</th>
+<th><span class="math inline">\(\beta\)</span> Coefficient (true effect)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(I_{(X_2 \in \{1\})}\)</span></td>
+<td><span class="math inline">\(X_2\)</span> is level 1</td>
+<td>1</td>
+<td><span class="math inline">\(D_1\)</span></td>
+<td>0.5</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(I_{(X_2 \in \{2,3\})}\)</span></td>
+<td><span class="math inline">\(X_2\)</span> is level 2 or 3</td>
+<td>2, 3</td>
+<td><span class="math inline">\(D_2 + D_3\)</span></td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(I_{(X_2 \in \{4,5,6\})}\)</span></td>
+<td><span class="math inline">\(X_2\)</span> is level 4, 5, or 6</td>
+<td>4, 5, 6</td>
+<td><span class="math inline">\(D_4 + D_5 + D_6\)</span></td>
+<td>1.75</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(I_{(X_2 \in \{7,8,9,10\})}\)</span></td>
+<td><span class="math inline">\(X_2\)</span> is level 7, 8, 9, or 10</td>
+<td>7, 8, 9, 10</td>
+<td><span class="math inline">\(D_7 + D_8 + D_9 + D_{10}\)</span></td>
+<td>2.75</td>
+</tr>
+</tbody>
+</table>
+<p><span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_3\)</span> do not appear in the model, so their true effects are zero. Each row of the data has exactly one indicator equal to 1, because the four sets of levels do not overlap and together cover all 10 levels of <span class="math inline">\(X_2\)</span>.</p>
+<p><span class="math inline">\(\epsilon \sim N(0,1)\)</span> represents the noise in the data where each row of a given simulated dataset has an independent noise value drawn from a standard normal distribution with mean 0 and standard deviation 1.</p>
+<ul>
+<li><strong>Mean 0:</strong> means the noise has no systematic push. It’s positive about as often as it’s negative, so it doesn’t change a level’s true average. It only scatters individual rows around it.</li>
+<li><strong>Standard deviation 1:</strong> sets the typical size of the scatter. About 68% of draws land within ±1 and about 95% within ±2</li>
+</ul>
+</div>
+</div>
+</section>
+<section id="method-1---ordinary-lasso" class="level3" data-number="12.3.2">
+<h3 data-number="12.3.2" class="anchored" data-anchor-id="method-1---ordinary-lasso"><span class="header-section-number">12.3.2</span> Method 1 - Ordinary Lasso:</h3>
+<section id="step-1-regularize-using-ordinary-lasso" class="level4" data-number="12.3.2.1">
+<h4 data-number="12.3.2.1" class="anchored" data-anchor-id="step-1-regularize-using-ordinary-lasso"><span class="header-section-number">12.3.2.1</span> Step 1: Regularize Using Ordinary Lasso</h4>
+</section>
+<section id="step-2-parameterize-the-ordinary-lasso" class="level4" data-number="12.3.2.2">
+<h4 data-number="12.3.2.2" class="anchored" data-anchor-id="step-2-parameterize-the-ordinary-lasso"><span class="header-section-number">12.3.2.2</span> Step 2: Parameterize the Ordinary Lasso</h4>
+</section>
+<section id="step-3-tune-parameters-for-ordinary-lasso" class="level4" data-number="12.3.2.3">
+<h4 data-number="12.3.2.3" class="anchored" data-anchor-id="step-3-tune-parameters-for-ordinary-lasso"><span class="header-section-number">12.3.2.3</span> Step 3: Tune Parameters for Ordinary Lasso</h4>
+</section>
+<section id="step-4-fit-ordinary-lasso-for-a-single-simulated-dataset" class="level4" data-number="12.3.2.4">
+<h4 data-number="12.3.2.4" class="anchored" data-anchor-id="step-4-fit-ordinary-lasso-for-a-single-simulated-dataset"><span class="header-section-number">12.3.2.4</span> Step 4: Fit Ordinary Lasso for a Single Simulated Dataset</h4>
+</section>
+<section id="step-5-fit-ordinary-lasso-for-a-500-simulated-datasets" class="level4" data-number="12.3.2.5">
+<h4 data-number="12.3.2.5" class="anchored" data-anchor-id="step-5-fit-ordinary-lasso-for-a-500-simulated-datasets"><span class="header-section-number">12.3.2.5</span> Step 5: Fit Ordinary Lasso for a 500 Simulated Datasets</h4>
+</section>
+<section id="step-6-evaluate-the-ordinary-lasso-performance-on-500-simulated-datasets" class="level4" data-number="12.3.2.6">
+<h4 data-number="12.3.2.6" class="anchored" data-anchor-id="step-6-evaluate-the-ordinary-lasso-performance-on-500-simulated-datasets"><span class="header-section-number">12.3.2.6</span> Step 6: Evaluate the Ordinary Lasso Performance on 500 Simulated Datasets</h4>
+</section>
+</section>
+<section id="method-2--" class="level3" data-number="12.3.3">
+<h3 data-number="12.3.3" class="anchored" data-anchor-id="method-2--"><span class="header-section-number">12.3.3</span> Method 2 - …:</h3>
+</section>
+<section id="method-3--" class="level3" data-number="12.3.4">
+<h3 data-number="12.3.4" class="anchored" data-anchor-id="method-3--"><span class="header-section-number">12.3.4</span> Method 3 - …:</h3>
 
 
 </section>
