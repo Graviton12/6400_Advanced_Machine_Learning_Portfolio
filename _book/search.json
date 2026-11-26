@@ -720,5 +720,38 @@
       "Interactions",
       "<span class='chapter-number'>10</span>  <span class='chapter-title'>Interactions Homework Problems</span>"
     ]
+  },
+  {
+    "objectID": "final_exam.html",
+    "href": "final_exam.html",
+    "title": "12  Identifying the Importance and Effects of Categorical Predictors in a Regression Model",
+    "section": "",
+    "text": "12.1 Research Question:\nThe aim of this study is to examine two key questions:",
+    "crumbs": [
+      "Final Exam",
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Identifying the Importance and Effects of Categorical Predictors in a Regression Model</span>"
+    ]
+  },
+  {
+    "objectID": "final_exam.html#research-question",
+    "href": "final_exam.html#research-question",
+    "title": "12  Identifying the Importance and Effects of Categorical Predictors in a Regression Model",
+    "section": "",
+    "text": "Variable selection: Can a method correctly identify which categorical predictors matter?\nCategory fusion: Can a method correctly identify categories that have identical effects?",
+    "crumbs": [
+      "Final Exam",
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Identifying the Importance and Effects of Categorical Predictors in a Regression Model</span>"
+    ]
+  },
+  {
+    "objectID": "final_exam.html#methodology",
+    "href": "final_exam.html#methodology",
+    "title": "12  Identifying the Importance and Effects of Categorical Predictors in a Regression Model",
+    "section": "12.2 Methodology:",
+    "text": "12.2 Methodology:\nTo answer these questions, we will be conducting a simulation study that compares three different regularization methods:\n\nOrdinary Lasso regression\none fusion-encouraging method from Tutz & Gertheiss (2016)\na third method of our own design, or another one from Tutz & Gertheiss (2016)\n\n\n12.2.1 Simulation Study:\nThis study will conduct a simulation study where data will be generated using a data generation model. Appropriate regularization and parameterization choices will be made based on the simulated data. The regularization method will be based on what we have chosen and what was chosen within the Tutz & Gertheiss (2016) paper.\n\n\n12.2.2 Regularization:\nRegularization adds a oenalty term or constraint to the objective function for model estimation in order to stabilize estimation, reduce model size, protect against overfitting, or to incorporate additional information that exists independent of the data. Different regularization methods include:\n\n\n\n\n\n\n\n\n\n\n\nMethod\nPenalty or constraint\nExact zeros?\nPoint of action\nTuning parameter(s)\nRole for categorical predictors\n\n\n\n\nLasso\n\\(\\lambda\\lVert\\beta\\rVert_1\\)\nYes\nIndividual \\(\\beta_j\\) (L1)\n\\(\\lambda\\)\nSelects individual dummy columns. Can drop levels but cannot merge them directly, and may keep only part of a group.\n\n\nRidge\n\\(\\lambda\\lVert\\beta\\rVert_2^2\\)\nNo\nIndividual \\(\\beta_j\\) (L2)\n\\(\\lambda\\)\nShrinks all level effects but never selects or fuses.\n\n\nElastic net\n\\(\\lambda\\left[\\alpha\\lVert\\beta\\rVert_1 + (1-\\alpha)\\lVert\\beta\\rVert_2^2\\right]\\)\nYes\nBlend of L1 and L2\n\\(\\lambda\\), \\(\\alpha\\)\nLike lasso but tends to keep or drop correlated columns together (grouping effect). Still no direct fusion.\n\n\nBayesian lasso\nLaplace (double-exponential) prior on \\(\\beta_j\\). The posterior mode matches the lasso estimate.\nNot in the posterior mean (zeros require a threshold or interval rule)\nIndividual \\(\\beta_j\\) through the prior\nPrior scale \\(\\lambda\\)\nSame structure as lasso, plus posterior uncertainty for each level effect.\n\n\nPrincipal Component Regression (PCR)\nConstraint \\(\\dot{R}_{k+}^{\\top}\\beta = 0\\) (keep \\(k\\) components)\nIn PC space yes, in \\(\\beta\\) space no\nLinear combinations of \\(\\beta\\)\n\\(k\\) (number of components)\nComponents mix levels and factors together, so it neither selects predictors nor fuses levels in an interpretable way.\n\n\nGroup lasso\n\\(\\lambda\\sum_g w_g\\lVert\\beta_g\\rVert_2\\), with one group \\(g\\) per factor\nYes, for whole groups\nBlocks of coefficients\n\\(\\lambda\\) (and group weights \\(w_g\\))\nVariable selection. A whole factor is in or out, but levels inside a selected factor are not fused.\n\n\nFusion\n\\(\\lambda\\sum_{j&lt;k} w_{jk}\\lvert\\beta_j-\\beta_k\\rvert\\), over all pairs or adjacent levels\nYes, in the differences (not in \\(\\beta\\) itself)\nDifferences between level effects\n\\(\\lambda\\) (and weights \\(w_{jk}\\))\nCategory fusion. Equal level effects become exactly equal, and a factor drops out only if all its levels are fused together.\n\n\n\n\n\n12.2.3 Parameterization:\nA categorical predictor with \\(K\\) levels must be converted into columns of the design matrix before it can enter a regression model. The parameterization is the choice of how to do this, and it determines what each coefficient means.\nFor this study, the parameterization determines the spartsity of the model (how many coefficients are shrunk to or near zero, dropping the corresponding predictor from the model). It determines whether a penalty can select a predictor (variable selection) or merge levels (category fusion).\nFor each method, we must consider the parameterization of the categorical predictors:\n\n\n\n\n\n\n\n\n\n\n\nParameterization\nColumns per factor\nIntercept is…\nCoefficient \\(\\beta_k\\) is…\n\\(\\beta_k = 0\\) means…\nNotes\n\n\n\n\nReference cell\n\\(K-1\\)\nmean of the reference level, \\(\\mu_{\\text{ref}}\\)\nlevel \\(k\\) minus the reference, \\(\\mu_k - \\mu_{\\text{ref}}\\)\nlevel \\(k\\) equals the reference\nPenalties shrink levels toward the reference, so results depend on which level is chosen as the reference.\n\n\nCell means\n\\(K\\)\nnone (dropped)\nthe mean of level \\(k\\), \\(\\mu_k\\)\nlevel \\(k\\) has mean zero\nWith an intercept or several factors the columns are collinear and not identifiable. A regularization method is used where its penalty term picks one solution.\n\n\nUnweighted average\n\\(K-1\\)\nunweighted average of the level means, \\(\\frac{1}{K}\\sum_k \\mu_k\\)\nlevel \\(k\\) minus that average\nlevel \\(k\\) equals the average of the level means\nConstraint: \\(\\sum_k \\beta_k = 0\\). The omitted level’s effect is \\(-\\sum_{k&lt;K}\\beta_k\\), so it is not penalized directly.\n\n\nWeighted average (weighted effect coding)\n\\(K-1\\)\noverall mean of the data (levels weighted by sample size \\(n_k\\))\nlevel \\(k\\) minus the overall mean\nlevel \\(k\\) equals the overall mean\nConstraint: \\(\\sum_k n_k \\beta_k = 0\\). The coding depends on the observed level counts \\(n_k\\), so it changes from dataset to dataset.",
+    "crumbs": [
+      "Final Exam",
+      "<span class='chapter-number'>12</span>  <span class='chapter-title'>Identifying the Importance and Effects of Categorical Predictors in a Regression Model</span>"
+    ]
   }
 ]

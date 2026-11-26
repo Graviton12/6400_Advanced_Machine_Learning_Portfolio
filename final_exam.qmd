@@ -1,0 +1,47 @@
+# Identifying the Importance and Effects of Categorical Predictors in a Regression Model
+
+## Research Question:
+
+The aim of this study is to examine two key questions:
+
+1. **Variable selection:** Can a method correctly identify which categorical predictors matter?
+2. **Category fusion:** Can a method correctly identify categories that have identical effects?
+
+## Methodology:
+
+To answer these questions, we will be conducting a simulation study that compares three different regularization methods:
+
+1. Ordinary Lasso regression
+2. one fusion-encouraging method from Tutz & Gertheiss (2016)
+3. a third method of our own design, or another one from Tutz & Gertheiss (2016)
+
+### Simulation Study:
+
+This study will conduct a simulation study where data will be generated using a data generation model. Appropriate regularization and parameterization choices will be made based on the simulated data. The regularization method will be based on what we have chosen and what was chosen within the Tutz & Gertheiss (2016) paper. Visualizations will then be created to compare model performance across different methods. 
+
+### Regularization: 
+Regularization adds a oenalty term or constraint to the objective function for model estimation in order to stabilize estimation, reduce model size, protect against overfitting, or to incorporate additional information that exists independent of the data. Different regularization methods include:
+
+| Method | Penalty or constraint | Exact zeros? | Point of action | Tuning parameter(s) | Role for categorical predictors |
+|---|---|---|---|---|---|
+| Lasso | $\lambda\lVert\beta\rVert_1$ | Yes | Individual $\beta_j$ (L1) | $\lambda$ | Selects individual dummy columns. Can drop levels but cannot merge them directly, and may keep only part of a group. |
+| Ridge | $\lambda\lVert\beta\rVert_2^2$ | No | Individual $\beta_j$ (L2) | $\lambda$ | Shrinks all level effects but never selects or fuses. |
+| Elastic net | $\lambda\left[\alpha\lVert\beta\rVert_1 + (1-\alpha)\lVert\beta\rVert_2^2\right]$ | Yes | Blend of L1 and L2 | $\lambda$, $\alpha$ | Like lasso but tends to keep or drop correlated columns together (grouping effect). Still no direct fusion. |
+| Bayesian lasso | Laplace (double-exponential) prior on $\beta_j$. The posterior mode matches the lasso estimate. | Not in the posterior mean (zeros require a threshold or interval rule) | Individual $\beta_j$ through the prior | Prior scale $\lambda$ | Same structure as lasso, plus posterior uncertainty for each level effect. |
+| Principal Component Regression (PCR) | Constraint $\dot{R}_{k+}^{\top}\beta = 0$ (keep $k$ components) | In PC space yes, in $\beta$ space no | Linear combinations of $\beta$ | $k$ (number of components) | Components mix levels and factors together, so it neither selects predictors nor fuses levels in an interpretable way. |
+| Group lasso | $\lambda\sum_g w_g\lVert\beta_g\rVert_2$, with one group $g$ per factor | Yes, for whole groups | Blocks of coefficients | $\lambda$ (and group weights $w_g$) | Variable selection. A whole factor is in or out, but levels inside a selected factor are not fused. |
+| Fusion | $\lambda\sum_{j<k} w_{jk}\lvert\beta_j-\beta_k\rvert$, over all pairs or adjacent levels | Yes, in the differences (not in $\beta$ itself) | Differences between level effects | $\lambda$ (and weights $w_{jk}$) | Category fusion. Equal level effects become exactly equal, and a factor drops out only if all its levels are fused together. |
+
+### Parameterization:
+A categorical predictor with $K$ levels must be converted into columns of the design matrix before it can enter a regression model. The parameterization is the choice of how to do this, and it determines what each coefficient means.
+
+For this study, the parameterization determines the spartsity of the model (how many coefficients are shrunk to or near zero, dropping the corresponding predictor from the model). It determines whether a penalty can select a predictor (variable selection) or merge levels (category fusion).
+
+For each method, we must consider the parameterization of the categorical predictors:
+
+| Parameterization | Columns per factor | Intercept is... | Coefficient $\beta_k$ is... | $\beta_k = 0$ means... | Notes |
+|---|---|---|---|---|---|
+| Reference cell | $K-1$ | mean of the reference level, $\mu_{\text{ref}}$ | level $k$ minus the reference, $\mu_k - \mu_{\text{ref}}$ | level $k$ equals the reference | Penalties shrink levels toward the reference, so results depend on which level is chosen as the reference. |
+| Cell means | $K$ | none (dropped) | the mean of level $k$, $\mu_k$ | level $k$ has mean zero | With an intercept or several factors the columns are collinear and not identifiable. A regularization method is used where its penalty term  picks one solution. |
+| Unweighted average | $K-1$ | unweighted average of the level means, $\frac{1}{K}\sum_k \mu_k$ | level $k$ minus that average | level $k$ equals the average of the level means | Constraint: $\sum_k \beta_k = 0$. The omitted level's effect is $-\sum_{k<K}\beta_k$, so it is not penalized directly. |
+| Weighted average (weighted effect coding) | $K-1$ | overall mean of the data (levels weighted by sample size $n_k$) | level $k$ minus the overall mean | level $k$ equals the overall mean | Constraint: $\sum_k n_k \beta_k = 0$. The coding depends on the observed level counts $n_k$, so it changes from dataset to dataset. |
